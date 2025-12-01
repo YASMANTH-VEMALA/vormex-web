@@ -3,8 +3,11 @@ import { NextRequest, NextResponse } from 'next/server';
 // Protected routes that require authentication
 const protectedRoutes: string[] = ['/', '/profile', '/settings', '/feed'];
 
-// Auth routes that should redirect if already authenticated
+// Auth routes that should redirect if already authenticated (except verify-email and forgot-password with token)
 const authRoutes: string[] = ['/login', '/register'];
+
+// Public routes that don't require authentication and shouldn't redirect if authenticated
+const publicRoutes: string[] = ['/forgot-password', '/verify-email', '/auth/google/callback'];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -14,6 +17,9 @@ export function middleware(request: NextRequest) {
     request.cookies.get('authToken')?.value ||
     request.headers.get('Authorization')?.replace('Bearer ', '');
 
+  // Check if it's a public route (like verify-email with token query param)
+  const isPublicRoute = publicRoutes.some((route) => pathname.startsWith(route));
+  
   // Check if accessing protected route without token
   const isProtectedRoute = protectedRoutes.some((route) =>
     route === '/' ? pathname === '/' : pathname.startsWith(route)
@@ -25,10 +31,10 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // Check if accessing auth route with token
+  // Check if accessing auth route with token (but allow public routes)
   const isAuthRoute = authRoutes.some((route) => pathname.startsWith(route));
 
-  if (isAuthRoute && token) {
+  if (isAuthRoute && token && !isPublicRoute) {
     // Redirect to home if accessing auth route with token
     const homeUrl = new URL('/', request.url);
     return NextResponse.redirect(homeUrl);
