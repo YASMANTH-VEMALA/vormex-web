@@ -2,6 +2,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import Cookies from 'js-cookie';
 import type { User } from '@/types';
 
 interface AuthState {
@@ -21,11 +22,15 @@ const useAuthStore = create<AuthState>()(
       token: null,
       isAuthenticated: false,
 
-      // Login method: stores token and updates state
+      // Login method: stores token in cookie and updates state
       login: (user: User, token: string) => {
-        // Store token in localStorage
+        // Store token in cookie (already done in the component, but ensure it's set)
         if (typeof window !== 'undefined') {
-          localStorage.setItem('authToken', token);
+          Cookies.set('authToken', token, { 
+            expires: 7, 
+            secure: process.env.NODE_ENV === 'production', 
+            sameSite: 'strict' 
+          });
         }
         // Update state
         set({
@@ -35,11 +40,11 @@ const useAuthStore = create<AuthState>()(
         });
       },
 
-      // Logout method: removes token and resets state
+      // Logout method: removes token from cookie and resets state
       logout: () => {
-        // Remove token from localStorage
+        // Remove token from cookie
         if (typeof window !== 'undefined') {
-          localStorage.removeItem('authToken');
+          Cookies.remove('authToken');
         }
         // Reset state to initial
         set({

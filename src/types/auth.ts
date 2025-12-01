@@ -2,14 +2,14 @@ export interface User {
   id: number;
   email: string;
   name: string;
-  profileImage?: string | null;
-  bio?: string | null;
   college?: string | null;
   branch?: string | null;
+  profileImage?: string | null;
+  bio?: string | null;
   graduationYear?: number | null;
   isVerified: boolean;
-  authProvider: 'email' | 'google';
-  createdAt: string;
+  authProvider?: 'email' | 'google';
+  createdAt?: string;
   updatedAt?: string;
 }
 
@@ -18,12 +18,12 @@ export interface AuthResponse {
   token: string;
 }
 
-export interface LoginRequest {
+export interface LoginCredentials {
   email: string;
   password: string;
 }
 
-export interface RegisterRequest {
+export interface RegisterData {
   email: string;
   password: string;
   name: string;
@@ -31,7 +31,8 @@ export interface RegisterRequest {
   branch?: string;
 }
 
-export interface GoogleSignInRequest {
-  idToken: string;
+export interface ApiError {
+  error: string;
+  requiresVerification?: boolean;
 }
 

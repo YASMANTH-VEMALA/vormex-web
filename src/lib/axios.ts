@@ -1,5 +1,6 @@
 import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios';
-import type { LoginRequest, RegisterRequest, AuthResponse } from '@/types';
+import Cookies from 'js-cookie';
+import type { LoginRequest, RegisterRequest, AuthResponse, GoogleSignInRequest } from '@/types';
 
 // Create axios instance with base configuration
 const apiClient: AxiosInstance = axios.create({
@@ -13,9 +14,9 @@ const apiClient: AxiosInstance = axios.create({
 // Request interceptor: Add auth token to requests
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    // Get token from localStorage (client-side only)
+    // Get token from cookies (client-side only)
     if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('authToken');
+      const token = Cookies.get('authToken');
       if (token && config.headers) {
         config.headers.Authorization = `Bearer ${token}`;
       }
@@ -35,12 +36,20 @@ apiClient.interceptors.response.use(
   },
   (error: AxiosError) => {
     // Handle 401 Unauthorized errors
+    // Only redirect if we're not already on the login page and it's not a login/register request
     if (error.response?.status === 401) {
-      // Remove token from localStorage
+      // Remove token from cookies
       if (typeof window !== 'undefined') {
-        localStorage.removeItem('authToken');
-        // Redirect to login page
-        window.location.href = '/login';
+        Cookies.remove('authToken');
+        // Only redirect if not already on login/register page and not during login/register request
+        const currentPath = window.location.pathname;
+        const isAuthPage = currentPath === '/login' || currentPath === '/register';
+        const isAuthRequest = error.config?.url?.includes('/auth/login') || error.config?.url?.includes('/auth/register');
+        
+        // Don't redirect if we're on auth page or making auth request (let the component handle the error)
+        if (!isAuthPage && !isAuthRequest) {
+          window.location.href = '/login';
+        }
       }
     }
     // Return rejected promise with error
@@ -55,6 +64,21 @@ export const authAPI = {
   },
   login: async (data: LoginRequest): Promise<AuthResponse> => {
     return apiClient.post('/auth/login', data) as Promise<AuthResponse>;
+  },
+  googleSignIn: async (data: GoogleSignInRequest): Promise<AuthResponse> => {
+    return apiClient.post('/auth/google', data) as Promise<AuthResponse>;
+  },
+  forgotPassword: async (email: string): Promise<{ message: string }> => {
+    return apiClient.post('/auth/forgot-password', { email }) as Promise<{ message: string }>;
+  },
+  resetPassword: async (token: string, newPassword: string): Promise<{ message: string }> => {
+    return apiClient.post(`/auth/reset-password?token=${token}`, { newPassword }) as Promise<{ message: string }>;
+  },
+  verifyEmail: async (token: string): Promise<{ message: string }> => {
+    return apiClient.get(`/auth/verify-email?token=${token}`) as Promise<{ message: string }>;
+  },
+  resendVerification: async (email: string): Promise<{ message: string }> => {
+    return apiClient.post('/auth/resend-verification', { email }) as Promise<{ message: string }>;
   },
 };
 
