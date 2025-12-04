@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { authAPI } from '@/lib/api/auth';
 import { forgotPasswordSchema } from '@/lib/validations/auth';
 import { handleApiError } from '@/lib/utils/errorHandler';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import Link from 'next/link';
 import '../login/login.css';
 
@@ -42,6 +43,9 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="auth-page-wrapper">
+      <div className="fixed top-4 right-4 z-50">
+        <ThemeToggle />
+      </div>
       <div className="main" style={{ maxWidth: '500px', width: '100%', minWidth: 'auto' }}>
         <form className="form" onSubmit={handleForgotPassword}>
           <h2 className="form_title title">Forgot Password</h2>

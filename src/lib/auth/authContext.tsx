@@ -113,7 +113,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     user,
     token,
     loading,
-    isAuthenticated: !!user && !!token,
+    isAuthenticated: !!token, // Only check token for authentication
     login,
     logout,
     register,

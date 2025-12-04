@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { authAPI } from '@/lib/api/auth';
 import { resetPasswordSchema } from '@/lib/validations/auth';
 import { handleApiError } from '@/lib/utils/errorHandler';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import Link from 'next/link';
 import '../login/login.css';
 
@@ -57,6 +58,9 @@ function ResetPasswordContent() {
   if (!token) {
     return (
       <div className="auth-page-wrapper">
+        <div className="fixed top-4 right-4 z-50">
+          <ThemeToggle />
+        </div>
         <div className="main" style={{ maxWidth: '500px', width: '100%', minWidth: 'auto' }}>
           <div className="form">
             <h2 className="form_title title">Reset Password</h2>
@@ -75,6 +79,9 @@ function ResetPasswordContent() {
 
   return (
     <div className="auth-page-wrapper">
+      <div className="fixed top-4 right-4 z-50">
+        <ThemeToggle />
+      </div>
       <div className="main" style={{ maxWidth: '500px', width: '100%', minWidth: 'auto' }}>
         <form className="form" onSubmit={handleResetPassword}>
           <h2 className="form_title title">Reset Password</h2>

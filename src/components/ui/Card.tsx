@@ -1,4 +1,5 @@
 import React from 'react';
+import { cn } from '@/lib/utils';
 
 export interface CardProps {
   children: React.ReactNode;
@@ -7,7 +8,10 @@ export interface CardProps {
 
 export function Card({ children, className = '' }: CardProps) {
   return (
-    <div className={`bg-white rounded-lg shadow-md p-6 ${className}`}>
+    <div className={cn(
+      'bg-white dark:bg-neutral-900 rounded-lg shadow-md dark:shadow-neutral-800 p-6',
+      className
+    )}>
       {children}
     </div>
   );
