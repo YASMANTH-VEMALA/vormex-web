@@ -9,6 +9,7 @@ import { handleApiError } from '@/lib/utils/errorHandler';
 import { GOOGLE_CLIENT_ID } from '@/lib/utils/constants';
 import { LoginSection } from './LoginSection';
 import { SignupSection } from './SignupSection';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import '@/app/login/login.css';
 
 export function AuthPage() {
@@ -237,6 +238,9 @@ export function AuthPage() {
 
   return (
     <div className="auth-page-wrapper">
+      <div className="fixed top-4 right-4 z-50">
+        <ThemeToggle />
+      </div>
       <div className="main">
         {/* Sign Up Container */}
         <SignupSection
