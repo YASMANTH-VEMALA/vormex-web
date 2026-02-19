@@ -22,7 +22,15 @@ import {
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { HomeIcon, Users, Plus, MoreHorizontal, User } from 'lucide-react';
+import { HomeIcon, Users, Plus, Bell, MessageCircle, UsersRound, MoreHorizontal } from 'lucide-react';
+import dynamic from 'next/dynamic';
+import { useAuth } from '@/lib/auth/useAuth';
+import { BottomNavigation } from './BottomNavigation';
+
+// Dynamically import CreatePostModal to avoid circular dependencies
+const CreatePostModal = dynamic(() => import('@/components/feed/CreatePostModal'), {
+  ssr: false,
+});
 
 const DOCK_HEIGHT = 128;
 const DEFAULT_MAGNIFICATION = 80;
@@ -165,9 +173,9 @@ function DockItem({ children, className, href, isActive }: DockItemProps) {
       aria-haspopup="true"
     >
       {Children.map(children, (child) =>
-        cloneElement(child as React.ReactElement<DockIconProps | DockLabelProps>, { 
-          width, 
-          isHovered 
+        cloneElement(child as React.ReactElement<DockIconProps | DockLabelProps>, {
+          width,
+          isHovered
         } as Partial<DockIconProps & DockLabelProps>)
       )}
     </motion.div>
@@ -234,6 +242,8 @@ function DockIcon({ children, className, width, ...rest }: DockIconProps) {
 // Vormex Dock Navigation Component
 export function VormexDock() {
   const pathname = usePathname();
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const { user } = useAuth();
 
   // Hide dock on login and auth pages
   const authPages = ['/login', '/forgot-password', '/reset-password', '/verify-email'];
@@ -241,59 +251,186 @@ export function VormexDock() {
     return null;
   }
 
-  const navItems = [
-    {
-      title: 'Home',
-      href: '/',
-      icon: <HomeIcon className="h-full w-full text-neutral-600 dark:text-neutral-300" />,
-    },
-    {
-      title: 'Find People',
-      href: '/find-people',
-      icon: <Users className="h-full w-full text-neutral-600 dark:text-neutral-300" />,
-    },
-    {
-      title: 'Upload',
-      href: '/upload',
-      icon: <Plus className="h-full w-full text-neutral-600 dark:text-neutral-300" />,
-    },
-    {
-      title: 'More',
-      href: '/more',
-      icon: <MoreHorizontal className="h-full w-full text-neutral-600 dark:text-neutral-300" />,
-    },
-    {
-      title: 'Profile',
-      href: '/profile',
-      icon: <User className="h-full w-full text-neutral-600 dark:text-neutral-300" />,
-    },
-  ];
+  // Profile picture component
+  const ProfilePicture = ({ size = 'full' }: { size?: 'full' | 'small' }) => {
+    const sizeClass = size === 'small' ? 'w-6 h-6' : 'h-full w-full';
+
+    if (user?.profileImage) {
+      return (
+        <img
+          src={user.profileImage}
+          alt={user.name || 'Profile'}
+          className={`${sizeClass} rounded-full object-cover`}
+        />
+      );
+    }
+
+    // Fallback to initials
+    return (
+      <div className={`${sizeClass} rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center`}>
+        <span className={`text-white font-semibold ${size === 'small' ? 'text-xs' : 'text-sm'}`}>
+          {user?.name?.charAt(0)?.toUpperCase() || '?'}
+        </span>
+      </div>
+    );
+  };
+
+  const navItems: Array<{
+    title: string;
+    href: string;
+    icon: React.ReactElement;
+    isCreate?: boolean;
+    isProfile?: boolean;
+    badge?: number;
+  }> = [
+      {
+        title: 'Home',
+        href: '/',
+        icon: <HomeIcon className="h-full w-full text-neutral-600 dark:text-neutral-300" />,
+      },
+      {
+        title: 'Find People',
+        href: '/find-people',
+        icon: <Users className="h-full w-full text-neutral-600 dark:text-neutral-300" />,
+      },
+      {
+        title: 'Groups',
+        href: '/groups',
+        icon: <UsersRound className="h-full w-full text-neutral-600 dark:text-neutral-300" />,
+      },
+      {
+        title: 'Create',
+        href: '#create',
+        icon: <Plus className="h-full w-full text-neutral-600 dark:text-neutral-300" />,
+        isCreate: true,
+      },
+      {
+        title: 'Messages',
+        href: '/messages',
+        icon: <MessageCircle className="h-full w-full text-neutral-600 dark:text-neutral-300" />,
+      },
+      {
+        title: 'Notifications',
+        href: '/notifications',
+        icon: <Bell className="h-full w-full text-neutral-600 dark:text-neutral-300" />,
+      },
+      {
+        title: 'More',
+        href: '/more',
+        icon: <MoreHorizontal className="h-full w-full text-neutral-600 dark:text-neutral-300" />,
+      },
+      {
+        title: 'Profile',
+        href: '/profile',
+        icon: <ProfilePicture />,
+        isProfile: true,
+      },
+    ];
 
   const isActive = (href: string) => {
     if (href === '/') {
       return pathname === '/';
     }
+    if (href === '#create') {
+      return false;
+    }
     return pathname.startsWith(href);
   };
 
   return (
-    <div className="hidden lg:block fixed bottom-4 left-1/2 -translate-x-1/2 z-50">
-      <Dock className="items-end pb-3">
-        {navItems.map((item) => (
-          <DockItem
-            key={item.href}
-            href={item.href}
-            isActive={isActive(item.href)}
-            className="aspect-square rounded-full bg-gray-200 dark:bg-neutral-800 hover:bg-gray-300 dark:hover:bg-neutral-700 transition-colors"
-          >
-            <DockLabel>{item.title}</DockLabel>
-            <DockIcon>{item.icon}</DockIcon>
-          </DockItem>
-        ))}
-      </Dock>
-    </div>
+    <>
+      <div className="hidden lg:block fixed bottom-4 left-1/2 -translate-x-1/2 z-50 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-md rounded-2xl px-4 py-2 shadow-lg border border-white/20 dark:border-neutral-800/50">
+        <Dock className="items-end pb-3">
+          {navItems.map((item) => (
+            item.isCreate ? (
+              <div
+                key={item.href}
+                onClick={() => setShowCreateModal(true)}
+                className="cursor-pointer"
+              >
+                <DockItem
+                  isActive={false}
+                  className="aspect-square rounded-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 transition-colors"
+                >
+                  <DockLabel>{item.title}</DockLabel>
+                  <DockIcon>
+                    <Plus className="h-full w-full text-white" />
+                  </DockIcon>
+                </DockItem>
+              </div>
+            ) : item.isProfile ? (
+              <DockItem
+                key={item.href}
+                href={item.href}
+                isActive={isActive(item.href)}
+                className={`aspect-square rounded-full overflow-hidden ${isActive(item.href)
+                    ? 'ring-2 ring-blue-500 ring-offset-2 ring-offset-white dark:ring-offset-neutral-900'
+                    : 'hover:ring-2 hover:ring-gray-300 dark:hover:ring-neutral-600'
+                  } transition-all`}
+              >
+                <DockLabel>{item.title}</DockLabel>
+                <DockIcon>{item.icon}</DockIcon>
+              </DockItem>
+            ) : (
+              <DockItem
+                key={item.href}
+                href={item.href}
+                isActive={isActive(item.href)}
+                className="aspect-square rounded-full bg-gray-200 dark:bg-neutral-800 hover:bg-gray-300 dark:hover:bg-neutral-700 transition-colors"
+              >
+                <DockLabel>{item.title}</DockLabel>
+                <DockIcon>{item.icon}</DockIcon>
+              </DockItem>
+            )
+          ))}
+        </Dock>
+      </div>
+
+      {/* Mobile Bottom Navigation */}
+      <BottomNavigation
+        className="lg:hidden"
+        items={[
+          {
+            title: 'Home',
+            href: '/',
+            icon: <HomeIcon className="w-full h-full" />,
+            isActive: pathname === '/'
+          },
+          {
+            title: 'Find People',
+            href: '/find-people',
+            icon: <Users className="w-full h-full" />,
+            isActive: pathname.startsWith('/find-people')
+          },
+          {
+            title: 'Create',
+            href: '#create',
+            icon: <Plus className="w-full h-full" />,
+            isActive: false,
+            onClick: () => setShowCreateModal(true)
+          },
+          {
+            title: 'Messages',
+            href: '/messages',
+            icon: <MessageCircle className="w-full h-full" />,
+            isActive: pathname.startsWith('/messages')
+          },
+          {
+            title: 'Profile',
+            href: '/profile',
+            icon: <ProfilePicture size="small" />,
+            isActive: pathname.startsWith('/profile')
+          }
+        ]}
+      />
+
+      {/* Create Post Modal */}
+      <CreatePostModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+      />
+    </>
   );
 }
 
 export { Dock, DockIcon, DockItem, DockLabel };
-

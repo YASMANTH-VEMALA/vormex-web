@@ -2,6 +2,7 @@
 
 import React, { useRef, useEffect } from 'react';
 import { GoogleSignInButton } from './GoogleSignInButton';
+import { OnboardingSocialProof } from './OnboardingSocialProof';
 
 interface LoginSectionProps {
   email: string;
@@ -145,6 +146,7 @@ export function LoginSection({
         <h2 className="form_title title">
           Sign in to <span className="vorm">vorm</span><span className="ex">ex</span>
         </h2>
+        <OnboardingSocialProof />
         <GoogleSignInButton onClick={onGoogleLogin} disabled={isLoading} />
         <span className="form__span">or use your email account</span>
         <input

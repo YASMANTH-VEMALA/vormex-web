@@ -28,13 +28,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Initialize auth state from storage
   useEffect(() => {
-    const initAuth = () => {
+    const initAuth = async () => {
       try {
         const storedToken = Cookies.get('authToken') || getToken();
         if (storedToken) {
           setTokenState(storedToken);
-          // Optionally fetch user data here if needed
-          // For now, we'll rely on components to set user after login
+          
+          // Fetch current user data with the token
+          try {
+            console.log('AuthContext: Token found, fetching user...');
+            const userData = await authAPI.getCurrentUser();
+            console.log('AuthContext: User fetched:', userData);
+            setUser(userData);
+          } catch (error: any) {
+            console.error('AuthContext: Failed to fetch user:', error);
+            // If token is invalid or user not found, clear it
+            const status = error.response?.status;
+            if (status === 401 || status === 404 || status === 403) {
+              console.log('AuthContext: Token invalid or user not found, clearing auth');
+              Cookies.remove('authToken');
+              removeToken();
+              setTokenState(null);
+              setUser(null);
+            }
+          }
         }
       } catch (error) {
         console.error('Error initializing auth:', error);
@@ -113,7 +130,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     user,
     token,
     loading,
-    isAuthenticated: !!token, // Only check token for authentication
+    isAuthenticated: !!token && !!user, // Authenticated only when both token and user exist
     login,
     logout,
     register,

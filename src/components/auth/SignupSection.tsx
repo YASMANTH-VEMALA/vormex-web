@@ -2,6 +2,7 @@
 
 import React, { useRef, useEffect } from 'react';
 import { GoogleSignInButton } from './GoogleSignInButton';
+import { OnboardingSocialProof } from './OnboardingSocialProof';
 
 interface SignupSectionProps {
   name: string;
@@ -147,6 +148,7 @@ export function SignupSection({
     <div className="container a-container" id="a-container">
       <form id="a-form" className="form" onSubmit={onSubmit}>
         <h2 className="form_title title">Create Account</h2>
+        <OnboardingSocialProof />
         <GoogleSignInButton onClick={onGoogleLogin} disabled={isLoading} text="Sign up with Google" />
         <span className="form__span">or use email for registration</span>
         <input

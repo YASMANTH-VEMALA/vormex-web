@@ -1,5 +1,5 @@
 import apiClient from './client';
-import type { AuthResponse, LoginCredentials, RegisterData } from '@/types/auth';
+import type { AuthResponse, LoginCredentials, RegisterData, User } from '@/types/auth';
 
 export const authAPI = {
   register: async (data: RegisterData): Promise<AuthResponse> => {
@@ -8,6 +8,10 @@ export const authAPI = {
 
   login: async (data: LoginCredentials): Promise<AuthResponse> => {
     return apiClient.post('/auth/login', data) as Promise<AuthResponse>;
+  },
+
+  getCurrentUser: async (): Promise<User> => {
+    return apiClient.get('/auth/me') as Promise<User>;
   },
 
   googleSignIn: async (idToken: string): Promise<AuthResponse> => {

@@ -2,6 +2,12 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
+Create your env file first:
+
+```bash
+cp .env.example .env.local
+```
+
 First, run the development server:
 
 ```bash
@@ -15,6 +21,14 @@ bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+Required variables:
+
+- `NEXT_PUBLIC_API_URL` (preferred): full backend API base including `/api`
+- `NEXT_PUBLIC_BACKEND_URL` (optional fallback): backend origin without `/api`
+- `NEXT_PUBLIC_BASE_URL`: frontend origin for OAuth callback fallback
+- `NEXT_PUBLIC_GOOGLE_CLIENT_ID`
+- `GOOGLE_CLIENT_SECRET`
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 

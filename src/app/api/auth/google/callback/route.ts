@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { BACKEND_ORIGIN } from '@/lib/utils/constants';
 
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || '';
@@ -24,10 +25,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Build the request body
+    const defaultFrontendOrigin =
+      process.env.NEXT_PUBLIC_BASE_URL ||
+      request.nextUrl.origin ||
+      BACKEND_ORIGIN;
+
     const tokenParams = new URLSearchParams({
       code: code,
       client_id: GOOGLE_CLIENT_ID,
-      redirect_uri: redirectUri || `${process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:3000'}/auth/google/callback`,
+      redirect_uri: redirectUri || `${defaultFrontendOrigin}/auth/google/callback`,
       grant_type: 'authorization_code',
       code_verifier: codeVerifier,
     });

@@ -1,6 +1,7 @@
 export interface User {
-  id: number;
+  id: string; // UUID string from backend
   email: string;
+  username: string;
   name: string;
   college?: string | null;
   branch?: string | null;

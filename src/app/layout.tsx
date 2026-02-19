@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { AuthProvider } from "@/lib/auth/authContext";
 import { ThemeProvider } from "@/components/ui/ThemeProvider";
+import { NotificationToastProvider } from "@/components/notifications/NotificationToast";
 import { VormexDock } from "@/components/ui/dock";
+import EngagementProvider from "@/components/engagement/EngagementProvider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -37,8 +39,12 @@ export default function RootLayout({
           disableTransitionOnChange={false}
         >
           <AuthProvider>
-            {children}
-            <VormexDock />
+            <NotificationToastProvider>
+              <EngagementProvider>
+                {children}
+              </EngagementProvider>
+              <VormexDock />
+            </NotificationToastProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>

@@ -22,6 +22,12 @@ apiClient.interceptors.request.use(
         config.headers.Authorization = `Bearer ${token}`;
       }
     }
+    
+    // Remove Content-Type for FormData - let browser set it with boundary
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type'];
+    }
+    
     return config;
   },
   (error: AxiosError) => {
@@ -36,8 +42,11 @@ apiClient.interceptors.response.use(
     return response.data;
   },
   (error: AxiosError) => {
-    // Handle 401 Unauthorized errors
-    if (error.response?.status === 401) {
+    const status = error.response?.status;
+    const url = error.config?.url || '';
+    
+    // Handle 401 Unauthorized or 404 on auth/me (user not found after db reset)
+    if (status === 401 || (status === 404 && url.includes('/auth/me'))) {
       // Remove token from both cookies and localStorage
       if (typeof window !== 'undefined') {
         Cookies.remove('authToken');
@@ -45,8 +54,8 @@ apiClient.interceptors.response.use(
         // Only redirect if not already on login page and not during auth request
         const currentPath = window.location.pathname;
         const isAuthPage = currentPath === '/login';
-        const isAuthRequest = error.config?.url?.includes('/auth/login') || 
-                            error.config?.url?.includes('/auth/register');
+        const isAuthRequest = url.includes('/auth/login') || 
+                            url.includes('/auth/register');
         
         if (!isAuthPage && !isAuthRequest) {
           window.location.href = '/login';
@@ -55,7 +64,7 @@ apiClient.interceptors.response.use(
     }
     
     // Handle 403 Forbidden (email not verified)
-    if (error.response?.status === 403) {
+    if (status === 403) {
       // Let the component handle this error
     }
     
