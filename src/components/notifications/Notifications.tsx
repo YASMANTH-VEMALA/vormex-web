@@ -226,8 +226,8 @@ export function Notifications({ isOpen = true, onClose, isDropdown = false }: No
           getNotifications(),
           getUnreadNotificationCount(),
         ]);
-        setNotifications(notifResponse.notifications);
-        setUnreadCount(countRes.count);
+        setNotifications((notifResponse as { notifications: Notification[] }).notifications);
+        setUnreadCount((countRes as unknown as { count: number }).count);
       } catch (error) {
         console.error('Error fetching notifications:', error);
       } finally {
@@ -374,8 +374,8 @@ export function NotificationBell() {
   useEffect(() => {
     const fetchCount = async () => {
       try {
-        const { count } = await getUnreadNotificationCount();
-        setUnreadCount(count);
+        const res = await getUnreadNotificationCount();
+        setUnreadCount((res as unknown as { count: number }).count);
       } catch (error) {
         console.error('Error fetching notification count:', error);
       }

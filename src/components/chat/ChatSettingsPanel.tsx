@@ -339,12 +339,12 @@ export default function ChatSettingsPanel({
 
                   {/* Filter buttons */}
                   <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
-                    {[
+                    {([
                       { id: 'all', label: 'All', icon: null },
                       { id: 'images', label: 'Images', icon: ImageIcon },
                       { id: 'videos', label: 'Videos', icon: Video },
                       { id: 'files', label: 'Files', icon: FileText },
-                    ].map((filter: { id: 'all' | 'images' | 'videos' | 'files'; label: string; icon: React.ComponentType<{ className?: string }> | null }) => (
+                    ] as const).map((filter) => (
                       <button
                         key={filter.id}
                         onClick={() => setMediaFilter(filter.id)}

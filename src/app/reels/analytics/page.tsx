@@ -42,7 +42,7 @@ export default function ReelAnalyticsPage() {
         const response = await apiClient.get('/reels/analytics/creator', {
           params: { days },
         });
-        setAnalytics(response);
+        setAnalytics(response as unknown as CreatorAnalytics);
       } catch (error) {
         console.error('Failed to fetch analytics:', error);
       } finally {

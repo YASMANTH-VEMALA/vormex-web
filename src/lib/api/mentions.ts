@@ -36,6 +36,8 @@ export interface Mention {
   respondedAt: string | null;
   post: MentionPost;
   mentioner: MentionUser | null;
+  /** True if not yet responded (status === 'pending') */
+  isRead?: boolean;
 }
 
 export interface MentionsResponse {
@@ -177,7 +179,7 @@ export async function getProfileMentions(
  */
 export async function getUnreadMentions(): Promise<Mention[]> {
   const response = await getPendingMentions();
-  return response.mentions;
+  return response.mentions.map((m) => ({ ...m, isRead: m.status !== 'pending' }));
 }
 
 /**

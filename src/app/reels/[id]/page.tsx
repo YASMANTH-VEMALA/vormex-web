@@ -20,8 +20,8 @@ export default function SingleReelPage() {
     const fetchReel = async () => {
       try {
         setIsLoading(true);
-        const data = await reelsApi.getReel(reelId);
-        setReel(data as Reel);
+        const data = (await reelsApi.getReel(reelId)) as unknown as Reel;
+        setReel(data);
         setError(null);
       } catch (err) {
         console.error('Failed to fetch reel:', err);

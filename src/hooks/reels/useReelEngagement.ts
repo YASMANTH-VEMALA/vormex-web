@@ -36,7 +36,7 @@ export function useReelEngagement(reel: Reel): UseReelEngagementReturn {
     setIsLiking(true);
 
     try {
-      const response = await reelsApi.toggleLike(reel.id) as { liked: boolean; likesCount: number };
+      const response = (await reelsApi.toggleLike(reel.id)) as unknown as { liked: boolean; likesCount: number };
       setIsLiked(response.liked);
       setLikesCount(response.likesCount);
     } catch (error) {
@@ -59,7 +59,7 @@ export function useReelEngagement(reel: Reel): UseReelEngagementReturn {
     setIsSaving(true);
 
     try {
-      const response = await reelsApi.toggleSave(reel.id) as { saved: boolean; savesCount: number };
+      const response = (await reelsApi.toggleSave(reel.id)) as unknown as { saved: boolean; savesCount: number };
       setIsSaved(response.saved);
       setSavesCount(response.savesCount);
     } catch (error) {

@@ -53,7 +53,7 @@ export function ReelActions({
     }
 
     try {
-      const response = await reelsApi.toggleLike(reel.id) as { liked: boolean; likesCount: number };
+      const response = (await reelsApi.toggleLike(reel.id)) as unknown as { liked: boolean; likesCount: number };
       setIsLiked(response.liked);
       setLikesCount(response.likesCount);
       onLikeUpdate?.(response.liked, response.likesCount);
@@ -71,7 +71,7 @@ export function ReelActions({
     setSavesCount(newCount);
 
     try {
-      const response = await reelsApi.toggleSave(reel.id) as { saved: boolean; savesCount: number };
+      const response = (await reelsApi.toggleSave(reel.id)) as unknown as { saved: boolean; savesCount: number };
       setIsSaved(response.saved);
       setSavesCount(response.savesCount);
       onSaveUpdate?.(response.saved, response.savesCount);

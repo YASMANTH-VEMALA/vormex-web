@@ -24,7 +24,7 @@ export default function DraftsPage() {
   useEffect(() => {
     const fetchDrafts = async () => {
       try {
-        const response = await reelsApi.getDrafts() as { reels: Reel[] };
+        const response = (await reelsApi.getDrafts()) as unknown as { reels: Reel[] };
         setDrafts(response.reels || []);
       } catch (error) {
         console.error('Failed to fetch drafts:', error);

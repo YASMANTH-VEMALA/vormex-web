@@ -27,7 +27,7 @@ export const getSavedPosts = async (
 ): Promise<SavedPostsResponse> => {
   const params: Record<string, string | number> = { limit };
   if (cursor) params.cursor = cursor;
-  const res = await apiClient.get('/saved', { params });
+  const res = (await apiClient.get('/saved', { params })) as unknown as SavedPostsResponse;
   return {
     posts: res.posts || [],
     nextCursor: res.nextCursor ?? null,

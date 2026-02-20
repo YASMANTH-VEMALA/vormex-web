@@ -60,7 +60,8 @@ async function sendChatMessage(message: string, conversationHistory: { role: str
     message,
     conversationHistory,
   });
-  return response.reply || response.message || 'I apologize, but I encountered an issue. Please try again.';
+  const data = response as unknown as { reply?: string; message?: string };
+  return data.reply || data.message || 'I apologize, but I encountered an issue. Please try again.';
 }
 
 export function AIChatWidget() {

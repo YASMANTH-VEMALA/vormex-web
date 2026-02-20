@@ -66,7 +66,7 @@ export function ReelShareSheet({ reel, isOpen, onClose }: ReelShareSheetProps) {
     try {
       setIsLoading(true);
       const response = await apiClient.get('/chat/conversations');
-      setConversations(response?.conversations || []);
+      setConversations((response as unknown as { conversations?: Conversation[] })?.conversations || []);
     } catch (error) {
       console.error('Failed to fetch conversations:', error);
       setConversations([]);

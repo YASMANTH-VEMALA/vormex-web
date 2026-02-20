@@ -28,6 +28,7 @@ export function usePushNotifications(userId: string | undefined) {
   });
   const [foregroundNotification, setForegroundNotification] = useState<any>(null);
   const registeredRef = useRef(false);
+  const tokenRef = useRef<string | null>(null);
 
   // Check support on mount
   useEffect(() => {
@@ -84,6 +85,7 @@ export function usePushNotifications(userId: string | undefined) {
       });
 
       registeredRef.current = true;
+      tokenRef.current = token;
       setState(prev => ({
         ...prev,
         isPermissionGranted: true,
@@ -99,8 +101,8 @@ export function usePushNotifications(userId: string | undefined) {
     }
   }, [state.isLoading]);
 
-  const requestPermission = useCallback(async () => {
-    if (!state.isSupported) return;
+  const requestPermission = useCallback(async (): Promise<boolean> => {
+    if (!state.isSupported) return false;
 
     setState(prev => ({ ...prev, isLoading: true }));
 
@@ -109,11 +111,15 @@ export function usePushNotifications(userId: string | undefined) {
       if (permission === 'granted') {
         setState(prev => ({ ...prev, isPermissionGranted: true }));
         await registerToken();
+        setState(prev => ({ ...prev, isLoading: false }));
+        return registeredRef.current;
       } else {
         setState(prev => ({ ...prev, isLoading: false }));
+        return false;
       }
     } catch {
       setState(prev => ({ ...prev, isLoading: false }));
+      return false;
     }
   }, [state.isSupported, registerToken]);
 
@@ -121,10 +127,35 @@ export function usePushNotifications(userId: string | undefined) {
     setForegroundNotification(null);
   }, []);
 
+  const subscribe = useCallback(async (): Promise<boolean> => {
+    return requestPermission();
+  }, [requestPermission]);
+
+  const unsubscribe = useCallback(async () => {
+    const token = tokenRef.current;
+    if (!token) return;
+    try {
+      await apiClient.delete('/devices/unregister', { data: { token } });
+      registeredRef.current = false;
+      tokenRef.current = null;
+      localStorage.removeItem('push_token_registered');
+      setState(prev => ({
+        ...prev,
+        isTokenRegistered: false,
+        isPermissionGranted: false,
+      }));
+    } catch (err) {
+      console.error('Push notification unregister failed:', err);
+    }
+  }, []);
+
   return {
     ...state,
+    isSubscribed: state.isTokenRegistered,
     foregroundNotification,
     requestPermission,
     dismissNotification,
+    subscribe,
+    unsubscribe,
   };
 }

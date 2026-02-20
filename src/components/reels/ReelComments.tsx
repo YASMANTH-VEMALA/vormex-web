@@ -31,7 +31,7 @@ export function ReelComments({ reelId, isOpen, onClose, authorId }: ReelComments
   const fetchComments = useCallback(async (cursor?: string) => {
     try {
       setIsLoading(true);
-      const response = await reelsApi.getComments(reelId, { cursor, limit: 20 }) as {
+      const response = (await reelsApi.getComments(reelId, { cursor, limit: 20 })) as unknown as {
         comments: ReelComment[];
         nextCursor: string | null;
         hasMore: boolean;
@@ -59,7 +59,7 @@ export function ReelComments({ reelId, isOpen, onClose, authorId }: ReelComments
 
   const fetchReplies = useCallback(async (parentId: string) => {
     try {
-      const response = await reelsApi.getComments(reelId, { parentId, limit: 10 }) as {
+      const response = (await reelsApi.getComments(reelId, { parentId, limit: 10 })) as unknown as {
         comments: ReelComment[];
         nextCursor: string | null;
         hasMore: boolean;
@@ -79,11 +79,11 @@ export function ReelComments({ reelId, isOpen, onClose, authorId }: ReelComments
 
     try {
       setIsSubmitting(true);
-      const response = await reelsApi.createComment(reelId, {
+      const response = (await reelsApi.createComment(reelId, {
         content: newComment.trim(),
         parentId: replyTo?.id,
         mentions: commentMentions,
-      }) as ReelComment;
+      })) as unknown as ReelComment;
 
       if (replyTo) {
         setRepliesData((prev) => ({
@@ -118,7 +118,7 @@ export function ReelComments({ reelId, isOpen, onClose, authorId }: ReelComments
 
   const handleLike = useCallback(async (commentId: string) => {
     try {
-      const response = await reelsApi.toggleCommentLike(reelId, commentId) as {
+      const response = (await reelsApi.toggleCommentLike(reelId, commentId)) as unknown as {
         liked: boolean;
         likesCount: number;
       };

@@ -148,15 +148,15 @@ export function MentionsDashboard() {
               <div className="flex items-start gap-3">
                 {/* Avatar */}
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center overflow-hidden flex-shrink-0">
-                  {mention.mentionedBy.avatar ? (
+                  {mention.mentioner?.profileImage || mention.mentioner?.avatar ? (
                     <img
-                      src={mention.mentionedBy.avatar}
-                      alt={mention.mentionedBy.name}
+                      src={(mention.mentioner?.profileImage || mention.mentioner?.avatar) as string}
+                      alt={mention.mentioner?.name || ''}
                       className="w-full h-full object-cover"
                     />
                   ) : (
                     <span className="text-white font-bold">
-                      {mention.mentionedBy.name?.charAt(0) || '?'}
+                      {mention.mentioner?.name?.charAt(0) || '?'}
                     </span>
                   )}
                 </div>
@@ -165,11 +165,10 @@ export function MentionsDashboard() {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm text-gray-900 dark:text-white">
                     <span className="font-semibold">
-                      {mention.mentionedBy.name}
+                      {mention.mentioner?.name || 'Someone'}
                     </span>{' '}
                     <span className="text-gray-500 dark:text-neutral-400">
-                      mentioned you in a{' '}
-                      {mention.type === 'POST' ? 'post' : 'comment'}
+                      mentioned you in a post
                     </span>
                   </p>
 
@@ -177,11 +176,6 @@ export function MentionsDashboard() {
                   {mention.post?.content && (
                     <p className="text-sm text-gray-600 dark:text-neutral-300 mt-1 line-clamp-2">
                       {mention.post.content}
-                    </p>
-                  )}
-                  {mention.comment?.content && (
-                    <p className="text-sm text-gray-600 dark:text-neutral-300 mt-1 line-clamp-2">
-                      {mention.comment.content}
                     </p>
                   )}
 

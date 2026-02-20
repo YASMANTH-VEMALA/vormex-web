@@ -38,7 +38,7 @@ export function ReelPoll({
 
     try {
       setIsVoting(true);
-      const response = await reelsApi.votePoll(reelId, optionId) as {
+      const response = (await reelsApi.votePoll(reelId, optionId)) as unknown as {
         success: boolean;
         pollOptions: PollOption[];
         userVotedOption: number;

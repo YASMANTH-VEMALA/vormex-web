@@ -86,7 +86,9 @@ export function StoryViewer({
     };
 
     socket.on('story:viewed', handleStoryViewed);
-    return () => socket.off('story:viewed', handleStoryViewed);
+    return () => {
+      socket.off('story:viewed', handleStoryViewed);
+    };
   }, [isOwnStory, currentStory?.id]);
 
   // Mark story as viewed on mount and story change

@@ -29,7 +29,7 @@ export function ReelQuiz({ reelId, question, options }: ReelQuizProps) {
       setIsSubmitting(true);
       setSelectedOption(optionId);
       
-      const response = await reelsApi.answerQuiz(reelId, optionId) as {
+      const response = (await reelsApi.answerQuiz(reelId, optionId)) as unknown as {
         correct: boolean;
         correctAnswer: number;
       };

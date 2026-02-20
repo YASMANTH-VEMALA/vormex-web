@@ -174,7 +174,7 @@ export function ReelCreate({ onClose, initialOriginalReelId, initialResponseType
       if (saveAsDraft) {
         router.push('/reels/drafts');
       } else {
-        router.push(`/reels/${(reel as { id: string }).id}`);
+        router.push(`/reels/${(reel as unknown as { id: string }).id}`);
       }
     } catch (err: any) {
       console.error('Upload failed:', err);

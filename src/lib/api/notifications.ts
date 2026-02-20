@@ -147,7 +147,7 @@ function transformNotification(n: Notification): Notification {
 
 /** Get notifications - for Notifications component */
 export async function getNotifications(params?: { cursor?: string; limit?: number; unreadOnly?: boolean }) {
-  const data = await apiClient.get<NotificationsResponse>('/notifications', { params });
+  const data = (await apiClient.get('/notifications', { params })) as unknown as NotificationsResponse;
   return {
     notifications: data.notifications.map(transformNotification),
     nextCursor: data.nextCursor,

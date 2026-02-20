@@ -18,7 +18,7 @@ export function useReelsFeed({
     queryKey: ['reels-feed', mode],
     queryFn: async ({ pageParam }) => {
       const response = await reelsApi.getFeed({ cursor: pageParam, limit: 10, mode });
-      return response as ReelsFeedResponse;
+      return response as unknown as ReelsFeedResponse;
     },
     getNextPageParam: (lastPage) => lastPage.nextCursor,
     initialPageParam: undefined as string | undefined,
@@ -51,7 +51,7 @@ export function useTrendingReels(hours: number = 24) {
     queryKey: ['reels-trending', hours],
     queryFn: async () => {
       const response = await reelsApi.getTrending({ hours, limit: 20 });
-      return response as ReelsFeedResponse;
+      return response as unknown as ReelsFeedResponse;
     },
     getNextPageParam: () => undefined,
     initialPageParam: undefined,
@@ -73,7 +73,7 @@ export function useHashtagReels(hashtag: string) {
     queryKey: ['reels-hashtag', hashtag],
     queryFn: async ({ pageParam }) => {
       const response = await reelsApi.getByHashtag(hashtag, { cursor: pageParam, limit: 20 });
-      return response as ReelsFeedResponse;
+      return response as unknown as ReelsFeedResponse;
     },
     getNextPageParam: (lastPage) => lastPage.nextCursor,
     initialPageParam: undefined as string | undefined,
@@ -99,7 +99,7 @@ export function useAudioReels(audioId: string) {
     queryKey: ['reels-audio', audioId],
     queryFn: async ({ pageParam }) => {
       const response = await reelsApi.getByAudio(audioId, { cursor: pageParam, limit: 20 });
-      return response as ReelsFeedResponse;
+      return response as unknown as ReelsFeedResponse;
     },
     getNextPageParam: (lastPage) => lastPage.nextCursor,
     initialPageParam: undefined as string | undefined,
@@ -125,7 +125,7 @@ export function useUserReels(userId: string) {
     queryKey: ['reels-user', userId],
     queryFn: async ({ pageParam }) => {
       const response = await reelsApi.getUserReels(userId, { cursor: pageParam, limit: 20 });
-      return response as ReelsFeedResponse;
+      return response as unknown as ReelsFeedResponse;
     },
     getNextPageParam: (lastPage) => lastPage.nextCursor,
     initialPageParam: undefined as string | undefined,

@@ -74,7 +74,7 @@ export function ReelCard({ reel, isActive, isMuted, onMuteToggle }: ReelCardProp
       setTimeout(() => setShowHeart(false), 800);
 
       try {
-        const response = await reelsApi.toggleLike(reel.id) as { liked: boolean; likesCount: number };
+        const response = (await reelsApi.toggleLike(reel.id)) as unknown as { liked: boolean; likesCount: number };
         setLocalReel((prev) => ({
           ...prev,
           isLiked: response.liked,

@@ -70,7 +70,7 @@ export default function ChatList({
       // Keep set bounded
       if (processedMessageIds.size > 50) {
         const first = processedMessageIds.values().next().value;
-        processedMessageIds.delete(first);
+        if (first !== undefined) processedMessageIds.delete(first);
       }
 
       setConversations(prev => {

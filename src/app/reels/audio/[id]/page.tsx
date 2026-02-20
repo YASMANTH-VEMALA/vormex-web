@@ -26,7 +26,7 @@ export default function AudioReelsPage() {
     const fetchAudio = async () => {
       try {
         setAudioLoading(true);
-        const data = await audioApi.get(audioId);
+        const data = (await audioApi.getAudio(audioId)) as unknown as Audio;
         setAudio(data);
         setIsSaved(data.isSaved || false);
       } catch (err) {
@@ -58,7 +58,7 @@ export default function AudioReelsPage() {
 
   const toggleSave = async () => {
     try {
-      const result = await audioApi.toggleSave(audioId);
+      const result = (await audioApi.toggleSave(audioId)) as unknown as { saved: boolean };
       setIsSaved(result.saved);
     } catch (err) {
       console.error('Failed to toggle save:', err);
@@ -102,9 +102,9 @@ export default function AudioReelsPage() {
 
         <div className="pt-20 pb-8 px-6 flex flex-col items-center">
           <div className="w-48 h-48 rounded-xl overflow-hidden mb-6 bg-neutral-800">
-            {audio.coverUrl ? (
+            {audio.albumArt ? (
               <Image
-                src={audio.coverUrl}
+                src={audio.albumArt}
                 alt={audio.title}
                 width={192}
                 height={192}
@@ -206,9 +206,9 @@ export default function AudioReelsPage() {
           </button>
           <div className="flex items-center gap-3 flex-1 min-w-0">
             <div className="w-10 h-10 rounded bg-neutral-800 overflow-hidden flex-shrink-0">
-              {audio.coverUrl ? (
+              {audio.albumArt ? (
                 <Image
-                  src={audio.coverUrl}
+                  src={audio.albumArt}
                   alt={audio.title}
                   width={40}
                   height={40}

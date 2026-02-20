@@ -28,7 +28,7 @@ export function ReelsFeed({ mode = 'foryou', initialReels }: ReelsFeedProps) {
     queryKey: ['reels-feed', mode],
     queryFn: async ({ pageParam }) => {
       const response = await reelsApi.getFeed({ cursor: pageParam, limit: 10, mode });
-      return response as ReelsFeedResponse;
+      return response as unknown as ReelsFeedResponse;
     },
     getNextPageParam: (lastPage) => lastPage.nextCursor,
     initialPageParam: undefined as string | undefined,

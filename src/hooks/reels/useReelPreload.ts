@@ -54,7 +54,7 @@ export function useReelPreload({
   const preloadReel = useCallback(async (reelId: string) => {
     try {
       const data = await reelsApi.getPreloadData(reelId);
-      const preloadData = data as { hlsUrl: string; thumbnailUrl: string };
+      const preloadData = data as unknown as { hlsUrl: string; thumbnailUrl: string };
       if (preloadData.hlsUrl) {
         preloadHls(preloadData.hlsUrl);
       }

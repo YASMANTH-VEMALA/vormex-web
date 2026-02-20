@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { useAuth } from '@/lib/auth/useAuth';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import apiClient from '@/lib/api/client';
 
@@ -94,7 +95,8 @@ function ToggleSwitch({ enabled, onChange, disabled }: ToggleSwitchProps) {
 }
 
 function NotificationSettingsPage() {
-  const { isSupported, isSubscribed, subscribe, unsubscribe, loading: pushLoading } = usePushNotifications();
+  const { user } = useAuth();
+  const { isSupported, isSubscribed, subscribe, unsubscribe, isLoading: pushLoading } = usePushNotifications(user?.id);
   const [preferences, setPreferences] = useState<NotificationPreferences>(defaultPreferences);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -108,8 +110,8 @@ function NotificationSettingsPage() {
     try {
       setLoading(true);
       const response = await apiClient.get('/notifications/preferences');
-      if (response) {
-        setPreferences({ ...defaultPreferences, ...response });
+      if (response?.data) {
+        setPreferences({ ...defaultPreferences, ...response.data });
       }
     } catch (error) {
       console.error('Failed to fetch notification preferences:', error);

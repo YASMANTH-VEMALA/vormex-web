@@ -16,7 +16,7 @@ export default function EditReelPage() {
   useEffect(() => {
     const fetchReel = async () => {
       try {
-        const data = await reelsApi.getReel(reelId) as Reel;
+        const data = (await reelsApi.getReel(reelId)) as unknown as Reel;
         setReel(data);
       } catch (error) {
         console.error('Failed to fetch reel:', error);
