@@ -27,14 +27,28 @@ export function FormattedContent({ content, className = '' }: FormattedContentPr
     let key = 0;
 
     while (remaining.length > 0) {
-      // Check for color tags: [color:red]text[/color]
-      const colorMatch = remaining.match(/^\[color:([a-zA-Z]+|#[0-9a-fA-F]{3,6})\]([\s\S]*?)\[\/color\]/);
+      // Check for color tags: [color:red], [color:#22c55e], [color: #hex] (optional space)
+      const colorMatch = remaining.match(/^\[color:\s*([a-zA-Z]+|#[0-9a-fA-F]{3,8})\]([\s\S]*?)\[\/color\]/i);
       if (colorMatch) {
         const [fullMatch, color, innerText] = colorMatch;
+        const safeColor = /^#[0-9a-fA-F]{3,8}$/.test(color) || /^[a-zA-Z]+$/.test(color) ? color : '#000';
         elements.push(
-          <span key={key++} style={{ color }}>
+          <span key={key++} style={{ color: safeColor }}>
             {renderFormattedText(innerText)}
           </span>
+        );
+        remaining = remaining.slice(fullMatch.length);
+        continue;
+      }
+
+      // Check for bold: [b]text[/b] (BBCode style)
+      const bbBoldMatch = remaining.match(/^\[b\]([\s\S]*?)\[\/b\]/i);
+      if (bbBoldMatch) {
+        const [fullMatch, innerText] = bbBoldMatch;
+        elements.push(
+          <strong key={key++} className="font-bold">
+            {renderFormattedText(innerText)}
+          </strong>
         );
         remaining = remaining.slice(fullMatch.length);
         continue;

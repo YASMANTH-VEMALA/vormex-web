@@ -85,6 +85,32 @@ export interface SocketEventHandlers {
   onChatMessageEdited?: (data: { messageId: string; conversationId: string; content: string; editedAt: Date }) => void;
   onChatMessageReaction?: (data: { messageId: string; conversationId: string; userId: string; emoji: string; action: string }) => void;
   onChatMessageDelivered?: (data: { messageId: string; deliveredAt: Date }) => void;
+  
+  // Reel events
+  onReelEngagementUpdate?: (data: { 
+    reelId: string; 
+    type: 'like' | 'comment' | 'share'; 
+    userId?: string;
+    liked?: boolean;
+    likesCount?: number;
+    commentsCount?: number;
+    sharesCount?: number;
+    comment?: { id: string; author: any; content: string; parentId?: string };
+  }) => void;
+  
+  // New notification event
+  onNotificationNew?: (data: {
+    id: string;
+    type: string;
+    title: string;
+    body: string;
+    actor: any;
+    post?: any;
+    reel?: any;
+    data: any;
+    isRead: boolean;
+    createdAt: string;
+  }) => void;
 }
 
 /**
@@ -286,6 +312,16 @@ function registerSocketHandlers(sock: Socket, handlers: SocketEventHandlers): vo
   if (handlers.onChatMessageDelivered) {
     sock.on('chat:message_delivered', handlers.onChatMessageDelivered);
   }
+  
+  // Reel events
+  if (handlers.onReelEngagementUpdate) {
+    sock.on('reel:engagement_update', handlers.onReelEngagementUpdate);
+  }
+  
+  // New notification event
+  if (handlers.onNotificationNew) {
+    sock.on('notification:new', handlers.onNotificationNew);
+  }
 }
 
 /**
@@ -457,6 +493,43 @@ export function reactToChatMessage(messageId: string, conversationId: string, em
   socket?.emit('chat:react', { messageId, conversationId, emoji });
 }
 
+// ============================================
+// REEL SOCKET FUNCTIONS
+// ============================================
+
+/**
+ * Join a reel room for real-time updates
+ */
+export function joinReelRoom(reelId: string): void {
+  socket?.emit('reel:join', { reelId });
+}
+
+/**
+ * Leave a reel room
+ */
+export function leaveReelRoom(reelId: string): void {
+  socket?.emit('reel:leave', { reelId });
+}
+
+/**
+ * Like a reel via WebSocket
+ */
+export function likeReel(reelId: string): void {
+  socket?.emit('reel:like', { reelId });
+}
+
+/**
+ * Create a reel comment via WebSocket
+ */
+export function createReelComment(
+  reelId: string,
+  content: string,
+  parentId?: string,
+  mentions?: string[]
+): void {
+  socket?.emit('reel:comment', { reelId, content, parentId, mentions });
+}
+
 export default {
   initializeSocket,
   getSocket,
@@ -478,4 +551,9 @@ export default {
   deleteChatMessage,
   editChatMessage,
   reactToChatMessage,
+  // Reel functions
+  joinReelRoom,
+  leaveReelRoom,
+  likeReel,
+  createReelComment,
 };

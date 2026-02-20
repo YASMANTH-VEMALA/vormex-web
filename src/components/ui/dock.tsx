@@ -22,7 +22,7 @@ import {
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { HomeIcon, Users, Plus, Bell, MessageCircle, UsersRound, MoreHorizontal } from 'lucide-react';
+import { HomeIcon, Users, Plus, Bell, MessageCircle, UsersRound, MoreHorizontal, Film } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useAuth } from '@/lib/auth/useAuth';
 import { BottomNavigation } from './BottomNavigation';
@@ -289,6 +289,11 @@ export function VormexDock() {
         icon: <HomeIcon className="h-full w-full text-neutral-600 dark:text-neutral-300" />,
       },
       {
+        title: 'Reels',
+        href: '/reels',
+        icon: <Film className="h-full w-full text-neutral-600 dark:text-neutral-300" />,
+      },
+      {
         title: 'Find People',
         href: '/find-people',
         icon: <Users className="h-full w-full text-neutral-600 dark:text-neutral-300" />,
@@ -397,10 +402,10 @@ export function VormexDock() {
             isActive: pathname === '/'
           },
           {
-            title: 'Find People',
-            href: '/find-people',
-            icon: <Users className="w-full h-full" />,
-            isActive: pathname.startsWith('/find-people')
+            title: 'Reels',
+            href: '/reels',
+            icon: <Film className="w-full h-full" />,
+            isActive: pathname.startsWith('/reels')
           },
           {
             title: 'Create',

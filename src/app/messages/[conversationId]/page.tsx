@@ -3,7 +3,7 @@
 import { useEffect, useState, use, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth/useAuth';
-import { ChatMessages, ChatInput, ChatHeader, type UploadingMessage } from '@/components/chat';
+import { ChatMessages, ChatInput, ChatHeader, type UploadingMessage, type OptimisticMessage } from '@/components/chat';
 import ChatSettingsPanel from '@/components/chat/ChatSettingsPanel';
 import { getConversation, Conversation } from '@/lib/api/chat';
 import { initializeSocket } from '@/lib/socket';
@@ -30,12 +30,32 @@ export default function ConversationPage({ params }: ConversationPageProps) {
   const [showSettings, setShowSettings] = useState(false);
   const [wallpaper, setWallpaper] = useState('default');
   const [uploadingMessages, setUploadingMessages] = useState<UploadingMessage[]>([]);
+  const [optimisticMessages, setOptimisticMessages] = useState<OptimisticMessage[]>([]);
   const [lastReceivedMessage, setLastReceivedMessage] = useState<string>('');
   const [chatCustomization, setChatCustomization] = useState(DEFAULT_CHAT_CUSTOMIZATION_ENTITLEMENTS);
 
   // Callback to track the last message received from other user
   const handleLastMessageUpdate = useCallback((message: string) => {
     setLastReceivedMessage(message);
+  }, []);
+
+  // Handle optimistic message - add to list for immediate display
+  const handleOptimisticMessage = useCallback((message: OptimisticMessage) => {
+    setOptimisticMessages(prev => [...prev, message]);
+  }, []);
+
+  // Remove optimistic messages when real messages arrive
+  const handleMessageConfirmed = useCallback((confirmedContent: string) => {
+    // Remove the first optimistic message with matching content
+    setOptimisticMessages(prev => {
+      const idx = prev.findIndex(m => m.content === confirmedContent);
+      if (idx >= 0) {
+        const updated = [...prev];
+        updated.splice(idx, 1);
+        return updated;
+      }
+      return prev;
+    });
   }, []);
 
   // Load wallpaper preference from localStorage
@@ -57,7 +77,8 @@ export default function ConversationPage({ params }: ConversationPageProps) {
 
       try {
         const inventory = await storeAPI.getMyInventory();
-        const ownedSlugs = inventory.map((item) => item.itemSlug);
+        // Handle case where inventory is undefined or not an array
+        const ownedSlugs = Array.isArray(inventory) ? inventory.map((item) => item.itemSlug) : [];
         setChatCustomization(buildChatCustomizationEntitlements(ownedSlugs));
       } catch (error) {
         console.error('Failed to load chat customization packs:', error);
@@ -97,9 +118,10 @@ export default function ConversationPage({ params }: ConversationPageProps) {
         setError(null);
         const conv = await getConversation(resolvedParams.conversationId);
         setConversation(conv);
-        // Clear reply and uploading messages when switching conversations
+        // Clear reply, uploading and optimistic messages when switching conversations
         setReplyTo(null);
         setUploadingMessages([]);
+        setOptimisticMessages([]);
       } catch (err: unknown) {
         setError(err instanceof Error ? err.message : 'Failed to load conversation');
       } finally {
@@ -166,16 +188,20 @@ export default function ConversationPage({ params }: ConversationPageProps) {
           animatedBubbles={chatCustomization.animatedBubbles}
           onReply={(msg) => setReplyTo(msg)}
           uploadingMessages={uploadingMessages}
+          optimisticMessages={optimisticMessages}
           onLastMessageUpdate={handleLastMessageUpdate}
+          onMessageConfirmed={handleMessageConfirmed}
         />
 
         {/* Input */}
         <ChatInput
           key={`input-${resolvedParams.conversationId}`}
           conversationId={resolvedParams.conversationId}
+          currentUserId={user!.id}
           replyTo={replyTo || undefined}
           onCancelReply={() => setReplyTo(null)}
           onUploadingMessagesChange={setUploadingMessages}
+          onOptimisticMessage={handleOptimisticMessage}
           otherUserId={otherUser.id}
           otherUserName={otherUser.name}
           lastReceivedMessage={lastReceivedMessage}

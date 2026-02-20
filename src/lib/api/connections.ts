@@ -151,3 +151,31 @@ export async function getConnectionStatus(
 ): Promise<ConnectionStatusResponse> {
   return apiClient.get(`/connections/status/${userId}`);
 }
+
+/**
+ * Block a user
+ */
+export async function blockUser(
+  userId: string
+): Promise<{ message: string }> {
+  return apiClient.post(`/users/${userId}/block`);
+}
+
+/**
+ * Unblock a user
+ */
+export async function unblockUser(
+  userId: string
+): Promise<{ message: string }> {
+  return apiClient.delete(`/users/${userId}/block`);
+}
+
+/**
+ * Get blocked users
+ */
+export async function getBlockedUsers(
+  page: number = 1,
+  limit: number = 20
+): Promise<{ users: Array<{ id: string; username: string; name: string; profileImage: string | null }>; total: number; hasMore: boolean }> {
+  return apiClient.get(`/users/blocked?page=${page}&limit=${limit}`);
+}

@@ -47,6 +47,7 @@ export function Feed() {
   const [showStoryCreator, setShowStoryCreator] = useState(false);
   const [showStoryViewer, setShowStoryViewer] = useState(false);
   const [selectedStoryGroup, setSelectedStoryGroup] = useState<StoryGroup | null>(null);
+  const [storyRefreshKey, setStoryRefreshKey] = useState(0);
   
   // Refs for infinite scroll
   const observerRef = useRef<IntersectionObserver | null>(null);
@@ -109,19 +110,20 @@ export function Feed() {
       ));
     };
     
-    // Initialize socket with handlers
-    const socket = initializeSocket({
+    const handlePostShared = ({ postId, sharesCount }: { postId: string; sharesCount: number }) => {
+      setPosts(prev => prev.map(post => 
+        post.id === postId ? { ...post, sharesCount } : post
+      ));
+    };
+    
+    // Initialize socket connection
+    initializeSocket({
       onConnect: () => {
         console.log('Feed: Socket connected');
       },
-      onPostCreated: handlePostCreated,
-      onPostLiked: handlePostLiked,
-      onPostReacted: handlePostReacted,
-      onCommentCreated: handleCommentCreated,
-      onPollUpdated: handlePollUpdated,
     });
     
-    // Also directly attach handlers to ensure they're registered
+    // Directly attach handlers to the socket
     const sock = getSocket();
     if (sock) {
       sock.on('post:created', handlePostCreated);
@@ -129,6 +131,7 @@ export function Feed() {
       sock.on('post:reacted', handlePostReacted);
       sock.on('comment:created', handleCommentCreated);
       sock.on('poll:updated', handlePollUpdated);
+      sock.on('post:shared', handlePostShared);
     }
     
     return () => {
@@ -140,6 +143,7 @@ export function Feed() {
         sock.off('post:reacted', handlePostReacted);
         sock.off('comment:created', handleCommentCreated);
         sock.off('poll:updated', handlePollUpdated);
+        sock.off('post:shared', handlePostShared);
       }
     };
   }, [user]);
@@ -233,9 +237,14 @@ export function Feed() {
     }
   };
 
-  // Handle post created - no need to refresh, real-time updates handle it
-  const handlePostCreated = () => {
-    // Post will be added via WebSocket real-time event
+  // Handle post created - add instantly (optimistic) or via WebSocket
+  const handlePostCreated = (post?: Post) => {
+    if (post) {
+      setPosts(prev => {
+        if (prev.some(p => p.id === post.id)) return prev;
+        return [post, ...prev];
+      });
+    }
   };
 
   // Handle post deleted
@@ -304,6 +313,7 @@ export function Feed() {
       {/* Stories Carousel */}
       {user && (
         <StoryCarousel
+          key={storyRefreshKey}
           onOpenStory={handleOpenStory}
           onCreateStory={() => setShowStoryCreator(true)}
         />
@@ -532,7 +542,7 @@ export function Feed() {
         onClose={() => setShowStoryCreator(false)}
         onStoryCreated={() => {
           setShowStoryCreator(false);
-          // StoryCarousel will auto-refresh on next render
+          setStoryRefreshKey((k) => k + 1); // Refetch stories so own story appears
         }}
       />
 

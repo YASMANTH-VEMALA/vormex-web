@@ -68,8 +68,26 @@ export function StoryViewer({
   const containerRef = useRef<HTMLDivElement>(null);
 
   const currentGroup = storyGroups[currentGroupIndex];
+  const [storiesWithViews, setStoriesWithViews] = useState<Record<string, number>>({});
   const currentStory = currentGroup?.stories[currentStoryIndex];
+  const currentViewsCount = storiesWithViews[currentStory?.id ?? ''] ?? currentStory?.viewsCount ?? 0;
   const isOwnStory = currentGroup?.isOwnStory;
+
+  // Live view count updates for own stories
+  useEffect(() => {
+    if (!isOwnStory || !currentStory) return;
+    const socket = getSocket();
+    if (!socket) return;
+
+    const handleStoryViewed = ({ storyId, viewsCount }: { storyId: string; viewsCount: number }) => {
+      if (storyId === currentStory.id) {
+        setStoriesWithViews((prev) => ({ ...prev, [storyId]: viewsCount }));
+      }
+    };
+
+    socket.on('story:viewed', handleStoryViewed);
+    return () => socket.off('story:viewed', handleStoryViewed);
+  }, [isOwnStory, currentStory?.id]);
 
   // Mark story as viewed on mount and story change
   useEffect(() => {
@@ -347,12 +365,10 @@ export function StoryViewer({
                   </p>
                 </div>
               ) : (
-                <Image
+                <img
                   src={currentStory.mediaUrl}
                   alt="Story"
-                  fill
-                  className="object-cover"
-                  priority
+                  className="w-full h-full object-cover"
                 />
               )}
 
@@ -523,16 +539,16 @@ export function StoryViewer({
 
             {/* Bottom Section - Actions */}
             <div className="absolute bottom-0 left-0 right-0 p-4 z-10">
-              {/* View Count (for own stories) */}
+              {/* View Count (for own stories) - updates live when others view */}
               {isOwnStory && (
                 <div className="flex items-center gap-4 mb-4 text-white/80">
                   <div className="flex items-center gap-1">
                     <Eye className="w-4 h-4" />
-                    <span className="text-sm">{currentStory.viewsCount}</span>
+                    <span className="text-sm">{currentViewsCount} views</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <Heart className="w-4 h-4" />
-                    <span className="text-sm">{currentStory.reactionsCount}</span>
+                    <span className="text-sm">{currentStory.reactionsCount} reactions</span>
                   </div>
                 </div>
               )}

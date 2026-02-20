@@ -14,9 +14,15 @@ interface ShareModalProps {
   onClose: () => void;
   postId: string;
   postPreview?: string;
+  postAuthor?: {
+    name: string;
+    username: string;
+    profileImage?: string | null;
+  };
+  postMediaUrl?: string | null;
 }
 
-export function ShareModal({ isOpen, onClose, postId, postPreview }: ShareModalProps) {
+export function ShareModal({ isOpen, onClose, postId, postPreview, postAuthor, postMediaUrl }: ShareModalProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [connections, setConnections] = useState<Connection[]>([]);
   const [searchResults, setSearchResults] = useState<MentionUser[]>([]);
@@ -26,9 +32,6 @@ export function ShareModal({ isOpen, onClose, postId, postPreview }: ShareModalP
   const [error, setError] = useState<string | null>(null);
 
   const postUrl = typeof window !== 'undefined' ? `${window.location.origin}/post/${postId}` : '';
-  const shareMessage = postPreview
-    ? `${postPreview.slice(0, 100)}${postPreview.length > 100 ? '...' : ''}\n${postUrl}`
-    : `Check out this post: ${postUrl}`;
 
   const loadConnections = useCallback(async () => {
     try {
@@ -85,11 +88,21 @@ export function ShareModal({ isOpen, onClose, postId, postPreview }: ShareModalP
     setSending(true);
     setError(null);
     try {
+      // Create shared post message content with metadata
+      const sharedPostContent = JSON.stringify({
+        type: 'shared_post',
+        postId,
+        postUrl,
+        preview: postPreview?.slice(0, 200) || '',
+        author: postAuthor || null,
+        mediaUrl: postMediaUrl || null,
+      });
+      
       for (const userId of selectedIds) {
         const conv = await getOrCreateConversation(userId);
         await sendMessage(conv.id, {
-          content: shareMessage,
-          contentType: 'text/plain',
+          content: sharedPostContent,
+          contentType: 'application/x-shared-post',
         });
         await sharePostToUser(postId, userId);
       }

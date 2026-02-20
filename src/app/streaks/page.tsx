@@ -137,7 +137,7 @@ export default function StreaksPage() {
         getStreakHistory(15),
       ]);
       setStreak(streakData);
-      setHistory(historyData);
+      setHistory(Array.isArray(historyData) ? historyData : []);
     } catch (error) {
       console.error('Failed to fetch streak data:', error);
     } finally {
@@ -483,7 +483,7 @@ export default function StreaksPage() {
               <div className="flex-1">
                 <p className="text-sm font-semibold text-gray-900 dark:text-white">Streak History</p>
                 <p className="text-xs text-gray-500 dark:text-neutral-400">
-                  {history.length} recent events
+                  {history?.length || 0} recent events
                 </p>
               </div>
               <motion.div

@@ -15,7 +15,7 @@ import { format, isToday, isYesterday } from 'date-fns';
 import { cn } from '@/lib/utils';
 import MessageMenu, { MessageQuickActions } from './MessageMenu';
 import { WALLPAPER_OPTIONS } from './ChatSettingsPanel';
-import type { UploadingMessage } from './ChatInput';
+import type { UploadingMessage, OptimisticMessage } from './ChatInput';
 import { DEFAULT_CHAT_REACTIONS } from '@/lib/chat/customization';
 
 interface ChatMessagesProps {
@@ -33,7 +33,9 @@ interface ChatMessagesProps {
   animatedBubbles?: boolean;
   onReply?: (message: { id: string; content: string; senderName: string }) => void;
   uploadingMessages?: UploadingMessage[];
+  optimisticMessages?: OptimisticMessage[];
   onLastMessageUpdate?: (message: string) => void;
+  onMessageConfirmed?: (content: string) => void;
 }
 
 export default function ChatMessages({
@@ -45,7 +47,9 @@ export default function ChatMessages({
   animatedBubbles = false,
   onReply,
   uploadingMessages = [],
+  optimisticMessages = [],
   onLastMessageUpdate,
+  onMessageConfirmed,
 }: ChatMessagesProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
@@ -164,6 +168,11 @@ export default function ChatMessages({
         });
         setShouldAutoScroll(true);
         
+        // If this is our own message, confirm it to remove optimistic version
+        if (data.message.senderId === currentUserId && onMessageConfirmed) {
+          onMessageConfirmed(data.message.content);
+        }
+        
         // Mark as read if from other user
         if (data.message.senderId !== currentUserId) {
           markChatAsRead(conversationId);
@@ -278,6 +287,11 @@ export default function ChatMessages({
         });
         setShouldAutoScroll(true);
         
+        // If this is our own message, confirm it to remove optimistic version
+        if (data.message.senderId === currentUserId && onMessageConfirmed) {
+          onMessageConfirmed(data.message.content);
+        }
+        
         // Mark as read if from other user
         if (data.message.senderId !== currentUserId) {
           markChatAsRead(conversationId);
@@ -309,7 +323,7 @@ export default function ChatMessages({
       socket.off('chat:message_reaction', handleReaction);
       socket.off('error', handleError);
     };
-  }, [conversationId, currentUserId, otherUser.id, onLastMessageUpdate]);
+  }, [conversationId, currentUserId, otherUser.id, onLastMessageUpdate, onMessageConfirmed]);
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -402,6 +416,31 @@ export default function ChatMessages({
               />
             );
           })}
+        </div>
+      ))}
+
+      {/* Optimistic Messages (sent but not yet confirmed) */}
+      {optimisticMessages.map(optMsg => (
+        <div key={optMsg.id} className="flex justify-end mb-2">
+          <div className="max-w-[70%]">
+            {/* Reply preview if present */}
+            {optMsg.replyTo && (
+              <div className="text-xs p-2 rounded-t-lg border-l-2 bg-blue-600/20 border-blue-400">
+                <span className="text-gray-500 text-[10px]">↩ Replying to</span>
+                <p className="truncate text-gray-700 dark:text-gray-300">{optMsg.replyTo.content}</p>
+              </div>
+            )}
+            <div className={cn(
+              "bg-blue-600 text-white px-4 py-2 rounded-2xl rounded-br-sm",
+              optMsg.replyTo && "rounded-t-none"
+            )}>
+              <p className="break-words whitespace-pre-wrap">{optMsg.content}</p>
+            </div>
+            <div className="text-xs text-gray-500 mt-1 flex items-center gap-1 justify-end">
+              <span>{format(new Date(optMsg.createdAt), 'HH:mm')}</span>
+              <span className="animate-pulse">⏳</span>
+            </div>
+          </div>
         </div>
       ))}
 
@@ -824,15 +863,81 @@ function MessageBubble({
             </a>
           )}
 
+          {/* Shared Reel content - thumbnail only, click to open reel */}
+          {message.contentType === 'reel' && (() => {
+            let reelId: string | null = null;
+            try {
+              const data = JSON.parse(message.content);
+              reelId = data.reelId || null;
+            } catch {
+              // Legacy: content might be plain text, try to extract reel ID from URL if any
+              const match = message.content?.match(/\/reels\/([a-f0-9-]+)/i);
+              reelId = match?.[1] || null;
+            }
+            const thumbnailUrl = message.mediaUrl;
+            const reelUrl = reelId ? `/reels/${reelId}` : '/reels';
+            // Show thumbnail card even for legacy messages without reelId (links to reels feed)
+            return (
+              <a
+                href={reelUrl}
+                onClick={(e) => {
+                  e.preventDefault();
+                  window.location.href = reelUrl;
+                }}
+                className={cn(
+                  'block relative rounded-xl overflow-hidden w-24 h-36 flex-shrink-0 cursor-pointer hover:opacity-90 transition-opacity',
+                  isOwn ? 'ring-2 ring-white/30' : 'ring-2 ring-gray-300 dark:ring-gray-600'
+                )}
+              >
+                {thumbnailUrl ? (
+                  <img
+                    src={thumbnailUrl}
+                    alt="Reel"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className={cn(
+                    'w-full h-full flex items-center justify-center',
+                    isOwn ? 'bg-blue-700/50' : 'bg-gray-200 dark:bg-gray-700'
+                  )}>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 opacity-70" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <rect width="18" height="18" x="3" y="3" rx="2" />
+                      <path d="M7 3v18" />
+                      <path d="M17 3v18" />
+                      <path d="M3 12h18" />
+                    </svg>
+                  </div>
+                )}
+                <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-black/60 to-transparent flex items-end justify-center pb-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M8 5v14l11-7z"/>
+                  </svg>
+                </div>
+              </a>
+            );
+          })()}
+
           {/* Shared Post content */}
-          {message.contentType === 'post' && (() => {
+          {(message.contentType === 'post' || message.contentType === 'application/x-shared-post') && (() => {
             try {
               const postData = JSON.parse(message.content);
+              const postId = postData.postId;
+              const postUrl = postData.postUrl || (postId ? `/post/${postId}` : null);
+              
               return (
-                <div className={cn(
-                  'rounded-lg p-3 mb-2 cursor-pointer transition-colors',
-                  isOwn ? 'bg-blue-700/50 hover:bg-blue-700/70' : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600'
-                )}>
+                <a
+                  href={postUrl || '#'}
+                  onClick={(e) => {
+                    if (postUrl) {
+                      e.preventDefault();
+                      window.location.href = postUrl;
+                    }
+                  }}
+                  className={cn(
+                    'block rounded-lg p-3 mb-2 cursor-pointer transition-colors',
+                    isOwn ? 'bg-blue-700/50 hover:bg-blue-700/70' : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600'
+                  )}
+                >
                   <div className="flex items-center gap-2 mb-2 text-xs opacity-70">
                     <span>📄</span>
                     <span>Shared Post</span>
@@ -844,29 +949,55 @@ function MessageBubble({
                       className="rounded-md w-full h-24 object-cover mb-2"
                     />
                   )}
-                  <p className={cn('font-medium text-sm', isOwn ? 'text-white' : 'text-gray-900 dark:text-white')}>
-                    {postData.authorName}
-                  </p>
-                  {postData.authorUsername && (
-                    <p className={cn('text-xs opacity-60', isOwn ? 'text-blue-200' : 'text-gray-500')}>
-                      @{postData.authorUsername}
-                    </p>
+                  {postData.author && (
+                    <>
+                      <div className="flex items-center gap-2 mb-1">
+                        {postData.author.profileImage && (
+                          <img 
+                            src={postData.author.profileImage} 
+                            alt={postData.author.name} 
+                            className="w-6 h-6 rounded-full object-cover"
+                          />
+                        )}
+                        <p className={cn('font-medium text-sm', isOwn ? 'text-white' : 'text-gray-900 dark:text-white')}>
+                          {postData.author.name}
+                        </p>
+                      </div>
+                      {postData.author.username && (
+                        <p className={cn('text-xs opacity-60', isOwn ? 'text-blue-200' : 'text-gray-500')}>
+                          @{postData.author.username}
+                        </p>
+                      )}
+                    </>
                   )}
-                  {postData.contentPreview && (
+                  {/* Legacy format support */}
+                  {!postData.author && postData.authorName && (
+                    <>
+                      <p className={cn('font-medium text-sm', isOwn ? 'text-white' : 'text-gray-900 dark:text-white')}>
+                        {postData.authorName}
+                      </p>
+                      {postData.authorUsername && (
+                        <p className={cn('text-xs opacity-60', isOwn ? 'text-blue-200' : 'text-gray-500')}>
+                          @{postData.authorUsername}
+                        </p>
+                      )}
+                    </>
+                  )}
+                  {(postData.preview || postData.contentPreview) && (
                     <p className={cn('text-sm mt-1 line-clamp-2', isOwn ? 'text-blue-100' : 'text-gray-600 dark:text-gray-300')}>
-                      {postData.contentPreview}
+                      {postData.preview || postData.contentPreview}
                     </p>
                   )}
-                  <p className="text-xs opacity-50 mt-2 italic">Tap to view post</p>
-                </div>
+                  <p className="text-xs opacity-50 mt-2 italic">Tap to view post →</p>
+                </a>
               );
             } catch {
               return <p className="break-words whitespace-pre-wrap">{message.content}</p>;
             }
           })()}
 
-          {/* Text content */}
-          {message.contentType !== 'post' && (isEditing ? (
+          {/* Text content - hide for reel (thumbnail only) and post */}
+          {message.contentType !== 'post' && message.contentType !== 'reel' && (isEditing ? (
             <div className="flex gap-2">
               <input
                 type="text"

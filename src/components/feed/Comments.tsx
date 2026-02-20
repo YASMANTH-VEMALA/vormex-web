@@ -59,8 +59,9 @@ function CommentItem({ comment, postId, depth, highlightId, onReply }: CommentIt
   useEffect(() => {
     const socket = getSocket();
     
-    const handleCommentCreated = (data: { postId: string; comment: any; commentsCount: number }) => {
-      if (data.postId !== postId || data.comment.parentId !== comment.id) return;
+    const handleCommentCreated = (data: { postId: string; comment?: any; commentsCount: number }) => {
+      // Skip if no comment data or not a reply to this comment
+      if (!data.comment || data.postId !== postId || data.comment.parentId !== comment.id) return;
       
       // New reply to this comment
       setReplies(prev => {
@@ -321,25 +322,39 @@ export function Comments({ postId, isOpen, onClose, highlightCommentId, onCommen
       // Set up real-time comment listeners
       const socket = getSocket();
       
-      const handleCommentCreated = (data: { postId: string; comment: any; commentsCount: number }) => {
+      const handleCommentCreated = (data: { postId: string; comment?: any; commentsCount: number }) => {
         if (data.postId !== postId) return;
+        
+        // Update comment count regardless of whether full comment data is present
+        if (typeof data.commentsCount === 'number') {
+          onCommentCountChange?.(data.commentsCount);
+        }
+        
+        // If no comment data provided (global feed broadcast), just update the count
+        if (!data.comment) return;
         
         // Add new comment to the list (avoid duplicates)
         setComments(prev => {
-          // Check if comment already exists (from optimistic update)
-          const exists = prev.some(c => c.id === data.comment.id || c.id.startsWith('temp-'));
+          // Check if comment already exists (from optimistic update or duplicate event)
+          const exists = prev.some(c => c.id === data.comment.id);
+          const hasTempComment = prev.some(c => c.id.startsWith('temp-'));
+          
           if (exists) {
+            // Comment already in list, no change needed
+            return prev;
+          }
+          
+          if (hasTempComment) {
             // Replace temp comment with real one
             return prev.map(c => c.id.startsWith('temp-') ? data.comment : c);
           }
+          
           // Add to top if it's a new top-level comment
           if (!data.comment.parentId) {
             return [data.comment, ...prev];
           }
           return prev;
         });
-        
-        onCommentCountChange?.(data.commentsCount);
       };
       
       const handleCommentLiked = (data: { commentId: string; userId: string; liked: boolean; likesCount: number }) => {

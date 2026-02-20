@@ -339,6 +339,25 @@ export function ProfilePage({ userId }: ProfilePageProps) {
 
   useEffect(() => {
     fetchProfile();
+    
+    // Handle GitHub OAuth callback
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const githubStatus = urlParams.get('github');
+      const githubMessage = urlParams.get('message');
+      
+      if (githubStatus === 'connected') {
+        console.log('GitHub connected successfully, refreshing profile...');
+        // Clean up URL
+        window.history.replaceState({}, '', window.location.pathname);
+        // Refetch profile to get updated GitHub data
+        setTimeout(() => fetchProfile(), 500);
+      } else if (githubStatus === 'error') {
+        console.error('GitHub connection error:', githubMessage);
+        // Clean up URL
+        window.history.replaceState({}, '', window.location.pathname);
+      }
+    }
   }, [fetchProfile]);
 
   const [activityLoading, setActivityLoading] = useState(false);

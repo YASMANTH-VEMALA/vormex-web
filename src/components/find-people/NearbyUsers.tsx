@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
@@ -19,6 +19,7 @@ import {
   type NearbyUser,
   type NearbyUsersResponse,
 } from '@/lib/api/location';
+import { updateLocation as emitLocationUpdate } from '@/lib/socket';
 import { sendConnectionRequest } from '@/lib/api/connections';
 import ConnectionSentToast from '@/components/engagement/ConnectionSentToast';
 
@@ -54,7 +55,7 @@ export function NearbyUsers({ onBack }: NearbyUsersProps) {
   // Radius options in km
   const radiusOptions = [10, 25, 50, 100, 200];
 
-  // Get current location from browser
+  // Get current location from browser (prompts for permission)
   const getCurrentLocation = useCallback((): Promise<GeolocationPosition> => {
     return new Promise((resolve, reject) => {
       if (!navigator.geolocation) {
@@ -64,11 +65,14 @@ export function NearbyUsers({ onBack }: NearbyUsersProps) {
 
       navigator.geolocation.getCurrentPosition(resolve, reject, {
         enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 60000,
+        timeout: 15000,
+        maximumAge: 0, // Always get fresh location for initial request
       });
     });
   }, []);
+
+  // Watch position for real-time location updates
+  const watchPositionIdRef = useRef<number | null>(null);
 
   // Fetch nearby users
   const fetchNearbyUsers = useCallback(async () => {
@@ -133,10 +137,35 @@ export function NearbyUsers({ onBack }: NearbyUsersProps) {
     }
   }, [getCurrentLocation, fetchNearbyUsers]);
 
-  // Initial load
+  // Initial load - request location permission and fetch
   useEffect(() => {
     refreshLocation();
   }, []);
+
+  // Real-time location sharing: watch position and update server + broadcast via socket
+  useEffect(() => {
+    if (!myLocation || locationError) return;
+
+    const watchId = navigator.geolocation?.watchPosition?.(
+      (position) => {
+        const { latitude, longitude, accuracy } = position.coords;
+        setMyLocation({ lat: latitude, lng: longitude });
+        updateLocation(latitude, longitude, accuracy).catch(console.warn);
+        emitLocationUpdate({ lat: latitude, lng: longitude, accuracy });
+      },
+      (err) => {
+        if (err.code === 1) setLocationError('Location permission denied.');
+      },
+      { enableHighAccuracy: true, maximumAge: 30000 }
+    );
+
+    watchPositionIdRef.current = watchId ?? null;
+    return () => {
+      if (watchPositionIdRef.current != null) {
+        navigator.geolocation?.clearWatch?.(watchPositionIdRef.current);
+      }
+    };
+  }, [!!myLocation, !!locationError]);
 
   // Re-fetch when radius changes
   useEffect(() => {

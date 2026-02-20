@@ -1,7 +1,8 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { AuthProvider } from "@/lib/auth/authContext";
 import { ThemeProvider } from "@/components/ui/ThemeProvider";
+import { QueryProvider } from "@/components/providers/QueryProvider";
 import { NotificationToastProvider } from "@/components/notifications/NotificationToast";
 import { VormexDock } from "@/components/ui/dock";
 import EngagementProvider from "@/components/engagement/EngagementProvider";
@@ -22,6 +23,12 @@ export const metadata: Metadata = {
   description: "Connect with students, share experiences, and grow your network",
 };
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -38,14 +45,16 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange={false}
         >
-          <AuthProvider>
-            <NotificationToastProvider>
-              <EngagementProvider>
-                {children}
-              </EngagementProvider>
-              <VormexDock />
-            </NotificationToastProvider>
-          </AuthProvider>
+          <QueryProvider>
+            <AuthProvider>
+              <NotificationToastProvider>
+                <EngagementProvider>
+                  {children}
+                </EngagementProvider>
+                <VormexDock />
+              </NotificationToastProvider>
+            </AuthProvider>
+            </QueryProvider>
         </ThemeProvider>
       </body>
     </html>

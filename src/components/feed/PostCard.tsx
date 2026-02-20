@@ -21,6 +21,7 @@ import {
   Flag,
   Copy,
   Pencil,
+  X,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import type { Post, PollOption } from '@/types/post';
@@ -67,6 +68,8 @@ export function PostCard({
   const { user } = useAuth();
   const [isLiked, setIsLiked] = useState(post.isLiked);
   const [likesCount, setLikesCount] = useState(post.likesCount);
+  const [commentsCount, setCommentsCount] = useState(post.commentsCount);
+  const [sharesCount, setSharesCount] = useState(post.sharesCount);
   const [currentReaction, setCurrentReaction] = useState<ReactionType | null>(post.userReactionType || null);
   const [reactionSummary, setReactionSummary] = useState<ReactionSummaryType[]>(post.reactionSummary || []);
   const [showReactionPicker, setShowReactionPicker] = useState(false);
@@ -79,6 +82,8 @@ export function PostCard({
   const [selectedPollOption, setSelectedPollOption] = useState<string | null>(post.userVotedOptionId ?? null);
   const [pollOptions, setPollOptions] = useState(post.pollOptions ?? []);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [showMediaLightbox, setShowMediaLightbox] = useState(false);
+  const [lightboxMediaType, setLightboxMediaType] = useState<'image' | 'video'>('image');
   
   // Video state
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -92,9 +97,11 @@ export function PostCard({
   useEffect(() => {
     setIsLiked(post.isLiked);
     setLikesCount(post.likesCount);
+    setCommentsCount(post.commentsCount);
+    setSharesCount(post.sharesCount);
     setCurrentReaction(post.userReactionType || null);
     setReactionSummary(post.reactionSummary || []);
-  }, [post.isLiked, post.likesCount, post.userReactionType, post.reactionSummary]);
+  }, [post.isLiked, post.likesCount, post.commentsCount, post.sharesCount, post.userReactionType, post.reactionSummary]);
   
   // Sync poll options with real-time updates from parent
   useEffect(() => {
@@ -141,6 +148,7 @@ export function PostCard({
     const wasLiked = isLiked;
     const oldReaction = currentReaction;
     const oldCount = likesCount;
+    const oldSummary = reactionSummary;
     
     let newLiked: boolean;
     let newCount: number;
@@ -163,11 +171,34 @@ export function PostCard({
       newReaction = reactionType;
     }
     
+    // Calculate updated reaction summary
+    let newSummary = [...reactionSummary];
+    if (oldReaction && oldReaction !== reactionType) {
+      // Decrement old reaction count
+      newSummary = newSummary.map(s => 
+        s.type === oldReaction ? { ...s, count: Math.max(0, s.count - 1) } : s
+      ).filter(s => s.count > 0);
+    }
+    if (newReaction) {
+      const existingIdx = newSummary.findIndex(s => s.type === newReaction);
+      if (existingIdx >= 0) {
+        newSummary[existingIdx] = { ...newSummary[existingIdx], count: newSummary[existingIdx].count + (oldReaction === newReaction ? 0 : 1) };
+      } else if (!oldReaction || oldReaction !== reactionType) {
+        newSummary.push({ type: newReaction, count: 1 });
+      }
+    } else if (oldReaction) {
+      // Removing reaction entirely
+      newSummary = newSummary.map(s => 
+        s.type === oldReaction ? { ...s, count: Math.max(0, s.count - 1) } : s
+      ).filter(s => s.count > 0);
+    }
+    
     // Optimistic update
     setIsLiked(newLiked);
     setLikesCount(newCount);
     setCurrentReaction(newReaction);
-    onLikeUpdate?.(post.id, newLiked, newCount, newReaction, reactionSummary);
+    setReactionSummary(newSummary);
+    onLikeUpdate?.(post.id, newLiked, newCount, newReaction, newSummary);
     
     try {
       // Use WebSocket for real-time
@@ -181,6 +212,7 @@ export function PostCard({
         setIsLiked(wasLiked);
         setLikesCount(oldCount);
         setCurrentReaction(oldReaction);
+        setReactionSummary(oldSummary);
       }
     }
   };
@@ -279,13 +311,22 @@ export function PostCard({
     if (images.length === 1) {
       return (
         <div className="mt-3 rounded-lg overflow-hidden bg-gray-100 dark:bg-neutral-800">
-          <img
-            src={images[0]}
-            alt=""
-            className="w-full max-h-[600px] object-contain mx-auto"
-            loading="lazy"
-            style={{ display: 'block' }}
-          />
+          <button
+            onClick={() => {
+              setLightboxMediaType('image');
+              setCurrentImageIndex(0);
+              setShowMediaLightbox(true);
+            }}
+            className="w-full block cursor-zoom-in"
+          >
+            <img
+              src={images[0]}
+              alt=""
+              className="w-full max-h-[600px] object-contain mx-auto"
+              loading="lazy"
+              style={{ display: 'block' }}
+            />
+          </button>
         </div>
       );
     }
@@ -298,13 +339,21 @@ export function PostCard({
       <div className="mt-3 rounded-lg overflow-hidden">
         {/* Main Image */}
         <div className="relative bg-gray-100 dark:bg-neutral-800">
-          <img
-            src={mainImage}
-            alt=""
-            className="w-full max-h-[500px] object-contain mx-auto"
-            loading="lazy"
-            style={{ display: 'block' }}
-          />
+          <button
+            onClick={() => {
+              setLightboxMediaType('image');
+              setShowMediaLightbox(true);
+            }}
+            className="w-full block cursor-zoom-in"
+          >
+            <img
+              src={mainImage}
+              alt=""
+              className="w-full max-h-[500px] object-contain mx-auto"
+              loading="lazy"
+              style={{ display: 'block' }}
+            />
+          </button>
           
           {/* Navigation arrows */}
           {images.length > 1 && (
@@ -357,28 +406,34 @@ export function PostCard({
     
     return (
       <div className="mt-3 rounded-lg overflow-hidden relative bg-black">
-        <video
-          ref={videoRef}
-          src={post.videoUrl}
-          poster={post.videoThumbnail || undefined}
-          className="w-full max-h-[500px] object-contain"
-          loop
-          muted={isMuted}
-          playsInline
+        <div
+          role="button"
+          tabIndex={0}
           onClick={() => {
-            if (videoRef.current) {
-              if (isPlaying) {
-                videoRef.current.pause();
-              } else {
-                videoRef.current.play();
-              }
-              setIsPlaying(!isPlaying);
+            setLightboxMediaType('video');
+            setShowMediaLightbox(true);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              setLightboxMediaType('video');
+              setShowMediaLightbox(true);
             }
           }}
-        />
+          className="w-full block cursor-zoom-in relative"
+        >
+          <video
+            ref={videoRef}
+            src={post.videoUrl}
+            poster={post.videoThumbnail || undefined}
+            className="w-full max-h-[500px] object-contain"
+            loop
+            muted={isMuted}
+            playsInline
+          />
+        </div>
         
         {/* Video controls overlay */}
-        <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between">
+        <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between pointer-events-auto">
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -751,9 +806,9 @@ export function PostCard({
           )}
         </div>
         <div className="flex items-center gap-4">
-          {post.commentsCount > 0 && (
+          {commentsCount > 0 && (
             <button onClick={onCommentClick} className="hover:underline">
-              {post.commentsCount} comment{post.commentsCount !== 1 ? 's' : ''}
+              {commentsCount} comment{commentsCount !== 1 ? 's' : ''}
             </button>
           )}
         </div>
@@ -860,7 +915,76 @@ export function PostCard({
         onClose={() => setShowShareModal(false)}
         postId={post.id}
         postPreview={post.content || undefined}
+        postAuthor={{
+          name: post.author.name,
+          username: post.author.username,
+          profileImage: post.author.profileImage,
+        }}
+        postMediaUrl={post.mediaUrls?.[0] || post.videoUrl || null}
       />
+
+      {/* Fullscreen Media Lightbox */}
+      {showMediaLightbox && (
+        <div
+          className="fixed inset-0 z-[9999] bg-black flex items-center justify-center"
+          onClick={() => setShowMediaLightbox(false)}
+        >
+          <button
+            onClick={() => setShowMediaLightbox(false)}
+            className="absolute top-4 right-4 z-10 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
+          >
+            <X className="w-8 h-8" />
+          </button>
+          <div
+            className="max-w-[95vw] max-h-[95vh] flex items-center justify-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {lightboxMediaType === 'image' && post.mediaUrls && post.mediaUrls.length > 0 ? (
+              <div className="relative">
+                <img
+                  src={post.mediaUrls[currentImageIndex]}
+                  alt=""
+                  className="max-w-full max-h-[95vh] object-contain"
+                  onClick={(e) => e.stopPropagation()}
+                />
+                {post.mediaUrls.length > 1 && (
+                  <>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setCurrentImageIndex((prev) => (prev === 0 ? post.mediaUrls!.length - 1 : prev - 1));
+                      }}
+                      className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/50 text-white hover:bg-black/70"
+                    >
+                      <ChevronLeft className="w-6 h-6" />
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setCurrentImageIndex((prev) => (prev === post.mediaUrls!.length - 1 ? 0 : prev + 1));
+                      }}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/50 text-white hover:bg-black/70"
+                    >
+                      <ChevronRight className="w-6 h-6" />
+                    </button>
+                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full bg-black/50 text-white text-sm">
+                      {currentImageIndex + 1} / {post.mediaUrls.length}
+                    </div>
+                  </>
+                )}
+              </div>
+            ) : lightboxMediaType === 'video' && post.videoUrl ? (
+              <video
+                src={post.videoUrl}
+                controls
+                autoPlay
+                className="max-w-full max-h-[95vh]"
+                onClick={(e) => e.stopPropagation()}
+              />
+            ) : null}
+          </div>
+        </div>
+      )}
     </motion.div>
   );
 }

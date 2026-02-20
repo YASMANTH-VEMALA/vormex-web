@@ -68,7 +68,8 @@ export const purchaseItem = async (itemSlug: string) => {
 // Get my inventory
 export const getMyInventory = async (): Promise<UserInventory[]> => {
   const response = await apiClient.get('/store/inventory');
-  return response.data;
+  // Ensure we always return an array, even if backend returns null/undefined
+  return Array.isArray(response.data) ? response.data : [];
 };
 
 // Get my purchase history

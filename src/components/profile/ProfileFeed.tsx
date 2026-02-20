@@ -18,7 +18,8 @@ import {
 } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { getUserFeed } from '@/lib/api/profile';
-import { getPost, deletePost } from '@/lib/api/posts'; // Added getPost, deletePost
+import { getPost, deletePost } from '@/lib/api/posts';
+import { reelsApi } from '@/lib/api/reels';
 import type { FeedItem, RecentActivity } from '@/types/profile';
 import type { Post } from '@/types/post'; // Added Post type
 import { useAuth } from '@/lib/auth/useAuth';
@@ -96,26 +97,33 @@ export function ProfileFeed({ userId, initialFeed }: ProfileFeedProps) {
     }
   }, [userId, page, activeTab, hasMore, loadingMore]);
 
-  const handleDelete = async (itemId: string) => {
-    if (!window.confirm('Are you sure you want to delete this post?')) return;
+  const handleDelete = async (itemId: string, contentType: string) => {
+    if (!window.confirm('Are you sure you want to delete this?')) return;
 
     setIsDeleting(itemId);
     try {
-      await deletePost(itemId);
+      if (contentType === 'short_video') {
+        await reelsApi.deleteReel(itemId);
+      } else {
+        await deletePost(itemId);
+      }
       setItems(items.filter(item => item.id !== itemId));
     } catch (err) {
-      console.error('Failed to delete post:', err);
-      alert('Failed to delete post');
+      console.error('Failed to delete:', err);
+      alert('Failed to delete');
     } finally {
       setIsDeleting(null);
       setMenuOpenId(null);
     }
   };
 
-  const handleEditClick = async (itemId: string) => {
+  const handleEditClick = async (itemId: string, contentType: string) => {
     setMenuOpenId(null);
+    if (contentType === 'short_video') {
+      window.location.href = `/reels/${itemId}/edit`;
+      return;
+    }
     try {
-      // Fetch full post details for editing
       const post = await getPost(itemId);
       setPostToEdit(post);
       setEditModalOpen(true);
@@ -222,7 +230,8 @@ export function ProfileFeed({ userId, initialFeed }: ProfileFeedProps) {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: index * 0.05 }}
-                    className="p-6 bg-white dark:bg-black group hover:bg-neutral-50 dark:hover:bg-neutral-900/50 transition-colors relative"
+                    className={`p-6 bg-white dark:bg-black group hover:bg-neutral-50 dark:hover:bg-neutral-900/50 transition-colors relative ${item.contentType === 'short_video' ? 'cursor-pointer' : ''}`}
+                    {...(item.contentType === 'short_video' ? { onClick: () => window.location.href = `/reels/${item.id}` } : {})}
                   >
                     {/* Header */}
                     <div className="flex items-start justify-between mb-4">
@@ -242,7 +251,7 @@ export function ProfileFeed({ userId, initialFeed }: ProfileFeedProps) {
 
                       {/* Menu for Owner */}
                       {isOwner && (
-                        <div className="relative">
+                        <div className="relative" onClick={(e) => e.stopPropagation()}>
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -256,13 +265,13 @@ export function ProfileFeed({ userId, initialFeed }: ProfileFeedProps) {
                           {menuOpenId === item.id && (
                             <div className="absolute right-0 top-full mt-2 w-32 bg-white dark:bg-black border border-neutral-200 dark:border-neutral-800 shadow-xl z-10 flex flex-col py-1">
                               <button
-                                onClick={(e) => { e.stopPropagation(); handleEditClick(item.id); }}
+                                onClick={(e) => { e.stopPropagation(); handleEditClick(item.id, item.contentType); }}
                                 className="flex items-center gap-2 px-4 py-2 text-xs font-bold uppercase hover:bg-neutral-50 dark:hover:bg-neutral-900 text-left w-full text-neutral-900 dark:text-white"
                               >
-                                <Pencil className="w-3 h-3" /> Edit
+                                <Pencil className="w-3 h-3" /> {item.contentType === 'short_video' ? 'Edit Reel' : 'Edit'}
                               </button>
                               <button
-                                onClick={(e) => { e.stopPropagation(); handleDelete(item.id); }}
+                                onClick={(e) => { e.stopPropagation(); handleDelete(item.id, item.contentType); }}
                                 className="flex items-center gap-2 px-4 py-2 text-xs font-bold uppercase hover:bg-red-50 dark:hover:bg-red-900/20 text-left w-full text-red-600"
                                 disabled={isDeleting === item.id}
                               >

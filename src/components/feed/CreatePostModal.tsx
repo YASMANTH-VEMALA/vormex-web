@@ -30,12 +30,13 @@ import { useAuth } from '@/lib/auth/useAuth';
 import { createPost } from '@/lib/api/posts';
 import { searchUsersForMention } from '@/lib/api/posts';
 import { ImageEditor } from './ImageEditor';
+import { FormattedContent } from './FormattedContent';
 import type { PostType, PostVisibility, CelebrationType, MentionUser } from '@/types/post';
 
 interface CreatePostModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onPostCreated?: () => void;
+  onPostCreated?: (post?: import('@/types/post').Post) => void;
 }
 
 const POST_TYPES = [
@@ -556,8 +557,8 @@ export function CreatePostModal({ isOpen, onClose, onPostCreated }: CreatePostMo
           break;
       }
       
-      await createPost(formData);
-      onPostCreated?.();
+      const createdPost = await createPost(formData);
+      onPostCreated?.(createdPost);
       onClose();
     } catch (err: any) {
       console.error('Error creating post:', err);
@@ -812,14 +813,21 @@ export function CreatePostModal({ isOpen, onClose, onPostCreated }: CreatePostMo
                   ref={contentRef}
                   value={content}
                   onChange={handleContentChange}
-                  placeholder="What do you want to share?"
-                  className="w-full min-h-[180px] p-5 rounded-xl text-gray-800 placeholder-gray-400 resize-none outline-none text-base leading-relaxed"
+                  placeholder="What do you want to share? Use **bold**, *italic*, [color:#22c55e]colored text[/color]"
+                  className="w-full min-h-[140px] p-5 rounded-xl text-gray-800 placeholder-gray-400 resize-none outline-none text-base leading-relaxed"
                   style={{
                     background: '#ecf0f3',
                     boxShadow: 'inset 4px 4px 8px #d1d9e6, inset -4px -4px 8px #f9f9f9',
                     fontFamily: "'Montserrat', sans-serif",
                   }}
                 />
+                {/* Live preview - shows formatted result as you type */}
+                {content.trim() && (
+                  <div className="mt-3 p-4 rounded-xl border border-gray-200 dark:border-neutral-700">
+                    <p className="text-xs font-medium text-gray-500 dark:text-neutral-400 mb-2">Preview</p>
+                    <FormattedContent content={content} className="text-gray-800 dark:text-neutral-200 text-base" />
+                  </div>
+                )}
                 
                 {/* Mention Dropdown */}
                 {showMentionDropdown && (

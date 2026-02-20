@@ -49,8 +49,29 @@ export interface UploadingMessage {
   progress: number;
 }
 
+// Optimistic message for immediate display
+export interface OptimisticMessage {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  content: string;
+  contentType: string;
+  mediaUrl?: string;
+  fileName?: string;
+  fileSize?: number;
+  replyToId?: string;
+  replyTo?: {
+    id: string;
+    content: string;
+    senderName: string;
+  };
+  status: 'SENDING';
+  createdAt: string;
+}
+
 interface ChatInputProps {
   conversationId: string;
+  currentUserId?: string;
   replyTo?: {
     id: string;
     content: string;
@@ -59,6 +80,7 @@ interface ChatInputProps {
   onCancelReply?: () => void;
   disabled?: boolean;
   onUploadingMessagesChange?: (messages: UploadingMessage[]) => void;
+  onOptimisticMessage?: (message: OptimisticMessage) => void;
   // AI Assistant props
   otherUserId?: string;
   otherUserName?: string;
@@ -78,10 +100,12 @@ interface FilePreview {
 
 export default function ChatInput({
   conversationId,
+  currentUserId,
   replyTo,
   onCancelReply,
   disabled = false,
   onUploadingMessagesChange,
+  onOptimisticMessage,
   otherUserId,
   otherUserName,
   lastReceivedMessage,
@@ -610,6 +634,26 @@ export default function ChatInput({
 
     // Send text message immediately
     if (textToSend) {
+      // Create optimistic message for immediate UI feedback
+      if (onOptimisticMessage && currentUserId) {
+        const optimisticMsg: OptimisticMessage = {
+          id: `optimistic-${Date.now()}`,
+          conversationId,
+          senderId: currentUserId,
+          content: textToSend,
+          contentType: 'text',
+          replyToId: currentReplyTo?.id,
+          replyTo: currentReplyTo ? {
+            id: currentReplyTo.id,
+            content: currentReplyTo.content,
+            senderName: currentReplyTo.senderName,
+          } : undefined,
+          status: 'SENDING',
+          createdAt: new Date().toISOString(),
+        };
+        onOptimisticMessage(optimisticMsg);
+      }
+
       sendChatMessage({
         conversationId,
         content: textToSend,

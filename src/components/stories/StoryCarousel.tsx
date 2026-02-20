@@ -282,14 +282,13 @@ function StoryCard({ group, onClick, isOwn }: StoryCardProps) {
       whileTap={{ scale: 0.98 }}
       className="flex-shrink-0 relative w-28 h-40 rounded-2xl overflow-hidden shadow-lg group/card"
     >
-      {/* Background Image */}
+      {/* Background Image - use img for CDN URLs to avoid Next.js Image restrictions */}
       <div className="absolute inset-0">
-        {latestStory.thumbnailUrl || latestStory.mediaUrl ? (
-          <Image
+        {(latestStory.thumbnailUrl || latestStory.mediaUrl) ? (
+          <img
             src={latestStory.thumbnailUrl || latestStory.mediaUrl}
             alt={`${user.name}'s story`}
-            fill
-            className="object-cover transition-transform duration-300 group-hover/card:scale-105"
+            className="w-full h-full object-cover transition-transform duration-300 group-hover/card:scale-105"
           />
         ) : (
           <div 

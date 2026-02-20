@@ -297,6 +297,7 @@ function ConversationItem({
                  lastMessage.contentType === 'file' ? '📎 File' :
                  lastMessage.contentType === 'voice' ? '🎤 Voice message' :
                  lastMessage.contentType === 'post' ? '📄 Shared a post' :
+                 lastMessage.contentType === 'reel' ? '🎬 Reel' :
                  lastMessage.contentType === 'video' ? '🎬 Video' :
                  lastMessage.content}
               </p>

@@ -18,7 +18,9 @@ import {
   HelpCircle,
   ThumbsUp,
   Users,
+  Settings,
 } from 'lucide-react';
+import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import {
   getNotifications,
@@ -125,8 +127,9 @@ function NotificationItem({ notification, onMarkRead }: NotificationItemProps) {
     
     // Navigate based on notification type
     if (notification.type === 'GROUP_INVITE' || notification.type === 'GROUP_JOIN_APPROVED') {
-      // Navigate to groups page with invites tab
       router.push('/groups?tab=invites');
+    } else if (notification.reelId) {
+      router.push(`/reels/${notification.reelId}`);
     } else if (notification.postId) {
       if (notification.commentId) {
         router.push(`/post/${notification.postId}?comment=${notification.commentId}`);
@@ -237,28 +240,17 @@ export function Notifications({ isOpen = true, onClose, isDropdown = false }: No
 
   // Setup real-time notifications
   useEffect(() => {
+    const refetch = () => {
+      setUnreadCount(prev => prev + 1);
+      getNotifications().then(res => setNotifications(res.notifications)).catch(console.error);
+    };
     const socket = initializeSocket({
-      onNotificationMention: () => {
-        setUnreadCount(prev => prev + 1);
-        // Refetch to get the new notification
-        getNotifications().then(res => setNotifications(res.notifications)).catch(console.error);
-      },
-      onNotificationComment: () => {
-        setUnreadCount(prev => prev + 1);
-        getNotifications().then(res => setNotifications(res.notifications)).catch(console.error);
-      },
-      onNotificationLike: () => {
-        setUnreadCount(prev => prev + 1);
-        getNotifications().then(res => setNotifications(res.notifications)).catch(console.error);
-      },
-      onNotificationReaction: () => {
-        setUnreadCount(prev => prev + 1);
-        getNotifications().then(res => setNotifications(res.notifications)).catch(console.error);
-      },
-      onNotificationCommentLike: () => {
-        setUnreadCount(prev => prev + 1);
-        getNotifications().then(res => setNotifications(res.notifications)).catch(console.error);
-      },
+      onNotificationNew: refetch,
+      onNotificationMention: refetch,
+      onNotificationComment: refetch,
+      onNotificationLike: refetch,
+      onNotificationReaction: refetch,
+      onNotificationCommentLike: refetch,
     });
     
     return () => {
@@ -304,15 +296,25 @@ export function Notifications({ isOpen = true, onClose, isDropdown = false }: No
           )}
         </div>
         
-        {unreadCount > 0 && (
-          <button
-            onClick={handleMarkAllRead}
-            className="flex items-center gap-1 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
-          >
-            <CheckCheck className="w-4 h-4" />
-            Mark all read
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {unreadCount > 0 && (
+            <button
+              onClick={handleMarkAllRead}
+              className="flex items-center gap-1 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+            >
+              <CheckCheck className="w-4 h-4" />
+              Mark all read
+            </button>
+          )}
+          {!isDropdown && (
+            <Link
+              href="/notifications/settings"
+              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors"
+            >
+              <Settings className="w-5 h-5 text-gray-500 dark:text-neutral-400" />
+            </Link>
+          )}
+        </div>
       </div>
       
       {/* Notifications List */}
