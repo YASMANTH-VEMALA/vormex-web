@@ -1,0 +1,16 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/streaks/layout,_N_T_/streaks/leaderboard/layout,_N_T_/streaks/leaderboard/page,_N_T_/streaks/leaderboard"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/streaks/leaderboard/__PAGE__",
+    "/streaks/leaderboard",
+    "/streaks",
+    "/_index",
+    "/_head"
+  ]
+}

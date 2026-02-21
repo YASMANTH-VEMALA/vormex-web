@@ -1,0 +1,24 @@
+User-Agent: *
+Allow: /
+Disallow: /api/
+Disallow: /messages/
+Disallow: /profile/
+Disallow: /more/
+Disallow: /dashboard/
+
+User-Agent: Googlebot
+Allow: /
+Allow: /login
+Allow: /find-people
+Allow: /reels
+Allow: /groups
+Allow: /jobs
+Allow: /learning
+Allow: /challenges
+Disallow: /api/
+Disallow: /messages/
+Disallow: /profile/
+Disallow: /more/
+Disallow: /dashboard/
+
+Sitemap: https://vormex.vercel.app/sitemap.xml

@@ -1,0 +1,3 @@
+{
+  "/messages/[conversationId]/page": "app/messages/[conversationId]/page.js"
+}
