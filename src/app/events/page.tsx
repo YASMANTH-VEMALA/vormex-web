@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, MapPin, Users, Clock, Plus, Video } from 'lucide-react';
 import { eventsAPI, type CampusEvent } from '@/lib/api/events';
 import { useAuthContext } from '@/lib/auth/authContext';
-import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 
 const EVENT_TYPES = [
   { id: 'all', label: 'All' },

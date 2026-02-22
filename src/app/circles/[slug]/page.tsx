@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useAuthContext } from '@/lib/auth/authContext';
 import { circlesAPI, type Circle, type CircleMember, type CirclePost } from '@/lib/api/circles';
-import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 
 function CircleDetailContent() {
   const { slug } = useParams();

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Flame, BookOpen, CheckCircle2, Clock, Star } from 'lucide-react';
 import { accountabilityAPI, type AccountabilityPair, type MentorshipMatch } from '@/lib/api/accountability';
-import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 
 function PartnerCard({ pair, onCheckIn }: { pair: AccountabilityPair; onCheckIn: (id: string) => void }) {
   const router = useRouter();

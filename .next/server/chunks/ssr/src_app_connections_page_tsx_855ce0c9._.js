@@ -1,3 +1,0 @@
-module.exports=[24747,a=>{"use strict";var b=a.i(87924),c=a.i(72131),d=a.i(50944);function e(){let a=(0,d.useRouter)(),e=(0,d.useSearchParams)();return(0,c.useEffect)(()=>{let b=e.get("tab"),c=b?`?tab=${b}`:"";a.replace(`/more/connections${c}`)},[a,e]),(0,b.jsx)("div",{className:"min-h-screen flex items-center justify-center",children:(0,b.jsx)("div",{className:"animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"})})}function f(){return(0,b.jsx)(c.Suspense,{fallback:(0,b.jsx)("div",{className:"min-h-screen flex items-center justify-center",children:(0,b.jsx)("div",{className:"animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"})}),children:(0,b.jsx)(e,{})})}a.s(["default",()=>f])}];
-
-//# sourceMappingURL=src_app_connections_page_tsx_855ce0c9._.js.map

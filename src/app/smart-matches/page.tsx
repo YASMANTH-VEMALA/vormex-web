@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { matchingAPI, type SmartMatch } from '@/lib/api/matching';
-import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 
 const MATCH_TYPES = [
   { id: 'all', label: 'Best Matches', emoji: '✨' },

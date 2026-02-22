@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthContext } from '@/lib/auth/authContext';
 import { circlesAPI, type Circle } from '@/lib/api/circles';
-import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 
 const CATEGORIES = [
   { id: 'all', label: 'All', emoji: '🌍' },
