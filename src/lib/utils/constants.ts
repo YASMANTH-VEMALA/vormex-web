@@ -18,7 +18,7 @@ function resolveApiUrl(): string {
     throw new Error('Missing NEXT_PUBLIC_API_URL (or NEXT_PUBLIC_BACKEND_URL) in production');
   }
 
-  // Local default for development only.
+  // Local default for development (backend on 5000).
   return 'http://localhost:5000/api';
 }
 
