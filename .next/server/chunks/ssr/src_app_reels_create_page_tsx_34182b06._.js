@@ -1,0 +1,3 @@
+module.exports=[51454,a=>{"use strict";var b=a.i(87924),c=a.i(72131),d=a.i(50944);a.i(84671);var e=a.i(9561);function f(){let a=(0,d.useRouter)();return(0,b.jsx)(e.ReelCreate,{onClose:()=>a.push("/reels")})}function g(){return(0,b.jsx)(c.Suspense,{fallback:(0,b.jsx)("div",{className:"min-h-screen bg-black flex items-center justify-center",children:(0,b.jsx)("div",{className:"w-12 h-12 border-2 border-white border-t-transparent rounded-full animate-spin"})}),children:(0,b.jsx)(f,{})})}a.s(["default",()=>g])}];
+
+//# sourceMappingURL=src_app_reels_create_page_tsx_34182b06._.js.map
