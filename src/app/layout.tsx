@@ -23,6 +23,9 @@ const baseUrl =
   process.env.NEXT_PUBLIC_BASE_URL ||
   (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://vormex.vercel.app');
 
+const appLogoUrl =
+  'https://res.cloudinary.com/dxgiduk7b/image/upload/v1771739374/Untitled_design__1_-removebg-preview_harcaq.png';
+
 export const metadata: Metadata = {
   title: {
     default: "Vormex - Professional Social Networking for Students",
@@ -40,11 +43,13 @@ export const metadata: Metadata = {
     siteName: "Vormex",
     title: "Vormex - Professional Social Networking for Students",
     description: "Connect with students, share experiences, and grow your network.",
+    images: [{ url: appLogoUrl, width: 512, height: 512, alt: "Vormex" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "Vormex - Professional Social Networking for Students",
     description: "Connect with students, share experiences, and grow your network.",
+    images: [appLogoUrl],
   },
   robots: {
     index: true,
@@ -52,8 +57,11 @@ export const metadata: Metadata = {
   },
   metadataBase: new URL(baseUrl),
   icons: {
-    icon: '/logo.png',
-    apple: '/logo.png',
+    icon: [
+      { url: appLogoUrl, type: 'image/png', sizes: '32x32' },
+      { url: appLogoUrl, type: 'image/png', sizes: '16x16' },
+    ],
+    apple: [{ url: appLogoUrl, sizes: '180x180', type: 'image/png' }],
   },
 };
 
@@ -71,9 +79,9 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <link rel="icon" href="/logo.png" type="image/png" sizes="32x32" />
-        <link rel="icon" href="/logo.png" type="image/png" sizes="16x16" />
-        <link rel="apple-touch-icon" href="/logo.png" sizes="180x180" />
+        <link rel="icon" href={appLogoUrl} type="image/png" sizes="32x32" />
+        <link rel="icon" href={appLogoUrl} type="image/png" sizes="16x16" />
+        <link rel="apple-touch-icon" href={appLogoUrl} sizes="180x180" />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}

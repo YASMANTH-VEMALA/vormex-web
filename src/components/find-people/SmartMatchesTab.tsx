@@ -30,17 +30,20 @@ export function SmartMatchesTab() {
   const [matches, setMatches] = useState<SmartMatch[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>('all');
+  const [error, setError] = useState<'unavailable' | null>(null);
 
   const fetchMatches = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const data = await matchingAPI.getSmartMatches({
         type: filter as any,
         limit: 20,
       });
-      setMatches(data.matches);
-    } catch (error) {
-      console.error('Failed to fetch smart matches:', error);
+      setMatches(data.matches ?? []);
+    } catch {
+      setError('unavailable');
+      setMatches([]);
     } finally {
       setLoading(false);
     }
@@ -93,7 +96,15 @@ export function SmartMatchesTab() {
         ))}
       </div>
 
-      {matches.length === 0 ? (
+      {error === 'unavailable' ? (
+        <div className="text-center py-16">
+          <p className="text-4xl mb-3">⚠️</p>
+          <p className="font-medium text-gray-700 dark:text-neutral-300">Smart matches unavailable</p>
+          <p className="text-sm text-gray-500 dark:text-neutral-500 mt-1">
+            This feature may not be available on this server. Try again later or use the other tabs to find people.
+          </p>
+        </div>
+      ) : matches.length === 0 ? (
         <div className="text-center py-16">
           <p className="text-4xl mb-3">🔍</p>
           <p className="font-medium text-gray-700 dark:text-neutral-300">No matches found</p>

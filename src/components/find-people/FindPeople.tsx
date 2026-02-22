@@ -16,12 +16,10 @@ import {
   MapPin,
   RefreshCw,
   AlertCircle,
-  Zap,
 } from 'lucide-react';
 import { PersonCard } from './PersonCard';
 import { PersonCardSkeleton } from './PersonCardSkeleton';
 import { NearbyUsers } from './NearbyUsers';
-import { SmartMatchesTab } from './SmartMatchesTab';
 import {
   getPeople,
   getSuggestions,
@@ -33,7 +31,7 @@ import {
 } from '@/lib/api/people';
 import { useAuth } from '@/lib/auth/useAuth';
 
-type TabType = 'all' | 'smart' | 'suggestions' | 'college' | 'nearby';
+type TabType = 'all' | 'suggestions' | 'college' | 'nearby';
 
 const PEOPLE_STALE_TIME = 5 * 60 * 1000; // 5 min - instant back from profile
 
@@ -43,7 +41,7 @@ export function FindPeople() {
   const { user } = useAuth();
   const tabParam = searchParams.get('tab');
   const [activeTab, setActiveTab] = useState<TabType>(
-    tabParam === 'college' ? 'college' : 'smart'
+    tabParam === 'college' ? 'college' : tabParam === 'nearby' ? 'nearby' : 'all'
   );
   const [searchQuery, setSearchQuery] = useState('');
   const [people, setPeople] = useState<PersonCardType[]>([]);
@@ -299,17 +297,6 @@ export function FindPeople() {
             {/* Tabs */}
             <div className="flex gap-2 mb-4 overflow-x-auto pb-2 -mb-2 scrollbar-hide">
               <button
-                onClick={() => setActiveTab('smart')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-                  activeTab === 'smart'
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-gray-100 dark:bg-neutral-800 text-gray-700 dark:text-neutral-300 hover:bg-gray-200 dark:hover:bg-neutral-700'
-                }`}
-              >
-                <Zap className="w-4 h-4" />
-                Smart Matches
-              </button>
-              <button
                 onClick={() => setActiveTab('all')}
                 className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
                   activeTab === 'all'
@@ -526,18 +513,13 @@ export function FindPeople() {
             </div>
           )}
 
-          {/* Smart Matches Tab Content */}
-          {activeTab === 'smart' && (
-            <SmartMatchesTab />
-          )}
-
           {/* Nearby Tab Content */}
           {activeTab === 'nearby' && (
             <NearbyUsers />
           )}
 
           {/* Skeleton Loading */}
-          {activeTab !== 'nearby' && activeTab !== 'smart' && loading && (
+          {activeTab !== 'nearby' && loading && (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {Array.from({ length: 6 }).map((_, i) => (
                 <PersonCardSkeleton key={i} />
@@ -546,7 +528,7 @@ export function FindPeople() {
           )}
 
           {/* Error State */}
-          {activeTab !== 'nearby' && activeTab !== 'smart' && initialError && (
+          {activeTab !== 'nearby' && initialError && (
             <div className="text-center py-12">
               <AlertCircle className="w-16 h-16 mx-auto text-red-400 mb-4" />
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
@@ -565,7 +547,7 @@ export function FindPeople() {
           )}
 
           {/* Empty State */}
-          {activeTab !== 'nearby' && activeTab !== 'smart' && !loading && !initialError && displayedPeople.length === 0 && (
+          {activeTab !== 'nearby' && !loading && !initialError && displayedPeople.length === 0 && (
             <div className="text-center py-12">
               <Users className="w-16 h-16 mx-auto text-gray-300 dark:text-neutral-600 mb-4" />
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
@@ -590,7 +572,7 @@ export function FindPeople() {
           )}
 
           {/* People Grid */}
-          {activeTab !== 'nearby' && activeTab !== 'smart' && !loading && displayedPeople.length > 0 && (
+          {activeTab !== 'nearby' && !loading && displayedPeople.length > 0 && (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {displayedPeople.map((person) => (
                 <PersonCard
