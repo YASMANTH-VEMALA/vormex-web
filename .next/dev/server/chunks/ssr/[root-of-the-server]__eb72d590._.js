@@ -340,6 +340,11 @@ function AuthProvider({ children }) {
                     try {
                         const userData = await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$api$2f$auth$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["authAPI"].getCurrentUser();
                         setUser(userData);
+                        if (userData.onboardingCompleted) {
+                            __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$js$2d$cookie$2f$dist$2f$js$2e$cookie$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].set('onboardingCompleted', 'true', {
+                                expires: 7
+                            });
+                        }
                     } catch (error) {
                         const status = error.response?.status;
                         if (status === 401 || status === 404 || status === 403) {
@@ -368,6 +373,14 @@ function AuthProvider({ children }) {
                 sameSite: 'strict'
             });
             (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$auth$2f$authHelpers$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["setToken"])(response.token);
+            // Track onboarding status in cookie for middleware
+            if (response.user.onboardingCompleted) {
+                __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$js$2d$cookie$2f$dist$2f$js$2e$cookie$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].set('onboardingCompleted', 'true', {
+                    expires: 7
+                });
+            } else {
+                __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$js$2d$cookie$2f$dist$2f$js$2e$cookie$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].remove('onboardingCompleted');
+            }
             setUser(response.user);
             setTokenState(response.token);
         } catch (error) {
@@ -393,6 +406,7 @@ function AuthProvider({ children }) {
     }, []);
     const logout = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useCallback"])(()=>{
         __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$js$2d$cookie$2f$dist$2f$js$2e$cookie$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].remove('authToken');
+        __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$js$2d$cookie$2f$dist$2f$js$2e$cookie$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].remove('onboardingCompleted');
         (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$auth$2f$authHelpers$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["removeToken"])();
         setUser(null);
         setTokenState(null);
@@ -405,11 +419,23 @@ function AuthProvider({ children }) {
             sameSite: 'strict'
         });
         (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$auth$2f$authHelpers$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["setToken"])(response.token);
+        if (response.user.onboardingCompleted) {
+            __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$js$2d$cookie$2f$dist$2f$js$2e$cookie$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].set('onboardingCompleted', 'true', {
+                expires: 7
+            });
+        } else {
+            __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$js$2d$cookie$2f$dist$2f$js$2e$cookie$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].remove('onboardingCompleted');
+        }
         setUser(response.user);
         setTokenState(response.token);
     }, []);
     const updateUser = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useCallback"])((updatedUser)=>{
         setUser(updatedUser);
+        if (updatedUser.onboardingCompleted) {
+            __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$js$2d$cookie$2f$dist$2f$js$2e$cookie$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].set('onboardingCompleted', 'true', {
+                expires: 7
+            });
+        }
     }, []);
     const value = {
         user,
@@ -427,7 +453,7 @@ function AuthProvider({ children }) {
         children: children
     }, void 0, false, {
         fileName: "[project]/src/lib/auth/authContext.tsx",
-        lineNumber: 140,
+        lineNumber: 161,
         columnNumber: 10
     }, this);
 }
@@ -1559,7 +1585,7 @@ function Dock({ children, className, spring = {
                 isHovered.set(0);
                 mouseX.set(Infinity);
             },
-            className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$utils$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["cn"])('mx-auto flex w-fit gap-4 rounded-2xl bg-gray-50 px-4 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800', className),
+            className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$utils$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["cn"])('mx-auto flex w-fit gap-4 rounded-2xl bg-transparent px-4', className),
             style: {
                 height: panelHeight
             },
@@ -1710,14 +1736,15 @@ function VormexDock() {
     const pathname = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["usePathname"])();
     const [showCreateModal, setShowCreateModal] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
     const { user } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$auth$2f$useAuth$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useAuth"])();
-    // Hide dock on login and auth pages
-    const authPages = [
+    // Hide dock on login, auth, and onboarding pages
+    const hideDockPages = [
         '/login',
         '/forgot-password',
         '/reset-password',
-        '/verify-email'
+        '/verify-email',
+        '/onboarding'
     ];
-    if (authPages.includes(pathname)) {
+    if (hideDockPages.includes(pathname)) {
         return null;
     }
     // Profile picture component
@@ -1786,8 +1813,8 @@ function VormexDock() {
             }, this)
         },
         {
-            title: 'Groups',
-            href: '/groups',
+            title: 'Circles',
+            href: '/circles',
             icon: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$users$2d$round$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__UsersRound$3e$__["UsersRound"], {
                 className: "h-full w-full text-neutral-600 dark:text-neutral-300"
             }, void 0, false, {
@@ -1864,7 +1891,7 @@ function VormexDock() {
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Fragment"], {
         children: [
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                className: "hidden lg:block fixed bottom-4 left-1/2 -translate-x-1/2 z-50 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-md rounded-2xl px-4 py-2 shadow-lg border border-white/20 dark:border-neutral-800/50",
+                className: "hidden lg:block fixed bottom-4 left-1/2 -translate-x-1/2 z-50 bg-transparent rounded-2xl px-4 py-2 shadow-lg",
                 children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(Dock, {
                     className: "items-end pb-3",
                     children: navItems.map((item)=>item.isCreate ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {

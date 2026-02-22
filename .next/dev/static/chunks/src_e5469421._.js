@@ -1730,7 +1730,7 @@ function MentionInput({ value, onChange, placeholder = 'Write something...', cla
                 placeholder: placeholder,
                 maxLength: maxLength,
                 rows: 1,
-                className: `w-full resize-none bg-transparent text-white placeholder-white/40 focus:outline-none ${className}`,
+                className: `w-full resize-none bg-transparent text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-white/40 focus:outline-none ${className}`,
                 style: {
                     minHeight: '24px'
                 }
@@ -2242,7 +2242,7 @@ function ReelComments({ reelId, isOpen, onClose, authorId }) {
         }, this);
     if (!isOpen) return null;
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-        className: "fixed inset-0 z-50 flex items-end justify-center",
+        className: "fixed inset-0 z-[100] flex items-end justify-center",
         children: [
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                 className: "absolute inset-0 bg-black/50",
@@ -2253,7 +2253,7 @@ function ReelComments({ reelId, isOpen, onClose, authorId }) {
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                className: "relative w-full max-w-lg h-[70vh] bg-white dark:bg-gray-900 rounded-t-3xl flex flex-col animate-slide-up",
+                className: "relative w-full max-w-lg h-[70vh] bg-white dark:bg-gray-900 rounded-t-3xl flex flex-col animate-slide-up mb-24",
                 children: [
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                         className: "flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700",

@@ -270,6 +270,8 @@ async function getFollowCounts(userId) {
 __turbopack_context__.s([
     "addSkill",
     ()=>addSkill,
+    "claimWelcomeGift",
+    ()=>claimWelcomeGift,
     "createAchievement",
     ()=>createAchievement,
     "createCertificate",
@@ -367,6 +369,16 @@ async function updateBanner(bannerUrl) {
     return __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$api$2f$client$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].post('/users/me/banner', {
         bannerUrl
     });
+}
+async function claimWelcomeGift(profileRing) {
+    const updated = await updateProfile({
+        profileRing,
+        hasClaimedWelcomeGift: true
+    });
+    return {
+        profileRing: updated.profileRing ?? profileRing,
+        hasClaimedWelcomeGift: updated.hasClaimedWelcomeGift ?? true
+    };
 }
 async function getUserFeed(usernameOrId, page = 1, limit = 20, filter = 'all') {
     return __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$api$2f$client$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].get(`/users/${usernameOrId}/feed`, {

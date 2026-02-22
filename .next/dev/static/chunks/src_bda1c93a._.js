@@ -296,6 +296,11 @@ function AuthProvider({ children }) {
                             try {
                                 const userData = await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$api$2f$auth$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["authAPI"].getCurrentUser();
                                 setUser(userData);
+                                if (userData.onboardingCompleted) {
+                                    __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$js$2d$cookie$2f$dist$2f$js$2e$cookie$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].set('onboardingCompleted', 'true', {
+                                        expires: 7
+                                    });
+                                }
                             } catch (error_0) {
                                 const status = error_0.response?.status;
                                 if (status === 401 || status === 404 || status === 403) {
@@ -327,6 +332,14 @@ function AuthProvider({ children }) {
                     sameSite: 'strict'
                 });
                 (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$auth$2f$authHelpers$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["setToken"])(response.token);
+                // Track onboarding status in cookie for middleware
+                if (response.user.onboardingCompleted) {
+                    __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$js$2d$cookie$2f$dist$2f$js$2e$cookie$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].set('onboardingCompleted', 'true', {
+                        expires: 7
+                    });
+                } else {
+                    __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$js$2d$cookie$2f$dist$2f$js$2e$cookie$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].remove('onboardingCompleted');
+                }
                 setUser(response.user);
                 setTokenState(response.token);
             } catch (error_1) {
@@ -356,6 +369,7 @@ function AuthProvider({ children }) {
     const logout = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useCallback"])({
         "AuthProvider.useCallback[logout]": ()=>{
             __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$js$2d$cookie$2f$dist$2f$js$2e$cookie$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].remove('authToken');
+            __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$js$2d$cookie$2f$dist$2f$js$2e$cookie$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].remove('onboardingCompleted');
             (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$auth$2f$authHelpers$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["removeToken"])();
             setUser(null);
             setTokenState(null);
@@ -370,6 +384,13 @@ function AuthProvider({ children }) {
                 sameSite: 'strict'
             });
             (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$auth$2f$authHelpers$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["setToken"])(response_1.token);
+            if (response_1.user.onboardingCompleted) {
+                __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$js$2d$cookie$2f$dist$2f$js$2e$cookie$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].set('onboardingCompleted', 'true', {
+                    expires: 7
+                });
+            } else {
+                __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$js$2d$cookie$2f$dist$2f$js$2e$cookie$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].remove('onboardingCompleted');
+            }
             setUser(response_1.user);
             setTokenState(response_1.token);
         }
@@ -377,6 +398,11 @@ function AuthProvider({ children }) {
     const updateUser = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useCallback"])({
         "AuthProvider.useCallback[updateUser]": (updatedUser)=>{
             setUser(updatedUser);
+            if (updatedUser.onboardingCompleted) {
+                __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$js$2d$cookie$2f$dist$2f$js$2e$cookie$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].set('onboardingCompleted', 'true', {
+                    expires: 7
+                });
+            }
         }
     }["AuthProvider.useCallback[updateUser]"], []);
     const value = {
@@ -396,7 +422,7 @@ function AuthProvider({ children }) {
         children: children
     }, void 0, false, {
         fileName: "[project]/src/lib/auth/authContext.tsx",
-        lineNumber: 132,
+        lineNumber: 159,
         columnNumber: 10
     }, this);
 }
@@ -405,11 +431,11 @@ _c = AuthProvider;
 function useAuthContext() {
     _s1();
     const $ = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$compiler$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["c"])(1);
-    if ($[0] !== "da1121acad19994f5ad8926454d8471d7ea1e86083cadab995ae61f1e1d62af4") {
+    if ($[0] !== "a32b7af03cba1f62cdb1df8e6a0319bffd556eca2ad2b75df15724c097254fe3") {
         for(let $i = 0; $i < 1; $i += 1){
             $[$i] = Symbol.for("react.memo_cache_sentinel");
         }
-        $[0] = "da1121acad19994f5ad8926454d8471d7ea1e86083cadab995ae61f1e1d62af4";
+        $[0] = "a32b7af03cba1f62cdb1df8e6a0319bffd556eca2ad2b75df15724c097254fe3";
     }
     const context = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useContext"])(AuthContext);
     if (context === undefined) {
@@ -1906,11 +1932,11 @@ const DEFAULT_PANEL_HEIGHT = 64;
 const DockContext = /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["createContext"])(undefined);
 function DockProvider(t0) {
     const $ = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$compiler$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["c"])(4);
-    if ($[0] !== "6d178aed1913e2236aa262056bc364e3ed20b431d0cc7b7935b12cea97649bf1") {
+    if ($[0] !== "d61cf474cf2971ebd8b048958a115fca451b6b1adf675342432b88a2cc6586d0") {
         for(let $i = 0; $i < 4; $i += 1){
             $[$i] = Symbol.for("react.memo_cache_sentinel");
         }
-        $[0] = "6d178aed1913e2236aa262056bc364e3ed20b431d0cc7b7935b12cea97649bf1";
+        $[0] = "d61cf474cf2971ebd8b048958a115fca451b6b1adf675342432b88a2cc6586d0";
     }
     const { children, value } = t0;
     let t1;
@@ -1935,11 +1961,11 @@ _c1 = DockProvider;
 function useDock() {
     _s();
     const $ = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$compiler$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["c"])(1);
-    if ($[0] !== "6d178aed1913e2236aa262056bc364e3ed20b431d0cc7b7935b12cea97649bf1") {
+    if ($[0] !== "d61cf474cf2971ebd8b048958a115fca451b6b1adf675342432b88a2cc6586d0") {
         for(let $i = 0; $i < 1; $i += 1){
             $[$i] = Symbol.for("react.memo_cache_sentinel");
         }
-        $[0] = "6d178aed1913e2236aa262056bc364e3ed20b431d0cc7b7935b12cea97649bf1";
+        $[0] = "d61cf474cf2971ebd8b048958a115fca451b6b1adf675342432b88a2cc6586d0";
     }
     const context = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useContext"])(DockContext);
     if (!context) {
@@ -1951,11 +1977,11 @@ _s(useDock, "b9L3QQ+jgeyIrH0NfHrJ8nn7VMU=");
 function Dock(t0) {
     _s1();
     const $ = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$compiler$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["c"])(34);
-    if ($[0] !== "6d178aed1913e2236aa262056bc364e3ed20b431d0cc7b7935b12cea97649bf1") {
+    if ($[0] !== "d61cf474cf2971ebd8b048958a115fca451b6b1adf675342432b88a2cc6586d0") {
         for(let $i = 0; $i < 34; $i += 1){
             $[$i] = Symbol.for("react.memo_cache_sentinel");
         }
-        $[0] = "6d178aed1913e2236aa262056bc364e3ed20b431d0cc7b7935b12cea97649bf1";
+        $[0] = "d61cf474cf2971ebd8b048958a115fca451b6b1adf675342432b88a2cc6586d0";
     }
     const { children, className, spring: t1, magnification: t2, distance: t3, panelHeight: t4 } = t0;
     let t5;
@@ -2038,7 +2064,7 @@ function Dock(t0) {
     }
     let t11;
     if ($[13] !== className) {
-        t11 = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$utils$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["cn"])("mx-auto flex w-fit gap-4 rounded-2xl bg-gray-50 px-4 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800", className);
+        t11 = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$utils$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["cn"])("mx-auto flex w-fit gap-4 rounded-2xl bg-transparent px-4", className);
         $[13] = className;
         $[14] = t11;
     } else {
@@ -2141,11 +2167,11 @@ _c2 = Dock;
 function DockItem(t0) {
     _s2();
     const $ = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$compiler$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["c"])(35);
-    if ($[0] !== "6d178aed1913e2236aa262056bc364e3ed20b431d0cc7b7935b12cea97649bf1") {
+    if ($[0] !== "d61cf474cf2971ebd8b048958a115fca451b6b1adf675342432b88a2cc6586d0") {
         for(let $i = 0; $i < 35; $i += 1){
             $[$i] = Symbol.for("react.memo_cache_sentinel");
         }
-        $[0] = "6d178aed1913e2236aa262056bc364e3ed20b431d0cc7b7935b12cea97649bf1";
+        $[0] = "d61cf474cf2971ebd8b048958a115fca451b6b1adf675342432b88a2cc6586d0";
     }
     const { children, className, href, isActive } = t0;
     const ref = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRef"])(null);
@@ -2333,11 +2359,11 @@ _c3 = DockItem;
 function DockLabel(t0) {
     _s3();
     const $ = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$compiler$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["c"])(10);
-    if ($[0] !== "6d178aed1913e2236aa262056bc364e3ed20b431d0cc7b7935b12cea97649bf1") {
+    if ($[0] !== "d61cf474cf2971ebd8b048958a115fca451b6b1adf675342432b88a2cc6586d0") {
         for(let $i = 0; $i < 10; $i += 1){
             $[$i] = Symbol.for("react.memo_cache_sentinel");
         }
-        $[0] = "6d178aed1913e2236aa262056bc364e3ed20b431d0cc7b7935b12cea97649bf1";
+        $[0] = "d61cf474cf2971ebd8b048958a115fca451b6b1adf675342432b88a2cc6586d0";
     }
     const { children, className, isHovered } = t0;
     const [isVisible, setIsVisible] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
@@ -2425,11 +2451,11 @@ _c4 = DockLabel;
 function DockIcon(t0) {
     _s4();
     const $ = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$compiler$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["c"])(9);
-    if ($[0] !== "6d178aed1913e2236aa262056bc364e3ed20b431d0cc7b7935b12cea97649bf1") {
+    if ($[0] !== "d61cf474cf2971ebd8b048958a115fca451b6b1adf675342432b88a2cc6586d0") {
         for(let $i = 0; $i < 9; $i += 1){
             $[$i] = Symbol.for("react.memo_cache_sentinel");
         }
-        $[0] = "6d178aed1913e2236aa262056bc364e3ed20b431d0cc7b7935b12cea97649bf1";
+        $[0] = "d61cf474cf2971ebd8b048958a115fca451b6b1adf675342432b88a2cc6586d0";
     }
     const { children, className, width } = t0;
     const defaultWidth = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$framer$2d$motion$2f$dist$2f$es$2f$value$2f$use$2d$motion$2d$value$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useMotionValue"])(40);
@@ -2487,22 +2513,23 @@ function _DockIconUseTransform(val) {
 function VormexDock() {
     _s5();
     const $ = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$compiler$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["c"])(51);
-    if ($[0] !== "6d178aed1913e2236aa262056bc364e3ed20b431d0cc7b7935b12cea97649bf1") {
+    if ($[0] !== "d61cf474cf2971ebd8b048958a115fca451b6b1adf675342432b88a2cc6586d0") {
         for(let $i = 0; $i < 51; $i += 1){
             $[$i] = Symbol.for("react.memo_cache_sentinel");
         }
-        $[0] = "6d178aed1913e2236aa262056bc364e3ed20b431d0cc7b7935b12cea97649bf1";
+        $[0] = "d61cf474cf2971ebd8b048958a115fca451b6b1adf675342432b88a2cc6586d0";
     }
     const pathname = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["usePathname"])();
     const [showCreateModal, setShowCreateModal] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
     const { user } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$auth$2f$useAuth$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useAuth"])();
-    const authPages = [
+    const hideDockPages = [
         "/login",
         "/forgot-password",
         "/reset-password",
-        "/verify-email"
+        "/verify-email",
+        "/onboarding"
     ];
-    if (authPages.includes(pathname)) {
+    if (hideDockPages.includes(pathname)) {
         return null;
     }
     let t0;
@@ -2593,8 +2620,8 @@ function VormexDock() {
                 }, this)
             },
             {
-                title: "Groups",
-                href: "/groups",
+                title: "Circles",
+                href: "/circles",
                 icon: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$users$2d$round$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__UsersRound$3e$__["UsersRound"], {
                     className: "h-full w-full text-neutral-600 dark:text-neutral-300"
                 }, void 0, false, {
@@ -2670,7 +2697,7 @@ function VormexDock() {
                 return pathname.startsWith(href);
             }
         }["VormexDock[isActive]"];
-        t4 = "hidden lg:block fixed bottom-4 left-1/2 -translate-x-1/2 z-50 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-md rounded-2xl px-4 py-2 shadow-lg border border-white/20 dark:border-neutral-800/50";
+        t4 = "hidden lg:block fixed bottom-4 left-1/2 -translate-x-1/2 z-50 bg-transparent rounded-2xl px-4 py-2 shadow-lg";
         T0 = Dock;
         t2 = "items-end pb-3";
         t3 = navItems.map({

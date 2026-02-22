@@ -41,25 +41,39 @@ const publicRoutes = [
     '/verify-email',
     '/auth/google/callback'
 ];
+// Routes that should be accessible during onboarding
+const onboardingAllowedRoutes = [
+    '/onboarding',
+    '/api',
+    '/login',
+    '/register'
+];
 function middleware(request) {
     const { pathname } = request.nextUrl;
     // Get token from cookies or Authorization header
     const token = request.cookies.get('authToken')?.value || request.headers.get('Authorization')?.replace('Bearer ', '');
+    // Check onboarding status from cookie
+    const onboardingCompleted = request.cookies.get('onboardingCompleted')?.value === 'true';
     // Check if it's a public route (like verify-email with token query param)
     const isPublicRoute = publicRoutes.some((route)=>pathname.startsWith(route));
     // Check if accessing protected route without token
     const isProtectedRoute = protectedRoutes.some((route)=>route === '/' ? pathname === '/' : pathname.startsWith(route));
     if (isProtectedRoute && !token) {
-        // Redirect to login if accessing protected route without token
         const loginUrl = new URL('/login', request.url);
         return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$esm$2f$server$2f$web$2f$exports$2f$index$2e$js__$5b$middleware$2d$edge$5d$__$28$ecmascript$29$__["NextResponse"].redirect(loginUrl);
     }
     // Check if accessing auth route with token (but allow public routes)
     const isAuthRoute = authRoutes.some((route)=>pathname.startsWith(route));
     if (isAuthRoute && token && !isPublicRoute) {
-        // Redirect to home if accessing auth route with token
         const homeUrl = new URL('/', request.url);
         return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$esm$2f$server$2f$web$2f$exports$2f$index$2e$js__$5b$middleware$2d$edge$5d$__$28$ecmascript$29$__["NextResponse"].redirect(homeUrl);
+    }
+    // Onboarding redirect: if authenticated but onboarding not completed, redirect to onboarding
+    // Only for protected routes (not for API, assets, onboarding itself)
+    const isOnboardingAllowed = onboardingAllowedRoutes.some((route)=>pathname.startsWith(route));
+    if (token && !onboardingCompleted && isProtectedRoute && !isOnboardingAllowed && !isPublicRoute) {
+        const onboardingUrl = new URL('/onboarding', request.url);
+        return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$esm$2f$server$2f$web$2f$exports$2f$index$2e$js__$5b$middleware$2d$edge$5d$__$28$ecmascript$29$__["NextResponse"].redirect(onboardingUrl);
     }
     // Allow request to proceed
     return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$esm$2f$server$2f$web$2f$exports$2f$index$2e$js__$5b$middleware$2d$edge$5d$__$28$ecmascript$29$__["NextResponse"].next();
