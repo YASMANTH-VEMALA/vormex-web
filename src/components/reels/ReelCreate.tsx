@@ -8,8 +8,9 @@ import { ReelCreateFields } from './ReelCreateFields';
 export type { ReelCreateProps } from './ReelCreate.types';
 
 import { AudioPickerDialog } from '@/components/audio/AudioPickerDialog';
-import { asApiError } from '@/lib/api/errors';
-import { audioApi, reelsApi, type Audio } from '@/lib/api/reels';
+import { getStructuredApiError } from '@/lib/api/errors';
+import { prepareReelThumbnail, uploadReelVideo } from '@/lib/reels/upload';
+import { audioApi, type Audio } from '@/lib/api/reels';
 import { toMusicAttachment, type MusicAttachment } from '@/types/music';
 import { Upload, X } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -140,36 +141,33 @@ export function ReelCreate({
 
     try {
       setIsUploading(true);
-      setUploadProgress(10);
-
-      const formData = new FormData();
-      formData.append('video', selectedFile);
-      if (selectedThumbnail) formData.append('thumbnail', selectedThumbnail);
-      formData.append('title', title);
-      formData.append('caption', caption);
-      formData.append('hashtags', JSON.stringify(hashtags));
-      formData.append('visibility', visibility);
-      formData.append('allowComments', String(allowComments));
-      formData.append('allowDuets', String(allowDuets));
-      formData.append('allowStitch', String(allowStitch));
-      formData.append('allowDownload', String(allowDownload));
-      formData.append('allowSharing', String(allowSharing));
-      formData.append('saveAsDraft', String(saveAsDraft));
-      if (scheduledAt) formData.append('scheduledAt', scheduledAt);
-      if (originalReelId) formData.append('originalReelId', originalReelId);
-      if (responseType) formData.append('responseType', responseType);
-      if (audioId) formData.append('audioId', audioId);
-
-      if (codeSnippet) {
-        formData.append('codeSnippet', codeSnippet);
-        formData.append('codeLanguage', codeLanguage);
-        formData.append('codeFileName', codeFileName);
-        formData.append('repoUrl', repoUrl);
-      }
-
-      setUploadProgress(30);
-
-      const reel = await reelsApi.createReel(formData);
+      setError(null);
+      setUploadProgress(0);
+      const thumbnailFile = selectedThumbnail
+        ? await prepareReelThumbnail(selectedThumbnail)
+        : undefined;
+      const reel = await uploadReelVideo(
+        selectedFile,
+        {
+          title,
+          caption,
+          hashtags,
+          visibility,
+          allowComments,
+          allowDuets,
+          allowStitch,
+          allowDownload,
+          allowSharing,
+          saveAsDraft,
+          ...(scheduledAt ? { scheduledAt } : {}),
+          ...(originalReelId ? { originalReelId } : {}),
+          ...(responseType ? { responseType } : {}),
+          ...(audioId ? { audioId } : {}),
+          ...(thumbnailFile ? { thumbnailFile } : {}),
+          ...(codeSnippet ? { codeSnippet, codeLanguage, codeFileName, repoUrl } : {}),
+        },
+        setUploadProgress
+      );
 
       setUploadProgress(100);
 
@@ -179,11 +177,7 @@ export function ReelCreate({
         router.push(`/reels/${(reel as unknown as { id: string }).id}`);
       }
     } catch (err: unknown) {
-      console.error('Upload failed:', err);
-      const apiError = asApiError(err);
-      const msg =
-        apiError.response?.data?.message || apiError.response?.data?.error || apiError.message;
-      setError(msg || 'Failed to upload video. Please try again.');
+      setError(getStructuredApiError(err).message || 'Failed to upload video. Please try again.');
     } finally {
       setIsUploading(false);
     }

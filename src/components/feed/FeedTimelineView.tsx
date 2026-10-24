@@ -24,6 +24,7 @@ import { StoryCarousel } from '@/components/stories/StoryCarousel';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { queryKeys } from '@/lib/queryKeys';
+import type { PostType } from '@/types/post';
 import { AnimatePresence, motion } from 'framer-motion';
 import { FileText, Image as ImageIcon, Loader2, Users, Video } from 'lucide-react';
 import Image from 'next/image';
@@ -140,6 +141,12 @@ export function FeedTimelineView({
   updateFeedCache,
   user,
 }: FeedTimelineViewProps) {
+  const [initialPostType, setInitialPostType] = React.useState<PostType>('TEXT');
+  const openCreatePost = (type: PostType = 'TEXT') => {
+    setInitialPostType(type);
+    setShowCreateModal(true);
+  };
+
   return (
     <>
       {/* Header — shares the shell's max width so the wordmark lines up with the nav rail */}
@@ -211,7 +218,7 @@ export function FeedTimelineView({
                 >
                   <div className={PANEL_SURFACE}>
                     <button
-                      onClick={() => setShowCreateModal(true)}
+                      onClick={() => openCreatePost()}
                       className="w-full p-3 text-left transition-colors hover:bg-gray-50/90 sm:p-4 dark:hover:bg-neutral-800/60"
                     >
                       <div className="flex items-center gap-3">
@@ -234,19 +241,19 @@ export function FeedTimelineView({
                         icon={ImageIcon}
                         label="Photo"
                         tone="text-blue-500"
-                        onClick={() => setShowCreateModal(true)}
+                        onClick={() => openCreatePost('IMAGE')}
                       />
                       <ComposerAction
                         icon={Video}
                         label="Video"
                         tone="text-teal-600 dark:text-teal-400"
-                        onClick={() => setShowCreateModal(true)}
+                        onClick={() => openCreatePost('VIDEO')}
                       />
                       <ComposerAction
                         icon={FileText}
                         label="Article"
                         tone="text-blue-600 dark:text-blue-300"
-                        onClick={() => setShowCreateModal(true)}
+                        onClick={() => openCreatePost('ARTICLE')}
                       />
                     </div>
                   </div>
@@ -429,6 +436,7 @@ export function FeedTimelineView({
         {showCreateModal && (
           <CreatePostModal
             isOpen={showCreateModal}
+            initialPostType={initialPostType}
             onClose={() => setShowCreateModal(false)}
             onPostCreated={handlePostCreated}
           />

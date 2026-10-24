@@ -1,5 +1,6 @@
 export interface CreatePostModalProps {
   isOpen: boolean;
+  initialPostType?: import('@/types/post').PostType;
   onClose: () => void;
   onPostCreated?: (post?: import('@/types/post').Post) => void;
 }

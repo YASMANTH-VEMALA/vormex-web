@@ -106,7 +106,10 @@ export interface CommentsResponse {
 export interface UploadUrlResponse {
   videoId: string;
   uploadUrl: string;
-  tusUrl: string;
+  uploadMethod: 'TUS';
+  uploadHeaders: Record<string, string>;
+  uploadToken: string;
+  expiresAt: number;
 }
 
 export interface PreloadDataResponse {
@@ -160,12 +163,13 @@ export const reelsApi = {
   getPreloadData: (reelId: string) =>
     apiClient.get<PreloadDataResponse>(`/reels/${reelId}/preload`),
 
-  getUploadUrl: () => apiClient.post<UploadUrlResponse>('/reels/upload-url'),
+  getUploadUrl: (data: { mimeType: string; sizeBytes: number }) =>
+    apiClient.post<UploadUrlResponse>('/reels/upload-url', data, { timeout: 30_000 }),
 
   createReel: (data: FormData) => apiClient.post<Reel>('/reels', data),
 
   onUploadComplete: (videoId: string, metadata: Record<string, unknown>) =>
-    apiClient.post<Reel>('/reels/upload-complete', { videoId, ...metadata }),
+    apiClient.post<Reel>('/reels/upload-complete', { videoId, ...metadata }, { timeout: 60_000 }),
 
   updateReel: (reelId: string, data: Partial<Reel>) =>
     apiClient.put<Reel>(`/reels/${reelId}`, data),

@@ -54,10 +54,15 @@ const CELEBRATION_TYPES: { value: CelebrationType; label: string; emoji: string 
   { value: 'BIRTHDAY', label: 'Birthday', emoji: '🎂' },
 ];
 
-function CreatePostModalSession({ isOpen, onClose, onPostCreated }: CreatePostModalProps) {
+function CreatePostModalSession({
+  isOpen,
+  onClose,
+  onPostCreated,
+  initialPostType = 'TEXT',
+}: CreatePostModalProps) {
   const { user } = useAuth();
   const { submitPost } = usePostingStatus();
-  const [postType, setPostType] = useState<PostType>('TEXT');
+  const [postType, setPostType] = useState<PostType>(initialPostType);
   const [content, setContent] = useState('');
   const [visibility, setVisibility] = useState<PostVisibility>('PUBLIC');
   const [showVisibilityDropdown, setShowVisibilityDropdown] = useState(false);

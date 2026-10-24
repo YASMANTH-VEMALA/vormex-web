@@ -2,7 +2,8 @@
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Loader2, MessageCircle, Send, X } from 'lucide-react';
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 
 interface CommentsDialogViewProps {
   CommentItem: ({
@@ -65,13 +66,45 @@ export function CommentsDialogView({
   submitError,
   user,
 }: CommentsDialogViewProps) {
-  return (
+  const overlayRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const overlay = overlayRef.current;
+    if (!overlay) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const viewport = window.visualViewport;
+    const update = () => {
+      if (!viewport || Math.abs(viewport.scale - 1) > 0.05) return;
+      overlay.style.setProperty('--comments-height', `${viewport.height}px`);
+      overlay.style.setProperty('--comments-top', `${viewport.offsetTop}px`);
+      overlay.style.setProperty(
+        '--comments-safe-bottom',
+        window.innerHeight - viewport.height > 120 ? '0px' : 'env(safe-area-inset-bottom,0px)'
+      );
+    };
+    update();
+    viewport?.addEventListener('resize', update);
+    viewport?.addEventListener('scroll', update);
+    window.addEventListener('resize', update);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      viewport?.removeEventListener('resize', update);
+      viewport?.removeEventListener('scroll', update);
+      window.removeEventListener('resize', update);
+    };
+  }, []);
+
+  if (typeof document === 'undefined') return null;
+
+  return createPortal(
     <AnimatePresence>
       <motion.div
+        ref={overlayRef}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
+        className="fixed inset-x-0 top-[var(--comments-top,0px)] z-[100] flex h-[var(--comments-height,100dvh)] items-end justify-center sm:items-center"
         onClick={onClose}
       >
         {/* Backdrop */}
@@ -79,17 +112,21 @@ export function CommentsDialogView({
 
         {/* Panel */}
         <motion.div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Comments"
           initial={{ y: '100%' }}
           animate={{ y: 0 }}
           exit={{ y: '100%' }}
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
           onClick={(e) => e.stopPropagation()}
-          className="relative w-full sm:max-w-xl h-[80vh] sm:h-[70vh] sm:rounded-t-2xl sm:rounded-b-2xl bg-white dark:bg-neutral-900 flex flex-col"
+          className="relative flex h-[80%] max-h-full min-h-0 w-full flex-col rounded-t-2xl bg-white sm:h-[70%] sm:max-w-xl sm:rounded-b-2xl dark:bg-neutral-900"
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-neutral-800">
+          <div className="flex shrink-0 items-center justify-between p-4 border-b border-gray-200 dark:border-neutral-800">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Comments</h2>
             <button
+              aria-label="Close comments"
               onClick={onClose}
               className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors"
             >
@@ -98,7 +135,7 @@ export function CommentsDialogView({
           </div>
 
           {/* Comments List */}
-          <div ref={commentsContainerRef} className="flex-1 overflow-y-auto p-4">
+          <div ref={commentsContainerRef} className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
             {loading ? (
               <div className="flex justify-center py-8">
                 <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
@@ -175,7 +212,7 @@ export function CommentsDialogView({
           )}
 
           {/* Input - only show when user is logged in */}
-          <div className="p-4 border-t border-gray-200 dark:border-neutral-800">
+          <div className="shrink-0 p-4 pb-[calc(1rem+var(--comments-safe-bottom,env(safe-area-inset-bottom,0px)))] border-t border-gray-200 dark:border-neutral-800">
             {!user ? (
               <p className="text-center text-sm text-gray-500 dark:text-neutral-400 py-2">
                 Log in to add a comment
@@ -228,14 +265,15 @@ export function CommentsDialogView({
                     }}
                     placeholder="Write a comment..."
                     rows={1}
-                    className="flex-1 px-4 py-2 rounded-full bg-gray-100 dark:bg-neutral-800 text-gray-900 dark:text-white placeholder-gray-500 resize-none outline-none focus:ring-2 focus:ring-blue-500 max-h-24"
+                    className="min-w-0 flex-1 px-4 py-2 text-base rounded-full bg-gray-100 dark:bg-neutral-800 text-gray-900 dark:text-white placeholder-gray-500 resize-none outline-none focus:ring-2 focus:ring-blue-500 max-h-24"
                     style={{ minHeight: '40px' }}
                   />
 
                   <button
+                    aria-label="Send comment"
                     onClick={handleSubmit}
                     disabled={!newComment.trim() || isSubmitting}
-                    className="p-2 rounded-full bg-blue-500 text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-600 transition-colors"
+                    className="shrink-0 p-2 rounded-full bg-blue-500 text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-600 transition-colors"
                   >
                     {isSubmitting ? (
                       <Loader2 className="w-5 h-5 animate-spin" />
@@ -249,6 +287,7 @@ export function CommentsDialogView({
           </div>
         </motion.div>
       </motion.div>
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }

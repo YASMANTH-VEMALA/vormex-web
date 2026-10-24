@@ -33,7 +33,7 @@ export function buildSecurityHeaders(env: Partial<NodeJS.ProcessEnv> = process.e
     "font-src 'self' data: https://fonts.gstatic.com https://cdn.razorpay.com",
     "img-src 'self' data: blob: https:",
     "media-src 'self' blob: https:",
-    `connect-src 'self' ${backendOrigin} ${backendSocketOrigin} https://accounts.google.com https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://*.b-cdn.net https://*.cloudfront.net https://api.razorpay.com https://lumberjack.razorpay.com https://lumberjack-cx.razorpay.com`,
+    `connect-src 'self' ${backendOrigin} ${backendSocketOrigin} https://video.bunnycdn.com https://accounts.google.com https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://*.b-cdn.net https://*.cloudfront.net https://api.razorpay.com https://lumberjack.razorpay.com https://lumberjack-cx.razorpay.com`,
     'frame-src https://accounts.google.com https://www.youtube-nocookie.com https://api.razorpay.com https://checkout.razorpay.com https://*.razorpay.com',
     'child-src https://api.razorpay.com https://checkout.razorpay.com https://*.razorpay.com',
     "worker-src 'self' blob:",
