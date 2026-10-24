@@ -11,7 +11,16 @@ function isAbsoluteUrl(input: string): boolean {
   return /^https?:\/\//i.test(input.trim());
 }
 
-export function resolveApiUrl(env: Partial<NodeJS.ProcessEnv> = process.env): string {
+// Next.js only inlines direct NEXT_PUBLIC_* property reads into browser code.
+// Passing process.env itself leaves an empty runtime shim in the client bundle.
+const publicBuildEnv = {
+  NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
+  NEXT_PUBLIC_BACKEND_URL: process.env.NEXT_PUBLIC_BACKEND_URL,
+  NEXT_PUBLIC_SOCKET_URL: process.env.NEXT_PUBLIC_SOCKET_URL,
+  NODE_ENV: process.env.NODE_ENV,
+};
+
+export function resolveApiUrl(env: Partial<NodeJS.ProcessEnv> = publicBuildEnv): string {
   const publicApiUrl = env.NEXT_PUBLIC_API_URL;
   if (publicApiUrl) {
     return normalizeApiUrl(publicApiUrl);
@@ -30,7 +39,7 @@ export function resolveApiUrl(env: Partial<NodeJS.ProcessEnv> = process.env): st
 export const API_URL = resolveApiUrl();
 export const BACKEND_ORIGIN = API_URL.replace(/\/api$/, '');
 
-export function resolveSocketUrl(env: Partial<NodeJS.ProcessEnv> = process.env): string {
+export function resolveSocketUrl(env: Partial<NodeJS.ProcessEnv> = publicBuildEnv): string {
   const explicitSocketUrl = env.NEXT_PUBLIC_SOCKET_URL;
   if (explicitSocketUrl) {
     return normalizeOriginUrl(explicitSocketUrl);

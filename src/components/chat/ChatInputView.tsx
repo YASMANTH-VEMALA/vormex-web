@@ -107,7 +107,7 @@ export function ChatInputView({
   stopRecording,
 }: ChatInputViewProps) {
   return (
-    <div className="relative shrink-0 border-t border-gray-200 bg-white px-2 py-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] dark:border-gray-700 dark:bg-gray-900 sm:p-4 sm:pb-[calc(1rem+env(safe-area-inset-bottom))]">
+    <div className="relative w-full min-w-0 shrink-0 border-t border-gray-200 bg-white px-2 py-2 pb-[calc(0.5rem+var(--chat-safe-bottom,env(safe-area-inset-bottom)))] dark:border-gray-700 dark:bg-gray-900 sm:p-4 sm:pb-[calc(1rem+var(--chat-safe-bottom,env(safe-area-inset-bottom)))]">
       {/* AI Assistant Panel - positioned at container level for proper width */}
       <AnimatePresence>
         {showAIAssistant && otherUserId && (

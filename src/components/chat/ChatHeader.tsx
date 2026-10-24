@@ -120,7 +120,7 @@ export default function ChatHeader({ user, conversationId, onBack, onInfo }: Cha
   }, [user.id]);
 
   return (
-    <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
+    <div className="flex min-w-0 shrink-0 items-center gap-2 px-3 py-2.5 border-b border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 sm:gap-3 sm:px-4 sm:py-3">
       {/* Back button (mobile) */}
       {onBack && (
         <button

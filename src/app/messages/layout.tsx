@@ -2,6 +2,7 @@
 
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { ChatList } from '@/components/chat';
+import { ChatViewport } from '@/components/chat/ChatViewport';
 import { useAuth } from '@/lib/auth/useAuth';
 import { ArrowLeft, Search, SquarePen, X } from 'lucide-react';
 import Link from 'next/link';
@@ -26,7 +27,7 @@ export default function MessagesLayout({ children }: MessagesLayoutProps) {
 
   return (
     <ProtectedRoute>
-      <div className="h-[100dvh] w-full overflow-hidden bg-gray-50 dark:bg-neutral-950">
+      <ChatViewport>
         <div className="flex h-full w-full">
           {/* Desktop sidebar */}
           <aside className="hidden md:flex md:w-80 lg:w-96 shrink-0 flex-col border-r border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
@@ -61,7 +62,7 @@ export default function MessagesLayout({ children }: MessagesLayoutProps) {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search conversations"
-                  className="w-full pl-9 pr-9 py-2 rounded-full bg-gray-100 dark:bg-neutral-800 text-sm text-gray-900 dark:text-white placeholder-gray-500 outline-none transition-all focus:ring-2 focus:ring-blue-500"
+                  className="w-full pl-9 pr-9 py-2 rounded-full bg-gray-100 dark:bg-neutral-800 text-base md:text-sm text-gray-900 dark:text-white placeholder-gray-500 outline-none transition-all focus:ring-2 focus:ring-blue-500"
                 />
                 {searchQuery && (
                   <button
@@ -88,7 +89,7 @@ export default function MessagesLayout({ children }: MessagesLayoutProps) {
             {children}
           </main>
         </div>
-      </div>
+      </ChatViewport>
     </ProtectedRoute>
   );
 }

@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 import { buildSecurityHeaders, resolveBackendUrl } from '../next.config';
 import { resolveApiUrl, resolveSocketUrl } from '../src/lib/utils/constants';
 
@@ -22,6 +23,33 @@ test('deployment environment can override every local default', () => {
   assert.equal(resolveBackendUrl(env), 'https://api.example.com');
   assert.equal(resolveApiUrl(env), '/api');
   assert.equal(resolveSocketUrl(env), 'https://socket.example.com');
+});
+
+test('browser configuration survives an empty runtime environment after build-time capture', () => {
+  const result = spawnSync(
+    process.execPath,
+    [
+      '--import',
+      'tsx',
+      '-e',
+      `
+    const assert = require('node:assert/strict');
+    process.env.NEXT_PUBLIC_API_URL = '/api';
+    process.env.NEXT_PUBLIC_BACKEND_URL = 'https://api.example.com';
+    process.env.NEXT_PUBLIC_SOCKET_URL = 'https://realtime.example.com';
+    const config = require('./src/lib/utils/constants.ts');
+    delete process.env.NEXT_PUBLIC_API_URL;
+    delete process.env.NEXT_PUBLIC_BACKEND_URL;
+    delete process.env.NEXT_PUBLIC_SOCKET_URL;
+    assert.equal(config.resolveSocketUrl(), 'https://realtime.example.com');
+    assert.equal(config.SOCKET_URL, 'https://realtime.example.com');
+    assert.equal(config.resolveApiUrl(), '/api');
+  `,
+    ],
+    { encoding: 'utf8', timeout: 15_000 }
+  );
+  assert.ifError(result.error);
+  assert.equal(result.status, 0, result.stderr || result.stdout);
 });
 
 test('production retains the secure backend fallback when deployment env is incomplete', () => {

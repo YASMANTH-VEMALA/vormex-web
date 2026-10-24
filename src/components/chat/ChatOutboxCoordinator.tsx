@@ -17,7 +17,7 @@ import { drainChatOutbox } from '@/lib/chat/outbox';
 import { onForegroundMessage } from '@/lib/firebase';
 import { queryKeys } from '@/lib/queryKeys';
 import { removeUnavailableConversations } from '@/lib/safety/clientCleanup';
-import { initializeSocket } from '@/lib/socket';
+import { initializeSocket, isChatSocketReady } from '@/lib/socket';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef } from 'react';
 
@@ -136,7 +136,16 @@ export default function ChatOutboxCoordinator() {
     window.addEventListener('pageshow', recover);
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
+    // Reconcile while realtime is unavailable (mobile suspension, a blocked
+    // WebSocket, or reconnecting). Healthy sockets still deliver immediately.
+    const recoveryTimer = window.setInterval(() => {
+      if (document.visibilityState === 'visible' && !isChatSocketReady()) {
+        void runDeltaSync();
+      }
+    }, 5_000);
+
     return () => {
+      window.clearInterval(recoveryTimer);
       socket.off('socket:authenticated', recover);
       window.removeEventListener('online', recover);
       window.removeEventListener('pageshow', recover);
