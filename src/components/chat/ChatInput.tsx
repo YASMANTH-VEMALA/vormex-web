@@ -22,6 +22,7 @@ import {
 } from '@/lib/api/connections';
 import { isTerminalSafetyError } from '@/lib/api/errors';
 import { attemptChatOutboxEntry } from '@/lib/chat/outbox';
+import { attachmentMime } from '@/lib/chat/attachmentUpload';
 import { initializeSocket, sendChatTyping } from '@/lib/socket';
 import { handleApiError } from '@/lib/utils/errorHandler';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -34,12 +35,13 @@ const ALLOWED_FILE_TYPES = {
     'application/pdf',
     'application/msword',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'text/plain',
   ],
-  audio: ['audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/webm'],
+  audio: ['audio/mpeg', 'audio/wav', 'audio/x-wav', 'audio/ogg', 'audio/webm', 'audio/mp4'],
 };
 
-const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
-const MAX_VIDEO_DURATION = 60;
+const MAX_FILE_SIZE = 150 * 1024 * 1024;
+const MAX_VIDEO_DURATION = 90;
 
 const AI_LEARNING_MESSAGE = 'ai model is learning please give it some time';
 const TYPING_START_DELAY_MS = 600;
@@ -274,7 +276,7 @@ function ChatInputSession({
   // Get file type category
   const getFileType = (file: File): 'image' | 'video' | 'document' | 'audio' | null => {
     for (const [type, mimes] of Object.entries(ALLOWED_FILE_TYPES)) {
-      if (mimes.includes(file.type)) {
+      if (mimes.includes(attachmentMime(file))) {
         return type as 'image' | 'video' | 'document' | 'audio';
       }
     }

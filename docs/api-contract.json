@@ -2440,6 +2440,18 @@
     {
       "method": "patch",
       "endpoint": "/api/discovery/preferences"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/chat/uploads"
+    },
+    {
+      "method": "put",
+      "endpoint": "/api/chat/uploads/:uploadId/parts/:index"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/chat/uploads/:uploadId/complete"
     }
   ]
 }

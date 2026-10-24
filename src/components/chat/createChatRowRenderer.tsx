@@ -140,6 +140,11 @@ export function ChatVirtualRow({
               <span className="animate-pulse">⏳</span>
             )}
           </div>
+          {optimisticMessage.status === 'FAILED' && optimisticMessage.errorMessage && (
+            <p className="mt-1 text-right text-xs text-red-600 dark:text-red-400" role="status">
+              {optimisticMessage.errorMessage}
+            </p>
+          )}
         </div>
       </div>
     );

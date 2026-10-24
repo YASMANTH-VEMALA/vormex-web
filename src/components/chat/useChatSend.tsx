@@ -1,5 +1,6 @@
 'use client';
-import { isTerminalSafetyError } from '@/lib/api/errors';
+import { voiceRecordingFile } from '@/lib/chat/attachmentUpload';
+import { isTerminalSafetyError, getStructuredApiError } from '@/lib/api/errors';
 import { putChatOutboxEntry, type ChatOutboxEntry } from '@/lib/chat/outbox';
 import React, { useCallback } from 'react';
 import type { OptimisticMessage } from './ChatInput.types';
@@ -126,9 +127,7 @@ export function useChatSend({
     if (hasAudio && audioToUpload) {
       const uploadId = crypto.randomUUID();
       const createdAt = new Date().toISOString();
-      const audioFile = new globalThis.File([audioToUpload], `voice-${Date.now()}.webm`, {
-        type: 'audio/webm',
-      });
+      const audioFile = voiceRecordingFile(audioToUpload);
       const content = '🎤 Voice message';
 
       try {
@@ -193,6 +192,7 @@ export function useChatSend({
           fileSize: audioFile.size,
           replyToId: currentReplyTo?.id,
           status: 'FAILED',
+          errorMessage: getStructuredApiError(error).message,
           createdAt,
         });
       }
@@ -281,6 +281,7 @@ export function useChatSend({
             fileSize: filePreview.file.size,
             replyToId: index === 0 ? currentReplyTo?.id : undefined,
             status: 'FAILED',
+            errorMessage: getStructuredApiError(error).message,
             createdAt,
           });
         }

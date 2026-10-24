@@ -245,6 +245,7 @@ export default function ConversationPage({ params }: ConversationPageProps) {
         fileSize: entry.fileSize,
         replyToId: entry.replyToId,
         status: entry.status === 'failed' ? 'FAILED' : 'SENDING',
+        errorMessage:entry.lastError,
         createdAt: entry.createdAt,
       });
     };

@@ -250,29 +250,17 @@ export async function searchMessages(
 export async function uploadChatMedia(
   file: File,
   mediaType: 'image' | 'video' | 'document' | 'audio',
-  onProgress?: (progress: number) => void
+  onProgress?: (progress: number) => void,
+  uploadId?: string
 ): Promise<{
   mediaUrl: string;
   fileName: string;
   fileSize: number;
   mediaType: string;
 }> {
-  const formData = new FormData();
-  formData.append('file', file);
-  formData.append('mediaType', mediaType);
-
-  // Use axios with proper config for file uploads
-  return apiClient.post('/chat/upload', formData, {
-    timeout: 120000, // 2 minutes timeout for large files
-    maxContentLength: Infinity,
-    maxBodyLength: Infinity,
-    onUploadProgress: (progressEvent) => {
-      if (onProgress && progressEvent.total) {
-        const progress = Math.round((progressEvent.loaded / progressEvent.total) * 100);
-        onProgress(progress);
-      }
-    },
-  });
+  void mediaType;
+  const {uploadAttachment}=await import('@/lib/chat/attachmentUpload');
+  return uploadAttachment(file,onProgress,uploadId);
 }
 
 // ============================================

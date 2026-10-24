@@ -1,10 +1,11 @@
 'use client';
+import { voiceRecordingMime } from '@/lib/chat/attachmentUpload';
 import React, { useEffect } from 'react';
 import type { FilePreview } from './ChatInput.types';
 
 interface useChatAttachmentsOptions {
   MAX_FILE_SIZE: number;
-  MAX_VIDEO_DURATION: 60;
+  MAX_VIDEO_DURATION: number;
   audioChunksRef: React.RefObject<Blob[]>;
   fileInputRef: React.RefObject<HTMLInputElement | null>;
   getFileType: (file: File) => 'image' | 'video' | 'document' | 'audio' | null;
@@ -70,8 +71,9 @@ export function useChatAttachments({
 
     for (const file of files) {
       // Check file size
-      if (file.size > MAX_FILE_SIZE) {
-        alert(`File "${file.name}" is too large. Maximum size is 50MB.`);
+      const sizeLimit = getFileType(file) === 'video' ? MAX_FILE_SIZE : 25 * 1024 * 1024;
+      if (file.size > sizeLimit) {
+        alert(`File "${file.name}" is too large. Maximum size is ${sizeLimit / (1024 * 1024)}MB.`);
         continue;
       }
 
@@ -135,7 +137,14 @@ export function useChatAttachments({
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+      const mimeType = voiceRecordingMime();
+      let mediaRecorder: MediaRecorder;
+      try {
+        mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+      } catch (error) {
+        stream.getTracks().forEach((track) => track.stop());
+        throw error;
+      }
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
 
@@ -146,7 +155,14 @@ export function useChatAttachments({
       };
 
       mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        setIsRecording(false);
+        if (recordingIntervalRef.current) {
+          clearInterval(recordingIntervalRef.current);
+          recordingIntervalRef.current = null;
+        }
+        const audioBlob = new Blob(audioChunksRef.current, {
+          type: mediaRecorder.mimeType.split(';')[0],
+        });
         setAudioBlob(audioBlob);
         stream.getTracks().forEach((track) => track.stop());
       };
@@ -178,6 +194,8 @@ export function useChatAttachments({
 
   const cancelRecording = () => {
     if (mediaRecorderRef.current) {
+      mediaRecorderRef.current.onstop = null;
+      if (mediaRecorderRef.current.state !== 'inactive') mediaRecorderRef.current.stop();
       mediaRecorderRef.current.stream.getTracks().forEach((track) => track.stop());
     }
     setIsRecording(false);
@@ -198,6 +216,18 @@ export function useChatAttachments({
   useEffect(() => {
     onUploadingMessagesChange?.(uploadingMessages);
   }, [uploadingMessages, onUploadingMessagesChange]);
+  useEffect(
+    () => () => {
+      const recorder = mediaRecorderRef.current;
+      if (recorder) {
+        recorder.onstop = null;
+        if (recorder.state !== 'inactive') recorder.stop();
+        recorder.stream.getTracks().forEach((track) => track.stop());
+      }
+      if (recordingIntervalRef.current) clearInterval(recordingIntervalRef.current);
+    },
+    [mediaRecorderRef, recordingIntervalRef]
+  );
   return {
     cancelRecording,
     formatDuration,

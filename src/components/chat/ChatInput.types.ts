@@ -24,6 +24,7 @@ export interface OptimisticMessage {
     senderName: string;
   };
   status: 'SENDING' | 'FAILED';
+  errorMessage?: string;
   createdAt: string;
 }
 

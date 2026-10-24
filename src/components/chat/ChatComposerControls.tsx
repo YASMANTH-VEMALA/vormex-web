@@ -136,7 +136,7 @@ export function ChatComposerControls({
                 </button>
 
                 <button
-                  onClick={() => openFilePicker('.pdf,.doc,.docx')}
+                  onClick={() => openFilePicker('.pdf,.doc,.docx,.txt')}
                   className="w-full flex items-center gap-3 px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                 >
                   <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">

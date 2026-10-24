@@ -2,7 +2,7 @@
 import { runOutboxTransaction as runTransaction } from './outboxDatabase';
 
 import { sendMessage, uploadChatMedia, type Message } from '@/lib/api/chat';
-import { isTerminalSafetyError } from '@/lib/api/errors';
+import { isTerminalSafetyError, getStructuredApiError } from '@/lib/api/errors';
 import { isChatSocketReady, sendChatMessage as sendRealtimeChatMessage } from '@/lib/socket';
 
 const MAX_AUTO_ATTEMPTS = 5;
@@ -30,6 +30,7 @@ export interface ChatOutboxEntry {
   attempts: number;
   status: ChatOutboxStatus;
   nextAttemptAt?: number;
+  lastError?: string;
   localFile?: Blob;
   localFileType?: 'image' | 'video' | 'document' | 'audio';
 }
@@ -162,7 +163,12 @@ async function sendEntry(
       activeEntry.fileName || `attachment-${activeEntry.clientMessageId}`,
       { type: activeEntry.localFile.type || 'application/octet-stream' }
     );
-    const upload = await uploadChatMedia(uploadFile, activeEntry.localFileType, onUploadProgress);
+    const upload = await uploadChatMedia(
+      uploadFile,
+      activeEntry.localFileType,
+      onUploadProgress,
+      activeEntry.clientMessageId
+    );
     activeEntry = {
       ...activeEntry,
       mediaUrl: upload.mediaUrl,
@@ -242,7 +248,16 @@ export async function attemptChatOutboxEntry(
         status: 'failed',
         attempts: sendingEntry.attempts,
         nextAttemptAt: Date.now() + retryDelay(sendingEntry.attempts),
+        lastError: getStructuredApiError(error).message,
       };
+      const status = getStructuredApiError(error).status;
+      const retryAfter = Number(
+        (error as { response?: { data?: { retryAfterSeconds?: number } } })?.response?.data
+          ?.retryAfterSeconds
+      );
+      if (status === 429 && retryAfter > 0)
+        failedEntry.nextAttemptAt = Date.now() + retryAfter * 1000;
+      if (status && [400, 403, 413, 415].includes(status)) failedEntry.attempts = MAX_AUTO_ATTEMPTS;
       await putChatOutboxEntry(failedEntry);
       dispatchOutboxUpdate(failedEntry);
       if (failedEntry.attempts < MAX_AUTO_ATTEMPTS) {
