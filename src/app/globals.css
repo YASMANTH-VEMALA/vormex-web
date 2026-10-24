@@ -147,6 +147,11 @@ body {
   color-scheme: light;
 }
 
+/* Setup uses readable form sizing instead of the compact feed density. */
+html:has(.onboarding-shell) {
+  font-size: 100%;
+}
+
 .dark .onboarding-shell {
   color-scheme: dark;
 }

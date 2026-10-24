@@ -1,7 +1,26 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import {
+  ArrowRight,
+  BriefcaseBusiness,
+  Camera,
+  Check,
+  Code2,
+  Cpu,
+  Dumbbell,
+  FlaskConical,
+  Laptop,
+  Loader2,
+  ChevronDown,
+  Music2,
+  Palette,
+  PenTool,
+  Rocket,
+  Trophy,
+} from 'lucide-react';
 import { useState } from 'react';
+import { onboardingPrimaryButton } from '../OnboardingFrame';
+import CollegeSearch from '../CollegeSearch';
 
 interface Props {
   initialData?: Record<string, unknown>;
@@ -11,18 +30,18 @@ interface Props {
 }
 
 const GOALS = [
-  { id: 'learn_coding', label: 'Coding & Tech', emoji: '💻' },
-  { id: 'start_business', label: 'Business & Startups', emoji: '🚀' },
-  { id: 'design', label: 'Design & Creative', emoji: '🎨' },
-  { id: 'get_internship', label: 'Career & Internships', emoji: '💼' },
-  { id: 'competitive_programming', label: 'Competitive Coding', emoji: '🏆' },
-  { id: 'ai_ml', label: 'AI & Data Science', emoji: '🤖' },
-  { id: 'content_creation', label: 'Content Creation', emoji: '🎬' },
-  { id: 'research', label: 'Research & Academics', emoji: '🔬' },
-  { id: 'sports_fitness', label: 'Sports & Fitness', emoji: '⚽' },
-  { id: 'music_arts', label: 'Music & Arts', emoji: '🎵' },
-  { id: 'photography', label: 'Photography & Film', emoji: '📸' },
-  { id: 'freelance', label: 'Freelancing', emoji: '💰' },
+  { id: 'learn_coding', label: 'Coding & technology', icon: Laptop },
+  { id: 'start_business', label: 'Business & startups', icon: Rocket },
+  { id: 'design', label: 'Design & creativity', icon: Palette },
+  { id: 'get_internship', label: 'Career & internships', icon: BriefcaseBusiness },
+  { id: 'competitive_programming', label: 'Competitive coding', icon: Trophy },
+  { id: 'ai_ml', label: 'AI & data science', icon: Cpu },
+  { id: 'content_creation', label: 'Content creation', icon: PenTool },
+  { id: 'research', label: 'Research & academics', icon: FlaskConical },
+  { id: 'sports_fitness', label: 'Sports & fitness', icon: Dumbbell },
+  { id: 'music_arts', label: 'Music & arts', icon: Music2 },
+  { id: 'photography', label: 'Photography & film', icon: Camera },
+  { id: 'freelance', label: 'Freelancing', icon: Code2 },
 ];
 
 const LOOKING_FOR = [
@@ -36,103 +55,136 @@ const LOOKING_FOR = [
 
 export default function StepProfile({ initialData, onComplete, saving, userCollege }: Props) {
   const [college, setCollege] = useState<string>(
-    (initialData?.college as string) || userCollege || ''
+    (initialData?.college as string) || userCollege || '',
   );
   const [primaryGoal, setPrimaryGoal] = useState<string>(
-    (initialData?.primaryGoal as string) || ''
+    (initialData?.primaryGoal as string) || '',
   );
   const [lookingFor, setLookingFor] = useState<string[]>(
-    (initialData?.lookingFor as string[]) || []
+    (initialData?.lookingFor as string[]) || [],
   );
-
-  const toggleLookingFor = (id: string) => {
-    setLookingFor((prev) => (prev.includes(id) ? prev.filter((l) => l !== id) : [...prev, id]));
-  };
-
+  const [showAll, setShowAll] = useState(false);
+  const featuredIds = [
+    'learn_coding',
+    'start_business',
+    'design',
+    'get_internship',
+    'content_creation',
+    'research',
+  ];
+  const visibleGoals = showAll
+    ? GOALS
+    : GOALS.filter((goal) => featuredIds.includes(goal.id) || primaryGoal === goal.id);
   const canContinue = college.trim().length >= 2 && primaryGoal !== '';
-
   return (
-    <div className="flex-1 flex flex-col gap-6">
-      {/* College */}
-      <div>
-        <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2 block">
-          Your College / University *
-        </label>
-        <input
-          type="text"
-          placeholder="e.g. NIAT, VIT, IIT Bombay, JNTU..."
-          value={college}
-          onChange={(e) => setCollege(e.target.value)}
-          className="w-full px-4 py-3 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900 text-sm focus:outline-none focus:ring-2 focus:ring-black/10 dark:focus:ring-white/10 focus:border-neutral-400 transition-all placeholder:text-neutral-400"
-          autoFocus
-        />
-        <p className="text-xs text-neutral-400 mt-1.5">
-          We&apos;ll match you with students from your campus first
-        </p>
-      </div>
-
-      {/* Primary Goal */}
-      <div>
-        <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2 block">
-          What&apos;s your main focus right now? *
-        </label>
-        <div className="grid grid-cols-3 gap-2">
-          {GOALS.map((goal, i) => (
-            <motion.button
-              key={goal.id}
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: i * 0.02 }}
-              onClick={() => setPrimaryGoal(goal.id)}
-              className={`p-3 rounded-xl border text-center transition-all text-xs font-medium ${
-                primaryGoal === goal.id
-                  ? 'border-black dark:border-white bg-black dark:bg-white text-white dark:text-black'
-                  : 'border-neutral-200 dark:border-neutral-800 hover:border-neutral-300 dark:hover:border-neutral-700 text-neutral-700 dark:text-neutral-300'
-              }`}
-            >
-              <span className="text-lg block mb-0.5">{goal.emoji}</span>
-              {goal.label}
-            </motion.button>
-          ))}
+    <div className="space-y-8">
+      <CollegeSearch value={college} onChange={setCollege} disabled={saving} />
+      <fieldset disabled={saving}>
+        <legend className="text-sm font-medium">What brings you to Vormex?</legend>
+        <p className="mt-1 text-sm text-stone-400">Just choose one to start.</p>
+        <div className="mt-4 grid grid-cols-2 gap-2.5">
+          {visibleGoals.map((goal) => {
+            const Icon = goal.icon;
+            const selected = primaryGoal === goal.id;
+            return (
+              <button
+                type="button"
+                key={goal.id}
+                aria-pressed={selected}
+                onClick={() => setPrimaryGoal(goal.id)}
+                className={
+                  'flex min-h-[66px] items-center gap-2 rounded-xl border px-3 py-3 sm:gap-3 sm:px-4 text-left transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-500 ' +
+                  (selected
+                    ? 'border-[#b65b3d] bg-[#fbefe8] text-stone-900 dark:border-orange-400 dark:bg-orange-400/10 dark:text-white'
+                    : 'border-stone-200 bg-white text-stone-600 hover:border-stone-400 dark:border-stone-800 dark:bg-stone-900 dark:text-stone-300')
+                }
+              >
+                <Icon
+                  className={
+                    'h-5 w-5 shrink-0 ' +
+                    (selected ? 'text-[#b65b3d] dark:text-orange-400' : 'text-stone-400')
+                  }
+                  aria-hidden="true"
+                />
+                <span className="flex-1 text-sm font-medium">{goal.label}</span>
+                <span
+                  className={
+                    'flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ' +
+                    (selected
+                      ? 'border-[#b65b3d] bg-[#b65b3d] text-white dark:border-orange-400 dark:bg-orange-400 dark:text-stone-950'
+                      : 'border-stone-200 dark:border-stone-600')
+                  }
+                >
+                  {selected && <Check className="h-3 w-3" />}
+                </span>
+              </button>
+            );
+          })}
         </div>
-      </div>
-
-      {/* Looking For (optional) */}
-      <div>
-        <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2 block">
-          I&apos;m looking for <span className="text-neutral-400 font-normal">(optional)</span>
-        </label>
-        <div className="flex flex-wrap gap-2">
-          {LOOKING_FOR.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => toggleLookingFor(item.id)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                lookingFor.includes(item.id)
-                  ? 'bg-black dark:bg-white text-white dark:text-black'
-                  : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700'
-              }`}
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Continue button */}
-      <div className="mt-auto pt-4">
         <button
-          onClick={() => onComplete({ college, primaryGoal, lookingFor, secondaryGoals: [] })}
-          disabled={!canContinue || saving}
-          className={`w-full py-3.5 rounded-xl font-semibold text-sm transition-all ${
-            canContinue && !saving
-              ? 'bg-black dark:bg-white text-white dark:text-black hover:opacity-90 active:scale-[0.98]'
-              : 'bg-neutral-200 dark:bg-neutral-800 text-neutral-400 cursor-not-allowed'
-          }`}
+          type="button"
+          aria-expanded={showAll}
+          onClick={() => setShowAll(!showAll)}
+          className="mt-3 inline-flex min-h-10 items-center gap-1.5 text-sm text-stone-500 underline-offset-4 hover:underline"
         >
-          {saving ? 'Saving...' : 'Continue'}
+          {showAll ? 'Show fewer' : 'More things to explore'}
+          <ChevronDown className={'h-3.5 w-3.5 transition ' + (showAll ? 'rotate-180' : '')} />
         </button>
-      </div>
+      </fieldset>
+      <details className="border-t border-stone-200 pt-5 dark:border-stone-800">
+        <summary className="cursor-pointer text-sm text-stone-500">
+          Looking for someone specific? <span className="text-stone-400">Optional</span>
+        </summary>
+        <fieldset
+          disabled={saving}
+          aria-label="People you want to meet"
+          className="mt-4 flex flex-wrap gap-2"
+        >
+          {LOOKING_FOR.map((item) => {
+            const selected = lookingFor.includes(item.id);
+            return (
+              <button
+                type="button"
+                key={item.id}
+                aria-pressed={selected}
+                onClick={() =>
+                  setLookingFor((prev) =>
+                    selected ? prev.filter((id) => id !== item.id) : [...prev, item.id],
+                  )
+                }
+                className={
+                  'min-h-10 rounded-full border px-4 text-sm ' +
+                  (selected
+                    ? 'border-stone-900 bg-stone-900 text-white dark:border-stone-100 dark:bg-stone-100 dark:text-stone-900'
+                    : 'border-stone-200 bg-white text-stone-600 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-300')
+                }
+              >
+                {item.label}
+              </button>
+            );
+          })}
+        </fieldset>
+      </details>
+      <button
+        type="button"
+        disabled={!canContinue || saving}
+        onClick={() =>
+          onComplete({ college: college.trim(), primaryGoal, lookingFor, secondaryGoals: [] })
+        }
+        className={onboardingPrimaryButton}
+      >
+        {saving ? (
+          <>
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Saving
+          </>
+        ) : (
+          <>
+            Continue
+            <ArrowRight className="h-4 w-4" />
+          </>
+        )}
+      </button>
     </div>
   );
 }

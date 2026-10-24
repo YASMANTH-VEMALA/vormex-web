@@ -3,24 +3,17 @@
 import { onboardingAPI } from '@/lib/api/onboarding';
 import { useAuthContext } from '@/lib/auth/authContext';
 import { handleApiError } from '@/lib/utils/errorHandler';
-import { AnimatePresence, motion } from 'framer-motion';
+import { OnboardingFrame, ONBOARDING_STEPS as STEPS } from './OnboardingFrame';
 import { useRouter } from 'next/navigation';
 import { useCallback, useState } from 'react';
 import StepInterests from './steps/StepInterests';
 import StepMatches from './steps/StepMatches';
 import StepProfile from './steps/StepProfile';
 
-const STEPS = [
-  { id: 'profile', title: 'About You', subtitle: 'Help us find your people' },
-  { id: 'interests', title: 'Your Interests', subtitle: 'What are you into?' },
-  { id: 'matches', title: 'Your Circle', subtitle: 'People matched for you' },
-];
-
 export default function OnboardingWizard() {
   const router = useRouter();
   const { updateUser, user } = useAuthContext();
   const [currentStep, setCurrentStep] = useState(0);
-  const [direction, setDirection] = useState(1);
   const [saving, setSaving] = useState(false);
   const [stepData, setStepData] = useState<Record<number, Record<string, unknown>>>({});
 
@@ -34,11 +27,9 @@ export default function OnboardingWizard() {
       await onboardingAPI.updateStep(step, data);
 
       if (step < STEPS.length - 2) {
-        setDirection(1);
         setCurrentStep(step + 1);
       } else if (step === STEPS.length - 2) {
         await onboardingAPI.completeOnboarding();
-        setDirection(1);
         setCurrentStep(step + 1);
       }
     } catch (err: unknown) {
@@ -51,7 +42,6 @@ export default function OnboardingWizard() {
 
   const handleBack = useCallback(() => {
     if (currentStep > 0) {
-      setDirection(-1);
       setCurrentStep(currentStep - 1);
     }
   }, [currentStep]);
@@ -63,94 +53,26 @@ export default function OnboardingWizard() {
     router.replace('/');
   }, [router, user, updateUser]);
 
-  const progress = ((currentStep + 1) / STEPS.length) * 100;
-
-  const slideVariants = {
-    enter: (dir: number) => ({ x: dir > 0 ? 200 : -200, opacity: 0 }),
-    center: { x: 0, opacity: 1 },
-    exit: (dir: number) => ({ x: dir > 0 ? -200 : 200, opacity: 0 }),
-  };
-
   return (
-    <div className="onboarding-shell min-h-screen bg-white dark:bg-neutral-950 flex flex-col">
-      {/* Header */}
-      <header className="px-5 pt-5 pb-2 flex items-center justify-between max-w-lg mx-auto w-full">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-black dark:bg-white flex items-center justify-center">
-            <span className="text-white dark:text-black font-bold text-xs">V</span>
-          </div>
-          <span className="text-xs text-neutral-400 font-medium tracking-wide uppercase">
-            Step {currentStep + 1} of {STEPS.length}
-          </span>
-        </div>
-        {currentStep > 0 && currentStep < STEPS.length - 1 && (
-          <button
-            onClick={handleBack}
-            className="text-sm text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200 transition-colors"
-          >
-            Back
-          </button>
-        )}
-      </header>
-
-      {/* Progress bar */}
-      <div className="px-5 max-w-lg mx-auto w-full">
-        <div className="h-1 bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden">
-          <motion.div
-            className="h-full bg-black dark:bg-white rounded-full"
-            animate={{ width: `${progress}%` }}
-            transition={{ duration: 0.4, ease: 'easeOut' }}
+    <OnboardingFrame step={currentStep} onBack={handleBack} saving={saving} error={error}>
+      <div key={currentStep}>
+        {currentStep === 0 && (
+          <StepProfile
+            initialData={stepData[0]}
+            onComplete={(data) => handleStepComplete(0, data)}
+            saving={saving}
+            userCollege={user?.college || ''}
           />
-        </div>
+        )}
+        {currentStep === 1 && (
+          <StepInterests
+            initialData={stepData[1]}
+            onComplete={(data) => handleStepComplete(1, data)}
+            saving={saving}
+          />
+        )}
+        {currentStep === 2 && <StepMatches onFinish={handleFinish} />}
       </div>
-
-      {/* Step content - pb-24 ensures button stays above any safe area / future footer */}
-      <div className="flex-1 flex flex-col px-5 py-6 pb-24 max-w-lg mx-auto w-full overflow-y-auto">
-        <AnimatePresence mode="wait" custom={direction}>
-          <motion.div
-            key={currentStep}
-            custom={direction}
-            variants={slideVariants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
-            className="w-full flex-1 flex flex-col"
-          >
-            {/* Step header */}
-            <div className="mb-6">
-              <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">
-                {STEPS[currentStep].title}
-              </h1>
-              <p className="text-neutral-500 dark:text-neutral-400 text-sm mt-1">
-                {STEPS[currentStep].subtitle}
-              </p>
-            </div>
-
-            {error && (
-              <div className="mb-4 p-3 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 text-red-700 dark:text-red-300 text-sm">
-                {error}
-              </div>
-            )}
-            {currentStep === 0 && (
-              <StepProfile
-                initialData={stepData[0]}
-                onComplete={(data) => handleStepComplete(0, data)}
-                saving={saving}
-                userCollege={user?.college || ''}
-              />
-            )}
-            {currentStep === 1 && (
-              <StepInterests
-                initialData={stepData[1]}
-                onComplete={(data) => handleStepComplete(1, data)}
-                saving={saving}
-              />
-            )}
-            {currentStep === 2 && <StepMatches onFinish={handleFinish} />}
-          </motion.div>
-        </AnimatePresence>
-      </div>
-    </div>
+    </OnboardingFrame>
   );
 }

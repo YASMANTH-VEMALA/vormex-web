@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { ArrowRight, Check, Loader2, Plus, Search, X } from 'lucide-react';
+import { onboardingPrimaryButton } from '../OnboardingFrame';
 
 interface Props {
   initialData?: Record<string, unknown>;
@@ -131,218 +133,235 @@ export default function StepInterests({ initialData, onComplete, saving }: Props
   const [selected, setSelected] = useState<string[]>((initialData?.interests as string[]) || []);
   const [canTeach, setCanTeach] = useState<string[]>((initialData?.canTeach as string[]) || []);
   const [search, setSearch] = useState('');
-  const [customInput, setCustomInput] = useState('');
-
+  const [category, setCategory] = useState(INTEREST_GROUPS[0].label);
   const toggle = (item: string) => {
-    setSelected((prev) => (prev.includes(item) ? prev.filter((i) => i !== item) : [...prev, item]));
+    setSelected((prev) =>
+      prev.includes(item) ? prev.filter((value) => value !== item) : [...prev, item],
+    );
+    if (selected.includes(item)) setCanTeach((prev) => prev.filter((value) => value !== item));
   };
-
-  const toggleTeach = (item: string) => {
-    if (!selected.includes(item)) return;
-    setCanTeach((prev) => (prev.includes(item) ? prev.filter((i) => i !== item) : [...prev, item]));
-  };
-
-  const addCustom = () => {
-    const label = normalizeCustomLabel(customInput);
-    if (!label) return;
-    const exists = selected.some((s) => s.toLowerCase() === label.toLowerCase());
-    if (exists) {
-      setCustomInput('');
-      return;
-    }
-    setSelected((prev) => [...prev, label]);
-    setCustomInput('');
-  };
-
-  const handleCustomKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      addCustom();
-    }
-  };
-
-  const allItems = INTEREST_GROUPS.flatMap((g) => g.items);
-  const filtered = search
-    ? allItems.filter((i) => i.toLowerCase().includes(search.toLowerCase()))
-    : null;
-
-  const canContinue = selected.length >= 2;
-
+  const query = search.trim();
+  const groups = INTEREST_GROUPS.filter((group) => query || group.label === category)
+    .map((group) => ({
+      ...group,
+      items: group.items.filter(
+        (item) => !query || item.toLowerCase().includes(query.toLowerCase()),
+      ),
+    }))
+    .filter((group) => group.items.length > 0);
+  const customLabel = normalizeCustomLabel(query).slice(0, 80);
+  const canAdd =
+    query &&
+    !INTEREST_GROUPS.some((group) =>
+      group.items.some((item) => item.toLowerCase() === query.toLowerCase()),
+    ) &&
+    !selected.some((item) => item.toLowerCase() === customLabel.toLowerCase());
   return (
-    <div className="flex-1 flex flex-col gap-4">
-      <p className="text-xs text-neutral-500 dark:text-neutral-400">
-        Pick at least 2 interests from the list or add your own. Tap the star on any to mark it as
-        something you can teach others.
-      </p>
-
-      {/* Search */}
-      <input
-        type="text"
-        placeholder="Search interests..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        className="w-full px-4 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900 text-sm focus:outline-none focus:ring-2 focus:ring-black/10 dark:focus:ring-white/10 transition-all placeholder:text-neutral-400"
-      />
-
-      {/* Add your own skill / interest */}
-      <div className="flex gap-2 items-center">
-        <input
-          type="text"
-          placeholder="Add your own (e.g. Arduino, Karate)..."
-          value={customInput}
-          onChange={(e) => setCustomInput(e.target.value)}
-          onKeyDown={handleCustomKeyDown}
-          className="flex-1 px-4 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900 text-sm focus:outline-none focus:ring-2 focus:ring-black/10 dark:focus:ring-white/10 transition-all placeholder:text-neutral-400"
+    <div className="space-y-6">
+      <div className="relative">
+        <Search
+          className="pointer-events-none absolute left-4 top-[18px] h-5 w-5 text-stone-400"
+          aria-hidden="true"
         />
-        <button
-          type="button"
-          onClick={addCustom}
-          disabled={!customInput.trim()}
-          className="shrink-0 px-4 py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 text-sm font-medium hover:bg-neutral-50 dark:hover:bg-neutral-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
-          Add
-        </button>
-      </div>
-
-      {/* Selected summary */}
-      {selected.length > 0 && (
-        <div className="flex flex-wrap gap-1.5">
-          {selected.map((item) => (
-            <span
-              key={item}
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-black dark:bg-white text-white dark:text-black text-xs font-medium"
-            >
-              {canTeach.includes(item) && (
-                <span className="text-yellow-300 dark:text-yellow-600">★</span>
-              )}
-              {item}
-              <button
-                onClick={() => {
-                  toggle(item);
-                  setCanTeach((prev) => prev.filter((i) => i !== item));
-                }}
-                className="ml-0.5 opacity-70 hover:opacity-100"
-              >
-                &times;
-              </button>
-            </span>
-          ))}
-        </div>
-      )}
-
-      {/* Interest groups */}
-      <div className="flex-1 overflow-y-auto -mx-1 px-1 space-y-4 max-h-[340px] custom-scrollbar">
-        {filtered ? (
-          <div className="flex flex-wrap gap-1.5">
-            {filtered.map((item) => {
-              const isSelected = selected.includes(item);
-              const isTeach = canTeach.includes(item);
-              return (
-                <div key={item} className="relative">
-                  <button
-                    onClick={() => toggle(item)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                      isSelected
-                        ? 'bg-black dark:bg-white text-white dark:text-black'
-                        : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700'
-                    }`}
-                  >
-                    {item}
-                  </button>
-                  {isSelected && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleTeach(item);
-                      }}
-                      title="I can teach this"
-                      className={`absolute -top-1 -right-1 w-4 h-4 rounded-full text-[8px] flex items-center justify-center ${
-                        isTeach
-                          ? 'bg-yellow-400 text-black'
-                          : 'bg-neutral-300 dark:bg-neutral-600 text-neutral-600 dark:text-neutral-300'
-                      }`}
-                    >
-                      ★
-                    </button>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          INTEREST_GROUPS.map((group) => (
-            <div key={group.label}>
-              <p className="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider mb-2">
-                {group.label}
-              </p>
-              <div className="flex flex-wrap gap-1.5">
-                {group.items.map((item) => {
-                  const isSelected = selected.includes(item);
-                  const isTeach = canTeach.includes(item);
-                  return (
-                    <div key={item} className="relative">
-                      <button
-                        onClick={() => toggle(item)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                          isSelected
-                            ? 'bg-black dark:bg-white text-white dark:text-black'
-                            : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700'
-                        }`}
-                      >
-                        {item}
-                      </button>
-                      {isSelected && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleTeach(item);
-                          }}
-                          title="I can teach this"
-                          className={`absolute -top-1 -right-1 w-4 h-4 rounded-full text-[8px] flex items-center justify-center transition-colors ${
-                            isTeach
-                              ? 'bg-yellow-400 text-black'
-                              : 'bg-neutral-300 dark:bg-neutral-600 text-neutral-600 dark:text-neutral-300'
-                          }`}
-                        >
-                          ★
-                        </button>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          ))
+        <input
+          aria-label="Search interests"
+          value={search}
+          disabled={saving}
+          maxLength={80}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search for something you enjoy"
+          className="min-h-14 w-full rounded-xl border border-stone-200 bg-white pl-12 pr-12 text-base outline-none placeholder:text-stone-400 focus:border-stone-500 focus:ring-4 focus:ring-stone-500/5 dark:border-stone-700 dark:bg-stone-900"
+        />
+        {search && (
+          <button
+            type="button"
+            onClick={() => setSearch('')}
+            aria-label="Clear search"
+            className="absolute right-2 top-2 flex h-10 w-10 items-center justify-center rounded-lg text-stone-500"
+          >
+            <X className="h-4 w-4" />
+          </button>
         )}
       </div>
-
-      {/* Continue */}
-      <div className="pt-3">
-        <button
-          onClick={() =>
-            onComplete({
-              interests: selected,
-              skills: selected.map((s) => ({
-                name: s,
-                proficiency: 'Beginner',
-                category: 'General',
-              })),
-              canTeach,
-              wantToLearn: selected.filter((s) => !canTeach.includes(s)),
-            })
-          }
-          disabled={!canContinue || saving}
-          className={`w-full py-3.5 rounded-xl font-semibold text-sm transition-all ${
-            canContinue && !saving
-              ? 'bg-black dark:bg-white text-white dark:text-black hover:opacity-90 active:scale-[0.98]'
-              : 'bg-neutral-200 dark:bg-neutral-800 text-neutral-400 cursor-not-allowed'
-          }`}
+      {!query && (
+        <fieldset
+          disabled={saving}
+          aria-label="Browse interest categories"
+          className="flex flex-wrap gap-x-1 gap-y-1 border-b border-stone-200 pb-4 dark:border-stone-800"
         >
-          {saving
-            ? 'Finding your matches...'
-            : `Continue with ${selected.length} interest${selected.length !== 1 ? 's' : ''}`}
-        </button>
+          {INTEREST_GROUPS.map((group) => (
+            <button
+              type="button"
+              key={group.label}
+              aria-pressed={category === group.label}
+              onClick={() => setCategory(group.label)}
+              className={
+                'min-h-10 rounded-lg px-3 text-xs font-medium transition sm:text-sm ' +
+                (category === group.label
+                  ? 'bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900'
+                  : 'text-stone-500 hover:bg-stone-100 dark:hover:bg-stone-800')
+              }
+            >
+              {group.label
+                .replace(' & Engineering', '')
+                .replace(' & Finance', '')
+                .replace('Creative & Design', 'Design')
+                .replace('Content & Media', 'Media')
+                .replace('Life & Growth', 'Personal growth')}
+            </button>
+          ))}
+        </fieldset>
+      )}
+      <fieldset
+        disabled={saving}
+        aria-label="Available interests"
+        className="min-h-[180px] space-y-5"
+      >
+        {groups.length === 0 && (
+          <p className="py-4 text-sm text-stone-500">
+            Make it yours. Add this as a new interest below.
+          </p>
+        )}
+        {groups.map((group) => (
+          <div key={group.label}>
+            {query && <h2 className="mb-3 text-xs text-stone-500">{group.label}</h2>}
+            <div className="flex flex-wrap gap-2.5">
+              {group.items.map((item) => {
+                const checked = selected.includes(item);
+                return (
+                  <button
+                    type="button"
+                    key={item}
+                    aria-pressed={checked}
+                    onClick={() => toggle(item)}
+                    className={
+                      'inline-flex min-h-12 items-center gap-2 rounded-full border px-4 text-sm font-medium transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-500 ' +
+                      (checked
+                        ? 'border-[#b65b3d] bg-[#fbefe8] text-[#8e442c] dark:border-orange-400 dark:bg-orange-400/10 dark:text-orange-300'
+                        : 'border-stone-200 bg-white text-stone-600 hover:border-stone-400 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-300')
+                    }
+                  >
+                    {checked ? (
+                      <Check className="h-3.5 w-3.5" />
+                    ) : (
+                      <Plus className="h-3.5 w-3.5 text-stone-400" />
+                    )}
+                    {item}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+        {canAdd && (
+          <button
+            type="button"
+            onClick={() => {
+              setSelected((prev) => [...prev, customLabel]);
+              setSearch('');
+            }}
+            className="inline-flex min-h-12 items-center gap-2 rounded-full border border-dashed border-stone-400 px-4 text-sm dark:border-stone-600"
+          >
+            <Plus className="h-4 w-4" />
+            Add “{customLabel}”
+          </button>
+        )}
+      </fieldset>
+      <div aria-live="polite" className="rounded-xl bg-stone-100/80 p-4 dark:bg-stone-900">
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-sm font-medium">
+            {selected.length >= 2 ? 'A good start.' : 'Choose at least two'}
+          </p>
+          <span className="text-xs text-stone-500">{selected.length} selected</span>
+        </div>
+        {selected.length > 0 ? (
+          <div aria-label="Selected interests" className="mt-3 flex flex-wrap gap-2">
+            {selected.map((item) => (
+              <button
+                key={item}
+                type="button"
+                disabled={saving}
+                aria-label={'Remove ' + item}
+                onClick={() => toggle(item)}
+                className="inline-flex min-h-9 items-center gap-2 rounded-lg bg-white px-3 py-1.5 text-xs text-stone-700 dark:bg-stone-800 dark:text-stone-200"
+              >
+                {item}
+                <X className="h-3 w-3 text-stone-400" />
+              </button>
+            ))}
+          </div>
+        ) : (
+          <p className="mt-1 text-xs leading-5 text-stone-500">
+            Browse a category or search. There’s no wrong combination.
+          </p>
+        )}
       </div>
+      {selected.length > 0 && (
+        <details className="text-sm">
+          <summary className="cursor-pointer text-stone-500">
+            Want to share any of these skills? <span className="text-stone-400">Optional</span>
+          </summary>
+          <fieldset
+            disabled={saving}
+            aria-label="Skills you can share"
+            className="mt-3 flex flex-wrap gap-2"
+          >
+            {selected.map((item) => {
+              const checked = canTeach.includes(item);
+              return (
+                <button
+                  type="button"
+                  key={item}
+                  aria-pressed={checked}
+                  onClick={() =>
+                    setCanTeach((prev) =>
+                      checked ? prev.filter((value) => value !== item) : [...prev, item],
+                    )
+                  }
+                  className={
+                    'inline-flex min-h-10 items-center gap-2 rounded-full border px-3 text-xs ' +
+                    (checked
+                      ? 'border-stone-900 bg-stone-900 text-white dark:border-stone-100 dark:bg-stone-100 dark:text-stone-900'
+                      : 'border-stone-200 bg-white text-stone-600 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-300')
+                  }
+                >
+                  {checked && <Check className="h-3 w-3" />}
+                  {item}
+                </button>
+              );
+            })}
+          </fieldset>
+        </details>
+      )}
+      <button
+        type="button"
+        disabled={selected.length < 2 || saving}
+        onClick={() =>
+          onComplete({
+            interests: selected,
+            skills: selected.map((name) => ({
+              name,
+              proficiency: 'Beginner',
+              category: 'General',
+            })),
+            canTeach: canTeach.filter((item) => selected.includes(item)),
+            wantToLearn: selected.filter((item) => !canTeach.includes(item)),
+          })
+        }
+        className={onboardingPrimaryButton}
+      >
+        {saving ? (
+          <>
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Getting things ready
+          </>
+        ) : (
+          <>
+            Continue
+            <ArrowRight className="h-4 w-4" />
+          </>
+        )}
+      </button>
     </div>
   );
 }
