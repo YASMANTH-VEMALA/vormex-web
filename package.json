@@ -67,7 +67,7 @@
     "eslint": "9.39.5",
     "eslint-config-next": "16.4.2",
     "fake-indexeddb": "6.2.6",
-    "prettier": "^3.9.9",
+    "prettier": "^3.9.10",
     "tailwindcss": "^4",
     "tinyglobby": "0.2.17",
     "tsx": "^4.20.6",
