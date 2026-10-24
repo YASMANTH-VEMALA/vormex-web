@@ -44,6 +44,12 @@ test('production responses enforce privacy and browser security headers', () => 
   assert.doesNotMatch(headers.get('Content-Security-Policy') ?? '', /unsafe-eval/);
   assert.equal(headers.get('X-Content-Type-Options'), 'nosniff');
   assert.equal(headers.get('X-Frame-Options'), 'DENY');
+  assert.equal(headers.get('Cross-Origin-Opener-Policy'), 'same-origin-allow-popups');
+  const styleDirective = headers
+    .get('Content-Security-Policy')
+    ?.split(';')
+    .find((directive) => directive.trim().startsWith('style-src '));
+  assert.match(styleDirective ?? '', /https:\/\/accounts\.google\.com\/gsi\/style/);
   assert.match(headers.get('Strict-Transport-Security') ?? '', /includeSubDomains/);
 });
 

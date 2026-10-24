@@ -5,15 +5,27 @@ export type StructuredApiError = {
   message: string;
 };
 
+/** API gateways may wrap errors as { error: { code, message } }. */
+export function readApiErrorMessage(payload: unknown): string | undefined {
+  if (!payload || typeof payload !== 'object') return undefined;
+  const data = payload as { error?: unknown; message?: unknown };
+  if (typeof data.error === 'string' && data.error.trim()) return data.error;
+  if (data.error && typeof data.error === 'object') {
+    const message = (data.error as { message?: unknown }).message;
+    if (typeof message === 'string' && message.trim()) return message;
+  }
+  return typeof data.message === 'string' && data.message.trim() ? data.message : undefined;
+}
+
 export function getStructuredApiError(error: unknown): StructuredApiError {
   const candidate = error as {
-    message?: string;
+    message?: unknown;
     status?: number;
     code?: string;
     retryable?: boolean;
     response?: {
       status?: number;
-      data?: { error?: string; message?: string; code?: string; retryable?: boolean };
+      data?: { error?: unknown; message?: unknown; code?: string; retryable?: boolean };
     };
   };
   const data = candidate?.response?.data;
@@ -26,7 +38,7 @@ export function getStructuredApiError(error: unknown): StructuredApiError {
     status: candidate?.status ?? candidate?.response?.status,
     code,
     retryable,
-    message: data?.error || data?.message || candidate?.message || 'Request failed',
+    message: readApiErrorMessage(data) || readApiErrorMessage(candidate) || 'Request failed',
   };
 }
 

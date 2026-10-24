@@ -1,4 +1,4 @@
-import { isTimeoutErrorCode } from '@/lib/api/errors';
+import { isTimeoutErrorCode, readApiErrorMessage } from '@/lib/api/errors';
 import type { ApiError } from '@/types/auth';
 import { AxiosError } from 'axios';
 
@@ -21,11 +21,12 @@ export function handleApiError(error: unknown): string {
       return 'Request timed out. Please try again.';
     }
     const apiError = error.response?.data as ApiError | undefined;
-    if (apiError?.error) {
-      if (apiError.retryAfterSeconds && apiError.retryAfterSeconds > 0) {
-        return `${apiError.error} Try again in ${formatRetryAfter(apiError.retryAfterSeconds)}.`;
+    const message = readApiErrorMessage(apiError);
+    if (message) {
+      if (typeof apiError?.retryAfterSeconds === 'number' && apiError.retryAfterSeconds > 0) {
+        return `${message} Try again in ${formatRetryAfter(apiError.retryAfterSeconds)}.`;
       }
-      return apiError.error;
+      return message;
     }
     if (error.response?.status === 401) {
       return 'Unauthorized. Please login again.';

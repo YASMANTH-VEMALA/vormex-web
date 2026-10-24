@@ -29,7 +29,7 @@ export function buildSecurityHeaders(env: Partial<NodeJS.ProcessEnv> = process.e
     // razorpay.com iframe, and reports telemetry to lumberjack. All three need allowing or
     // the payment sheet silently fails to open.
     `script-src 'self' 'unsafe-inline'${isProduction ? '' : " 'unsafe-eval'"} https://accounts.google.com https://apis.google.com https://www.gstatic.com https://checkout.razorpay.com`,
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com/gsi/style",
     "font-src 'self' data: https://fonts.gstatic.com https://cdn.razorpay.com",
     "img-src 'self' data: blob: https:",
     "media-src 'self' blob: https:",
