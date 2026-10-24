@@ -1,14 +1,31 @@
-'use client';
+import { AuthPage } from '@/components/auth/AuthPage';
+import { AuthRedirect } from '@/components/auth/AuthRedirect';
+import { SITE_URL } from '@/lib/seo';
+import type { Metadata } from 'next';
+import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
+import { Suspense } from 'react';
 
-import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
-import { Feed } from '@/components/feed';
+export const metadata: Metadata = {
+  title: 'Vormex — Find Your People',
+  description: 'Join Vormex to meet people who share your skills, interests, and ambitions.',
+  alternates: { canonical: '/' },
+  openGraph: {
+    url: SITE_URL,
+    title: 'Vormex — Find Your People',
+    description: 'Join Vormex to meet people who share your skills, interests, and ambitions.',
+  },
+};
 
-export default function Home() {
+export default async function Home() {
+  const cookieStore = await cookies();
+  if (cookieStore.get('vx_auth_present')?.value === 'true') redirect('/feed');
+
   return (
-    <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50 dark:bg-neutral-950">
-        <Feed />
-      </div>
-    </ProtectedRoute>
+    <Suspense fallback={<p role="status">Loading…</p>}>
+      <AuthRedirect redirectTo="/feed">
+        <AuthPage />
+      </AuthRedirect>
+    </Suspense>
   );
 }

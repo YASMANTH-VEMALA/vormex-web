@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from 'next/link';
 
 export default function NotFound() {
   return (
@@ -14,9 +14,7 @@ export default function NotFound() {
               <div className="contant_box_404">
                 <h3 className="h2_404">Look like you&apos;re lost</h3>
 
-                <p className="p_404">
-                  The page you are looking for is not available!
-                </p>
+                <p className="p_404">The page you are looking for is not available!</p>
 
                 <Link href="/" className="link_404">
                   Go to Home

@@ -1,186 +1,40 @@
 import apiClient from './client';
-
-// ============================================
-// Types
-// ============================================
-
-export type GroupPrivacy = 'PUBLIC' | 'PRIVATE' | 'SECRET';
-export type GroupMemberRole = 'OWNER' | 'ADMIN' | 'MODERATOR' | 'MEMBER';
-export type GroupJoinRequestStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
-
-export interface GroupUser {
-  id: string;
-  name: string;
-  username: string;
-  profileImage: string | null;
-  avatar?: string | null; // Alias for profileImage
-  headline?: string | null;
-}
-
-export interface Group {
-  id: string;
-  name: string;
-  slug: string;
-  description: string | null;
-  coverImage: string | null;
-  iconImage: string | null;
-  privacy: GroupPrivacy;
-  category: string | null;
-  tags: string[];
-  rules: string[];
-  createdById: string;
-  createdBy: GroupUser;
-  memberCount: number;
-  postCount: number;
-  allowMemberPosts: boolean;
-  requirePostApproval: boolean;
-  createdAt: string;
-  updatedAt: string;
-  isMember: boolean;
-  memberRole: GroupMemberRole | null;
-  userRole?: GroupMemberRole | null; // Alias for memberRole
-  joinedAt?: string;
-  members?: GroupMember[];
-  _count?: {
-    members: number;
-    posts: number;
-    messages?: number;
-  };
-}
-
-export interface GroupMember {
-  id: string;
-  groupId: string;
-  userId: string;
-  user: GroupUser;
-  role: GroupMemberRole;
-  joinedAt: string;
-  mutedUntil: string | null;
-}
-
-export interface GroupJoinRequest {
-  id: string;
-  groupId: string;
-  userId: string;
-  user: GroupUser;
-  status: GroupJoinRequestStatus;
-  message: string | null;
-  reviewedById: string | null;
-  reviewedBy: GroupUser | null;
-  reviewedAt: string | null;
-  createdAt: string;
-}
-
-export type GroupInviteStatus = 'PENDING' | 'ACCEPTED' | 'DECLINED' | 'EXPIRED';
-
-export interface GroupInvite {
-  id: string;
-  groupId: string;
-  invitedUserId: string;
-  invitedUser: GroupUser;
-  invitedById: string;
-  invitedBy: GroupUser;
-  status: GroupInviteStatus;
-  message: string | null;
-  respondedAt: string | null;
-  createdAt: string;
-  group?: {
-    id: string;
-    name: string;
-    slug: string;
-    iconImage: string | null;
-    privacy: GroupPrivacy;
-    memberCount: number;
-  };
-}
-
-export interface GroupPost {
-  id: string;
-  groupId: string;
-  authorId: string;
-  author: GroupUser;
-  content: string | null;
-  mediaUrls: string[];
-  mediaType: string | null;
-  likesCount: number;
-  commentsCount: number;
-  isPinned: boolean;
-  isApproved: boolean;
-  createdAt: string;
-  updatedAt: string;
-  isLiked?: boolean;
-  _count?: {
-    likes: number;
-    comments: number;
-  };
-}
-
-export interface GroupPostComment {
-  id: string;
-  postId: string;
-  authorId: string;
-  author: GroupUser;
-  parentId: string | null;
-  content: string;
-  likesCount: number;
-  createdAt: string;
-  updatedAt: string;
-  replies?: GroupPostComment[];
-}
-
-export interface GroupMessage {
-  id: string;
-  groupId: string;
-  senderId: string;
-  sender: GroupUser;
-  content: string;
-  contentType: string;
-  mediaUrl: string | null;
-  mediaType: string | null;
-  fileName: string | null;
-  fileSize: number | null;
-  replyToId: string | null;
-  replyTo: GroupMessage | null;
-  isDeleted: boolean;
-  createdAt: string;
-  updatedAt: string;
-  reactions: GroupMessageReaction[];
-}
-
-export interface GroupMessageReaction {
-  id: string;
-  messageId: string;
-  userId: string;
-  user: GroupUser;
-  emoji: string;
-  createdAt: string;
-}
-
-export interface PaginatedResponse<T> {
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
-}
-
-export interface GroupsResponse extends PaginatedResponse<Group> {
-  groups: Group[];
-}
-
-export interface GroupMembersResponse extends PaginatedResponse<GroupMember> {
-  members: GroupMember[];
-}
-
-export interface GroupPostsResponse extends PaginatedResponse<GroupPost> {
-  posts: GroupPost[];
-}
-
-export interface GroupCategory {
-  name: string;
-  count: number;
-}
+import type {
+  Group,
+  GroupCategory,
+  GroupInvite,
+  GroupInviteStatus,
+  GroupJoinRequest,
+  GroupJoinRequestStatus,
+  GroupMemberRole,
+  GroupMembersResponse,
+  GroupMessage,
+  GroupPost,
+  GroupPostsResponse,
+  GroupPrivacy,
+  GroupsResponse,
+  GroupUser,
+} from './groups.types';
+export type {
+  Group,
+  GroupCategory,
+  GroupInvite,
+  GroupInviteStatus,
+  GroupJoinRequest,
+  GroupJoinRequestStatus,
+  GroupMember,
+  GroupMemberRole,
+  GroupMembersResponse,
+  GroupMessage,
+  GroupMessageReaction,
+  GroupPost,
+  GroupPostComment,
+  GroupPostsResponse,
+  GroupPrivacy,
+  GroupsResponse,
+  GroupUser,
+  PaginatedResponse,
+} from './groups.types';
 
 // ============================================
 // Group CRUD
@@ -299,10 +153,7 @@ export async function updateMemberRole(
   return apiClient.put(`/groups/${groupId}/members/${userId}`, { role });
 }
 
-export async function removeMember(
-  groupId: string,
-  userId: string
-): Promise<{ success: boolean }> {
+export async function removeMember(groupId: string, userId: string): Promise<{ success: boolean }> {
   return apiClient.delete(`/groups/${groupId}/members/${userId}`);
 }
 
@@ -315,7 +166,31 @@ export async function getJoinRequests(
   status?: GroupJoinRequestStatus
 ): Promise<GroupJoinRequest[]> {
   const params = status ? `?status=${status}` : '';
-  return apiClient.get(`/groups/${groupId}/requests${params}`);
+  const response = (await apiClient.get(
+    `/groups/${groupId}/join-requests${params}`
+  )) as unknown as {
+    requests: Array<{
+      id: string;
+      groupId: string;
+      requesterId: string;
+      requester: GroupUser;
+      status: string;
+      requestedAt: string;
+      respondedAt: string | null;
+    }>;
+  };
+  return response.requests.map((request) => ({
+    id: request.id,
+    groupId: request.groupId,
+    userId: request.requesterId,
+    user: request.requester,
+    status: request.status.toUpperCase() as GroupJoinRequestStatus,
+    message: null,
+    reviewedById: null,
+    reviewedBy: null,
+    reviewedAt: request.respondedAt,
+    createdAt: request.requestedAt,
+  }));
 }
 
 export async function handleJoinRequest(
@@ -323,7 +198,9 @@ export async function handleJoinRequest(
   requestId: string,
   action: 'approve' | 'reject'
 ): Promise<{ success: boolean }> {
-  return apiClient.post(`/groups/${groupId}/requests/${requestId}`, { action });
+  return apiClient.post(`/groups/${groupId}/join-requests/${requestId}/respond`, {
+    action: action === 'approve' ? 'accept' : 'decline',
+  });
 }
 
 // ============================================
@@ -354,7 +231,7 @@ export async function respondToInvite(
   inviteId: string,
   action: 'accept' | 'decline'
 ): Promise<{ success: boolean; message: string; groupSlug?: string }> {
-  return apiClient.post(`/groups/invites/${inviteId}`, { action });
+  return apiClient.post(`/groups/invites/${inviteId}/respond`, { action });
 }
 
 export async function cancelInvite(
@@ -472,22 +349,26 @@ export async function deleteGroupMessage(
 
 /**
  * Upload group icon/profile image
+ * Uses /upload/group-icon (groupId in body) - works when /groups/:id/upload/icon returns 404
  */
 export async function uploadGroupIcon(groupId: string, file: File): Promise<{ iconUrl: string }> {
   const formData = new FormData();
   formData.append('image', file);
-  return apiClient.post(`/groups/${groupId}/upload/icon`, formData, {
+  formData.append('groupId', groupId);
+  return apiClient.post('/upload/group-icon', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
 }
 
 /**
  * Upload group cover/banner image
+ * Uses /upload/group-cover (groupId in body) - works when /groups/:id/upload/cover returns 404
  */
 export async function uploadGroupCover(groupId: string, file: File): Promise<{ coverUrl: string }> {
   const formData = new FormData();
   formData.append('image', file);
-  return apiClient.post(`/groups/${groupId}/upload/cover`, formData, {
+  formData.append('groupId', groupId);
+  return apiClient.post('/upload/group-cover', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
 }

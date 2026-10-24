@@ -53,15 +53,27 @@ export const onboardingAPI = {
     return apiClient.get('/onboarding') as Promise<{ onboarding: OnboardingData }>;
   },
 
-  updateStep: async (step: number, data: Record<string, unknown>): Promise<{ onboarding: OnboardingData; nextStep: number }> => {
-    return apiClient.post('/onboarding/step', { step, data }) as Promise<{ onboarding: OnboardingData; nextStep: number }>;
+  updateStep: async (
+    step: number,
+    data: Record<string, unknown>
+  ): Promise<{ onboarding: OnboardingData; nextStep: number }> => {
+    return apiClient.post('/onboarding/step', { step, data }) as Promise<{
+      onboarding: OnboardingData;
+      nextStep: number;
+    }>;
   },
 
   completeOnboarding: async (): Promise<{ onboarding: OnboardingData; message: string }> => {
-    return apiClient.post('/onboarding/complete') as Promise<{ onboarding: OnboardingData; message: string }>;
+    return apiClient.post('/onboarding/complete') as Promise<{
+      onboarding: OnboardingData;
+      message: string;
+    }>;
   },
 
   getInitialMatches: async (): Promise<{ matches: MatchResult[]; totalCandidates: number }> => {
-    return apiClient.get('/onboarding/matches') as Promise<{ matches: MatchResult[]; totalCandidates: number }>;
+    return apiClient.get('/onboarding/matches') as Promise<{
+      matches: MatchResult[];
+      totalCandidates: number;
+    }>;
   },
 };

@@ -1,9 +1,9 @@
-export { MatchBurstCard } from './MatchBurstCard';
-export { TrendingCard } from './TrendingCard';
+export { ConnectionUpdateCard } from './ConnectionUpdateCard';
 export { HiddenGemCard } from './HiddenGemCard';
+export { MatchBurstCard } from './MatchBurstCard';
 export { MilestoneCard } from './MilestoneCard';
 export { OpportunityCard } from './OpportunityCard';
+export { RewardCardRenderer } from './RewardCardRenderer';
 export { SocialProofCard } from './SocialProofCard';
 export { SurpriseBoostCard } from './SurpriseBoostCard';
-export { ConnectionUpdateCard } from './ConnectionUpdateCard';
-export { RewardCardRenderer } from './RewardCardRenderer';
+export { TrendingCard } from './TrendingCard';

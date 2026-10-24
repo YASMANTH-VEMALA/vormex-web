@@ -1,4 +1,4 @@
-import apiClient from './client';
+import { deleteJson, getJson, postJson } from './request';
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // TYPES
@@ -58,22 +58,32 @@ export interface FollowCountsResponse {
 /**
  * Follow a user (instant, one-way)
  */
-export async function followUser(userId: string): Promise<{ message: string; follow: any }> {
-  return apiClient.post(`/follow/${userId}`);
+export interface FollowRecord {
+  id: string;
+  followerId?: string;
+  followingId?: string;
+  createdAt?: string;
+  [key: string]: unknown;
+}
+
+export async function followUser(
+  userId: string
+): Promise<{ message: string; follow: FollowRecord }> {
+  return postJson<{ message: string; follow: FollowRecord }>(`/follow/${userId}`);
 }
 
 /**
  * Unfollow a user
  */
 export async function unfollowUser(userId: string): Promise<{ message: string }> {
-  return apiClient.delete(`/follow/${userId}`);
+  return deleteJson<{ message: string }>(`/follow/${userId}`);
 }
 
 /**
  * Get follow status between current user and target user
  */
 export async function getFollowStatus(userId: string): Promise<FollowStatusResponse> {
-  return apiClient.get(`/follow/status/${userId}`);
+  return getJson<FollowStatusResponse>(`/follow/status/${userId}`);
 }
 
 /**
@@ -84,7 +94,7 @@ export async function getFollowers(
   page: number = 1,
   limit: number = 20
 ): Promise<FollowersResponse> {
-  return apiClient.get(`/follow/followers/${userId}?page=${page}&limit=${limit}`);
+  return getJson<FollowersResponse>(`/follow/followers/${userId}`, { page, limit });
 }
 
 /**
@@ -95,19 +105,19 @@ export async function getFollowing(
   page: number = 1,
   limit: number = 20
 ): Promise<FollowingResponse> {
-  return apiClient.get(`/follow/following/${userId}?page=${page}&limit=${limit}`);
+  return getJson<FollowingResponse>(`/follow/following/${userId}`, { page, limit });
 }
 
 /**
  * Get mutual connections and followers with a user
  */
 export async function getMutualInfo(userId: string): Promise<MutualInfo> {
-  return apiClient.get(`/follow/mutual/${userId}`);
+  return getJson<MutualInfo>(`/follow/mutual/${userId}`);
 }
 
 /**
  * Get follower/following counts for a user
  */
 export async function getFollowCounts(userId: string): Promise<FollowCountsResponse> {
-  return apiClient.get(`/follow/counts/${userId}`);
+  return getJson<FollowCountsResponse>(`/follow/counts/${userId}`);
 }

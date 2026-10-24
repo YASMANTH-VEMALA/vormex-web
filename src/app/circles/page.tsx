@@ -1,11 +1,14 @@
 'use client';
+import { useSyncedState } from '@/hooks/useSyncedState';
+import { useAuth as useResourceAuth } from '@/lib/auth/useAuth';
+import { useQuery } from '@tanstack/react-query';
 
-import { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useAuthContext } from '@/lib/auth/authContext';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { circlesAPI, type Circle } from '@/lib/api/circles';
-import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import { asApiError } from '@/lib/api/errors';
+import { AnimatePresence, motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
 const CATEGORIES = [
   { id: 'all', label: 'All', emoji: '🌍' },
@@ -24,7 +27,11 @@ const CATEGORIES = [
   { id: 'research', label: 'Research', emoji: '🔬' },
 ];
 
-function CircleCard({ circle, onJoin, onLeave }: {
+function CircleCard({
+  circle,
+  onJoin,
+  onLeave,
+}: {
   circle: Circle;
   onJoin: (id: string) => void;
   onLeave: (id: string) => void;
@@ -63,7 +70,7 @@ function CircleCard({ circle, onJoin, onLeave }: {
 
       <div className="flex items-center justify-between">
         <div className="flex flex-wrap gap-1">
-          {circle.tags?.slice(0, 3).map(tag => (
+          {circle.tags?.slice(0, 3).map((tag) => (
             <span
               key={tag}
               className="text-[10px] px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400"
@@ -76,7 +83,11 @@ function CircleCard({ circle, onJoin, onLeave }: {
         <button
           onClick={(e) => {
             e.stopPropagation();
-            circle.isMember ? onLeave(circle.id) : onJoin(circle.id);
+            if (circle.isMember) {
+              onLeave(circle.id);
+            } else {
+              onJoin(circle.id);
+            }
           }}
           className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${
             circle.isMember
@@ -92,50 +103,57 @@ function CircleCard({ circle, onJoin, onLeave }: {
 }
 
 function CirclesContent() {
-  const { user } = useAuthContext();
   const [tab, setTab] = useState<'discover' | 'my'>('discover');
   const [category, setCategory] = useState('all');
   const [search, setSearch] = useState('');
-  const [circles, setCircles] = useState<Circle[]>([]);
-  const [myCircles, setMyCircles] = useState<Circle[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [initialCircles] = useState<Circle[]>([]);
+  const [initialMyCircles] = useState<Circle[]>([]);
 
-  const fetchCircles = useCallback(async () => {
-    setLoading(true);
-    try {
+  const resourceViewer = useResourceAuth().user;
+  const fetchCirclesResource = useQuery({
+    queryKey: [
+      'web-resource',
+      'circles-discover',
+      resourceViewer?.id ?? 'anonymous',
+      category,
+      search,
+    ],
+    queryFn: async () => {
       const params: Record<string, string> = {};
       if (category !== 'all') params.category = category;
       if (search) params.search = search;
-      const data = await circlesAPI.discover(params);
-      setCircles(data.circles);
-    } catch (error) {
-      console.error('Failed to fetch circles:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, [category, search]);
+      return circlesAPI.discover(params);
+    },
+    retry: false,
+  });
+  const [circles, setCircles] = useSyncedState(
+    fetchCirclesResource.data?.circles ?? initialCircles
+  );
+  const loading = fetchCirclesResource.isPending;
 
-  const fetchMyCircles = useCallback(async () => {
-    try {
-      const data = await circlesAPI.getMyCircles();
-      setMyCircles(data.circles);
-    } catch (error) {
-      console.error('Failed to fetch my circles:', error);
-    }
-  }, []);
-
-  useEffect(() => { fetchCircles(); }, [fetchCircles]);
-  useEffect(() => { if (tab === 'my') fetchMyCircles(); }, [tab, fetchMyCircles]);
+  const fetchMyCirclesResource = useQuery({
+    queryKey: ['web-resource', 'circles-mine', resourceViewer?.id ?? 'anonymous'],
+    queryFn: async () => {
+      return circlesAPI.getMyCircles();
+    },
+    retry: false,
+  });
+  const [myCircles, setMyCircles] = useSyncedState(
+    fetchMyCirclesResource.data?.circles ?? initialMyCircles
+  );
+  const fetchMyCircles = () => fetchMyCirclesResource.refetch();
 
   const handleJoin = async (circleId: string) => {
     try {
       await circlesAPI.join(circleId);
-      setCircles(prev => prev.map(c =>
-        c.id === circleId ? { ...c, isMember: true, memberCount: c.memberCount + 1 } : c
-      ));
+      setCircles((prev) =>
+        prev.map((c) =>
+          c.id === circleId ? { ...c, isMember: true, memberCount: c.memberCount + 1 } : c
+        )
+      );
       fetchMyCircles();
-    } catch (error: any) {
-      if (error.response?.data?.requiresUpgrade) {
+    } catch (error: unknown) {
+      if (asApiError(error).response?.data?.requiresUpgrade) {
         alert('Free plan allows up to 3 circles. Upgrade to Vormex Pro for unlimited circles!');
       }
     }
@@ -144,10 +162,12 @@ function CirclesContent() {
   const handleLeave = async (circleId: string) => {
     try {
       await circlesAPI.leave(circleId);
-      setCircles(prev => prev.map(c =>
-        c.id === circleId ? { ...c, isMember: false, memberCount: c.memberCount - 1 } : c
-      ));
-      setMyCircles(prev => prev.filter(c => c.id !== circleId));
+      setCircles((prev) =>
+        prev.map((c) =>
+          c.id === circleId ? { ...c, isMember: false, memberCount: c.memberCount - 1 } : c
+        )
+      );
+      setMyCircles((prev) => prev.filter((c) => c.id !== circleId));
     } catch (error) {
       console.error('Failed to leave circle:', error);
     }
@@ -203,7 +223,7 @@ function CirclesContent() {
           {/* Category filters */}
           {tab === 'discover' && (
             <div className="flex gap-1.5 mt-3 overflow-x-auto pb-1 -mx-1 px-1 custom-scrollbar">
-              {CATEGORIES.map(cat => (
+              {CATEGORIES.map((cat) => (
                 <button
                   key={cat.id}
                   onClick={() => setCategory(cat.id)}
@@ -225,8 +245,11 @@ function CirclesContent() {
       <div className="max-w-2xl mx-auto px-4 py-4">
         {loading ? (
           <div className="space-y-4">
-            {[1, 2, 3, 4].map(i => (
-              <div key={i} className="bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-800 p-5 animate-pulse">
+            {[1, 2, 3, 4].map((i) => (
+              <div
+                key={i}
+                className="bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-800 p-5 animate-pulse"
+              >
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-12 h-12 rounded-2xl bg-neutral-200 dark:bg-neutral-800" />
                   <div className="space-y-2 flex-1">
@@ -246,7 +269,9 @@ function CirclesContent() {
               {tab === 'my' ? "You haven't joined any circles yet" : 'No circles found'}
             </p>
             <p className="text-sm text-neutral-500 mt-1">
-              {tab === 'my' ? 'Discover and join circles that match your interests' : 'Try a different search or category'}
+              {tab === 'my'
+                ? 'Discover and join circles that match your interests'
+                : 'Try a different search or category'}
             </p>
             {tab === 'my' && (
               <button
@@ -260,7 +285,7 @@ function CirclesContent() {
         ) : (
           <div className="space-y-3">
             <AnimatePresence>
-              {displayCircles.map(circle => (
+              {displayCircles.map((circle) => (
                 <CircleCard
                   key={circle.id}
                   circle={circle}

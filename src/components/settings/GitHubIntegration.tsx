@@ -1,30 +1,28 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import Link from 'next/link';
+import { asApiError } from '@/lib/api/errors';
 import {
+  disconnectGitHub,
+  getGitHubStats,
+  startGitHubOAuth,
+  syncGitHubStats,
+  type GitHubConnection,
+} from '@/lib/api/integrations';
+import 'framer-motion';
+import {
+  AlertCircle,
+  BookOpen,
+  ExternalLink,
+  GitFork,
   Github,
   Loader2,
   RefreshCw,
-  ExternalLink,
-  AlertCircle,
-  Check,
-  X,
   Star,
-  GitFork,
-  Users,
-  BookOpen,
-  Settings,
   Unlink,
+  Users,
 } from 'lucide-react';
-import {
-  startGitHubOAuth,
-  getGitHubStats,
-  syncGitHubStats,
-  disconnectGitHub,
-  type GitHubConnection,
-} from '@/lib/api/integrations';
+import 'next/link';
+import { useEffect, useState } from 'react';
 
 export function GitHubIntegration() {
   const [connection, setConnection] = useState<GitHubConnection | null>(null);
@@ -40,9 +38,9 @@ export function GitHubIntegration() {
       try {
         const data = await getGitHubStats();
         setConnection(data);
-      } catch (err: any) {
+      } catch (err: unknown) {
         // Not connected is expected
-        if (err.response?.status !== 404) {
+        if (asApiError(err).response?.status !== 404) {
           console.error('Failed to fetch GitHub status:', err);
         }
         setConnection({ connected: false, username: null, stats: null, lastSyncedAt: null });
@@ -61,8 +59,8 @@ export function GitHubIntegration() {
     try {
       const { authUrl } = await startGitHubOAuth();
       window.location.href = authUrl;
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to start GitHub OAuth');
+    } catch (err: unknown) {
+      setError(asApiError(err).response?.data?.error || 'Failed to start GitHub OAuth');
       setConnecting(false);
     }
   };
@@ -82,8 +80,8 @@ export function GitHubIntegration() {
             }
           : null
       );
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to sync GitHub stats');
+    } catch (err: unknown) {
+      setError(asApiError(err).response?.data?.error || 'Failed to sync GitHub stats');
     } finally {
       setSyncing(false);
     }
@@ -99,8 +97,8 @@ export function GitHubIntegration() {
     try {
       await disconnectGitHub();
       setConnection({ connected: false, username: null, stats: null, lastSyncedAt: null });
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to disconnect GitHub');
+    } catch (err: unknown) {
+      setError(asApiError(err).response?.data?.error || 'Failed to disconnect GitHub');
     } finally {
       setDisconnecting(false);
     }
@@ -126,9 +124,7 @@ export function GitHubIntegration() {
               <Github className="w-5 h-5 text-white dark:text-gray-900" />
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900 dark:text-white">
-                GitHub
-              </h3>
+              <h3 className="font-semibold text-gray-900 dark:text-white">GitHub</h3>
               <p className="text-sm text-gray-500 dark:text-neutral-400">
                 {connection?.connected
                   ? `Connected as @${connection.username}`
@@ -166,8 +162,8 @@ export function GitHubIntegration() {
           // Not Connected State
           <div className="text-center py-6">
             <p className="text-gray-600 dark:text-neutral-300 mb-4">
-              Connect your GitHub account to display your contributions,
-              repositories, and coding stats on your profile.
+              Connect your GitHub account to display your contributions, repositories, and coding
+              stats on your profile.
             </p>
             <button
               onClick={handleConnect}
@@ -193,36 +189,28 @@ export function GitHubIntegration() {
                   <p className="text-xl font-bold text-gray-900 dark:text-white">
                     {connection.stats.totalPublicRepos}
                   </p>
-                  <p className="text-xs text-gray-500 dark:text-neutral-400">
-                    Repos
-                  </p>
+                  <p className="text-xs text-gray-500 dark:text-neutral-400">Repos</p>
                 </div>
                 <div className="bg-gray-50 dark:bg-neutral-800 rounded-lg p-3 text-center">
                   <Star className="w-5 h-5 text-yellow-500 mx-auto mb-1" />
                   <p className="text-xl font-bold text-gray-900 dark:text-white">
                     {connection.stats.totalStars}
                   </p>
-                  <p className="text-xs text-gray-500 dark:text-neutral-400">
-                    Stars
-                  </p>
+                  <p className="text-xs text-gray-500 dark:text-neutral-400">Stars</p>
                 </div>
                 <div className="bg-gray-50 dark:bg-neutral-800 rounded-lg p-3 text-center">
                   <GitFork className="w-5 h-5 text-purple-500 mx-auto mb-1" />
                   <p className="text-xl font-bold text-gray-900 dark:text-white">
                     {connection.stats.totalForks}
                   </p>
-                  <p className="text-xs text-gray-500 dark:text-neutral-400">
-                    Forks
-                  </p>
+                  <p className="text-xs text-gray-500 dark:text-neutral-400">Forks</p>
                 </div>
                 <div className="bg-gray-50 dark:bg-neutral-800 rounded-lg p-3 text-center">
                   <Users className="w-5 h-5 text-green-500 mx-auto mb-1" />
                   <p className="text-xl font-bold text-gray-900 dark:text-white">
                     {connection.stats.followers}
                   </p>
-                  <p className="text-xs text-gray-500 dark:text-neutral-400">
-                    Followers
-                  </p>
+                  <p className="text-xs text-gray-500 dark:text-neutral-400">Followers</p>
                 </div>
               </div>
             )}
@@ -236,9 +224,13 @@ export function GitHubIntegration() {
                   </h4>
                   <div className="flex flex-wrap gap-2">
                     {Object.entries(connection.stats.topLanguages)
-                      .sort(([, a], [, b]) => (b as number) - (a as number))
+                      .sort(([, a], [, b]) => {
+                        const aValue = typeof a === 'number' ? a : a.percentage;
+                        const bValue = typeof b === 'number' ? b : b.percentage;
+                        return bValue - aValue;
+                      })
                       .slice(0, 5)
-                      .map(([lang, bytes]) => (
+                      .map(([lang]) => (
                         <span
                           key={lang}
                           className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full text-sm"
@@ -298,8 +290,7 @@ export function GitHubIntegration() {
             {/* Last Synced */}
             {connection.lastSyncedAt && (
               <p className="text-xs text-gray-400 dark:text-neutral-500">
-                Last synced:{' '}
-                {new Date(connection.lastSyncedAt).toLocaleString()}
+                Last synced: {new Date(connection.lastSyncedAt).toLocaleString()}
               </p>
             )}
 
@@ -310,9 +301,7 @@ export function GitHubIntegration() {
                 disabled={syncing}
                 className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 dark:bg-neutral-800 text-gray-700 dark:text-neutral-300 rounded-lg font-medium hover:bg-gray-200 dark:hover:bg-neutral-700 transition-colors disabled:opacity-50"
               >
-                <RefreshCw
-                  className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`}
-                />
+                <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
                 {syncing ? 'Syncing...' : 'Sync Now'}
               </button>
               <button

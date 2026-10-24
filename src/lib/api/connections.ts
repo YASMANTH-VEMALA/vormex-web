@@ -1,11 +1,13 @@
 import apiClient from './client';
-import type { PersonCard } from './people';
+import type { PersonRelationship } from './people';
+import { safetyAPI, type BlockUserResponse, type UnblockUserResponse } from './safety';
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // TYPES
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-export type ConnectionStatus = 'none' | 'pending_sent' | 'pending_received' | 'connected' | 'blocked';
+export type ConnectionStatus =
+  'none' | 'pending_sent' | 'pending_received' | 'connected' | 'blocked';
 
 export interface Connection {
   id: string;
@@ -36,6 +38,31 @@ export interface ConnectionStatusResponse {
   direction?: 'sent' | 'received';
 }
 
+type ConnectionsPayload = Partial<ConnectionsResponse> & {
+  requests?: Connection[];
+};
+
+export interface ConnectionMutationResponse {
+  message: string;
+  connection: Connection;
+  relationship?: PersonRelationship;
+}
+
+export interface RelationshipMutationResponse {
+  message: string;
+  relationship?: PersonRelationship;
+}
+
+export function canonicalMutationRelationship(
+  response: { relationship?: PersonRelationship; connection?: { id?: string } },
+  fallbackStatus: PersonRelationship['status']
+): PersonRelationship {
+  return {
+    status: response.relationship?.status ?? fallbackStatus,
+    connectionId: response.relationship?.connectionId ?? response.connection?.id ?? null,
+  };
+}
+
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // API FUNCTIONS
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -46,7 +73,7 @@ export interface ConnectionStatusResponse {
 export async function sendConnectionRequest(
   receiverId: string,
   message?: string
-): Promise<{ message: string; connection: Connection }> {
+): Promise<ConnectionMutationResponse> {
   return apiClient.post('/connections/request', { receiverId, message });
 }
 
@@ -55,7 +82,7 @@ export async function sendConnectionRequest(
  */
 export async function acceptConnectionRequest(
   connectionId: string
-): Promise<{ message: string; connection: Connection }> {
+): Promise<ConnectionMutationResponse> {
   return apiClient.post(`/connections/${connectionId}/accept`);
 }
 
@@ -64,7 +91,7 @@ export async function acceptConnectionRequest(
  */
 export async function rejectConnectionRequest(
   connectionId: string
-): Promise<{ message: string }> {
+): Promise<RelationshipMutationResponse> {
   return apiClient.post(`/connections/${connectionId}/reject`);
 }
 
@@ -73,8 +100,20 @@ export async function rejectConnectionRequest(
  */
 export async function cancelConnectionRequest(
   connectionId: string
-): Promise<{ message: string }> {
+): Promise<RelationshipMutationResponse> {
   return apiClient.delete(`/connections/${connectionId}/cancel`);
+}
+
+/**
+ * Cancel whatever request we have outstanding to this person, without needing
+ * to know which row holds it. A surface that painted "Pending" from a cached
+ * payload often has a connection id that is stale or absent; the server resolves
+ * the pair itself and answers with where the two of you actually stand.
+ */
+export async function cancelSentRequestToUser(
+  userId: string
+): Promise<RelationshipMutationResponse> {
+  return apiClient.delete(`/connections/user/${userId}/request`);
 }
 
 /**
@@ -82,7 +121,7 @@ export async function cancelConnectionRequest(
  */
 export async function removeConnection(
   connectionId: string
-): Promise<{ message: string }> {
+): Promise<RelationshipMutationResponse> {
   return apiClient.delete(`/connections/${connectionId}`);
 }
 
@@ -114,7 +153,9 @@ export async function getPendingRequests(
   page: number = 1,
   limit: number = 20
 ): Promise<ConnectionsResponse> {
-  const response: any = await apiClient.get(`/connections/pending?page=${page}&limit=${limit}`);
+  const response = await apiClient.get<never, ConnectionsPayload>(
+    `/connections/pending?page=${page}&limit=${limit}`
+  );
   // Backend returns 'requests', normalize to 'connections'
   return {
     connections: response.connections || response.requests || [],
@@ -132,7 +173,9 @@ export async function getSentRequests(
   page: number = 1,
   limit: number = 20
 ): Promise<ConnectionsResponse> {
-  const response: any = await apiClient.get(`/connections/sent?page=${page}&limit=${limit}`);
+  const response = await apiClient.get<never, ConnectionsPayload>(
+    `/connections/sent?page=${page}&limit=${limit}`
+  );
   // Backend returns 'requests', normalize to 'connections'
   return {
     connections: response.connections || response.requests || [],
@@ -146,28 +189,22 @@ export async function getSentRequests(
 /**
  * Get connection status with a specific user
  */
-export async function getConnectionStatus(
-  userId: string
-): Promise<ConnectionStatusResponse> {
+export async function getConnectionStatus(userId: string): Promise<ConnectionStatusResponse> {
   return apiClient.get(`/connections/status/${userId}`);
 }
 
 /**
  * Block a user
  */
-export async function blockUser(
-  userId: string
-): Promise<{ message: string }> {
-  return apiClient.post(`/users/${userId}/block`);
+export async function blockUser(userId: string): Promise<BlockUserResponse> {
+  return safetyAPI.blockUser(userId, 'Blocked from connection surface');
 }
 
 /**
  * Unblock a user
  */
-export async function unblockUser(
-  userId: string
-): Promise<{ message: string }> {
-  return apiClient.delete(`/users/${userId}/block`);
+export async function unblockUser(userId: string): Promise<UnblockUserResponse> {
+  return safetyAPI.unblockUser(userId);
 }
 
 /**
@@ -176,6 +213,17 @@ export async function unblockUser(
 export async function getBlockedUsers(
   page: number = 1,
   limit: number = 20
-): Promise<{ users: Array<{ id: string; username: string; name: string; profileImage: string | null }>; total: number; hasMore: boolean }> {
-  return apiClient.get(`/users/blocked?page=${page}&limit=${limit}`);
+): Promise<{
+  users: Array<{ id: string; username: string; name: string; profileImage: string | null }>;
+  total: number;
+  hasMore: boolean;
+}> {
+  const { blocks } = await safetyAPI.getBlocks();
+  const pageSize = Math.max(1, Math.min(100, limit));
+  const offset = (Math.max(1, page) - 1) * pageSize;
+  return {
+    users: blocks.slice(offset, offset + pageSize).map((block) => block.user),
+    total: blocks.length,
+    hasMore: offset + pageSize < blocks.length,
+  };
 }

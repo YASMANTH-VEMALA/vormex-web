@@ -1,8 +1,8 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import { X, Zap, Sparkles } from 'lucide-react';
 import type { SurpriseBoostData } from '@/lib/api/variable-rewards';
+import { motion } from 'framer-motion';
+import { Sparkles, X, Zap } from 'lucide-react';
 
 interface SurpriseBoostCardProps {
   data: SurpriseBoostData;
@@ -25,8 +25,14 @@ export function SurpriseBoostCard({ data, onDismiss }: SurpriseBoostCardProps) {
     >
       {/* Sparkle accents */}
       <div className="absolute top-3 right-8 w-2 h-2 bg-yellow-300 rounded-full opacity-60 animate-pulse" />
-      <div className="absolute top-8 right-4 w-1.5 h-1.5 bg-pink-300 rounded-full opacity-50 animate-pulse" style={{ animationDelay: '0.5s' }} />
-      <div className="absolute bottom-6 left-6 w-1 h-1 bg-rose-300 rounded-full opacity-40 animate-pulse" style={{ animationDelay: '1s' }} />
+      <div
+        className="absolute top-8 right-4 w-1.5 h-1.5 bg-pink-300 rounded-full opacity-50 animate-pulse"
+        style={{ animationDelay: '0.5s' }}
+      />
+      <div
+        className="absolute bottom-6 left-6 w-1 h-1 bg-rose-300 rounded-full opacity-40 animate-pulse"
+        style={{ animationDelay: '1s' }}
+      />
 
       <div className="flex items-center justify-between px-4 pt-4 pb-2">
         <div className="flex items-center gap-2">
@@ -42,12 +48,13 @@ export function SurpriseBoostCard({ data, onDismiss }: SurpriseBoostCardProps) {
             <p className="text-sm font-semibold text-rose-900 dark:text-rose-100">
               Surprise Boost! ⚡
             </p>
-            <p className="text-[11px] text-rose-600/70 dark:text-rose-400/70">
-              {data.reason}
-            </p>
+            <p className="text-[11px] text-rose-600/70 dark:text-rose-400/70">{data.reason}</p>
           </div>
         </div>
-        <button onClick={onDismiss} className="p-1 rounded-full hover:bg-rose-100 dark:hover:bg-rose-900/40 transition-colors">
+        <button
+          onClick={onDismiss}
+          className="p-1 rounded-full hover:bg-rose-100 dark:hover:bg-rose-900/40 transition-colors"
+        >
           <X className="w-4 h-4 text-rose-400" />
         </button>
       </div>
@@ -58,7 +65,7 @@ export function SurpriseBoostCard({ data, onDismiss }: SurpriseBoostCardProps) {
             {data.activeDays} days active this week
           </p>
           <p className="text-sm text-rose-700 dark:text-rose-300">
-            You've earned a special bonus!
+            You&apos;ve earned a special bonus!
           </p>
         </div>
 

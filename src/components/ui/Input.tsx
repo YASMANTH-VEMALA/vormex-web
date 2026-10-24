@@ -1,24 +1,22 @@
-import React from 'react';
 import { cn } from '@/lib/utils';
+import React, { useId } from 'react';
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   error?: string;
 }
 
-export function Input({
-  label,
-  error,
-  className = '',
-  id,
-  ...props
-}: InputProps) {
-  const inputId = id || `input-${Math.random().toString(36).substr(2, 9)}`;
+export function Input({ label, error, className = '', id, ...props }: InputProps) {
+  const generatedId = useId();
+  const inputId = id || generatedId;
 
   return (
     <div className="w-full">
       {label && (
-        <label htmlFor={inputId} className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+        <label
+          htmlFor={inputId}
+          className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300"
+        >
           {label}
         </label>
       )}
@@ -34,10 +32,7 @@ export function Input({
         )}
         {...props}
       />
-      {error && (
-        <p className="mt-1 text-sm text-red-600 dark:text-red-400">{error}</p>
-      )}
+      {error && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{error}</p>}
     </div>
   );
 }
-

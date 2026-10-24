@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useState } from 'react';
 
 interface Props {
   initialData?: Record<string, unknown>;
@@ -12,11 +12,37 @@ interface Props {
 const SKILL_CATEGORIES = [
   {
     label: 'Programming Languages',
-    skills: ['Python', 'JavaScript', 'TypeScript', 'Java', 'C++', 'C', 'Go', 'Rust', 'Kotlin', 'Swift', 'PHP', 'Ruby', 'Dart'],
+    skills: [
+      'Python',
+      'JavaScript',
+      'TypeScript',
+      'Java',
+      'C++',
+      'C',
+      'Go',
+      'Rust',
+      'Kotlin',
+      'Swift',
+      'PHP',
+      'Ruby',
+      'Dart',
+    ],
   },
   {
     label: 'Web & Frontend',
-    skills: ['React', 'Next.js', 'Vue.js', 'Angular', 'HTML/CSS', 'Tailwind CSS', 'Node.js', 'Express', 'Django', 'Flask', 'Spring Boot'],
+    skills: [
+      'React',
+      'Next.js',
+      'Vue.js',
+      'Angular',
+      'HTML/CSS',
+      'Tailwind CSS',
+      'Node.js',
+      'Express',
+      'Django',
+      'Flask',
+      'Spring Boot',
+    ],
   },
   {
     label: 'Mobile',
@@ -24,7 +50,16 @@ const SKILL_CATEGORIES = [
   },
   {
     label: 'Data & AI',
-    skills: ['Machine Learning', 'Deep Learning', 'NLP', 'Computer Vision', 'Data Analysis', 'TensorFlow', 'PyTorch', 'Pandas'],
+    skills: [
+      'Machine Learning',
+      'Deep Learning',
+      'NLP',
+      'Computer Vision',
+      'Data Analysis',
+      'TensorFlow',
+      'PyTorch',
+      'Pandas',
+    ],
   },
   {
     label: 'DevOps & Cloud',
@@ -32,7 +67,19 @@ const SKILL_CATEGORIES = [
   },
   {
     label: 'Other',
-    skills: ['Git', 'SQL', 'MongoDB', 'PostgreSQL', 'Redis', 'GraphQL', 'REST API', 'Firebase', 'Figma', 'Blockchain', 'Cybersecurity'],
+    skills: [
+      'Git',
+      'SQL',
+      'MongoDB',
+      'PostgreSQL',
+      'Redis',
+      'GraphQL',
+      'REST API',
+      'Firebase',
+      'Figma',
+      'Blockchain',
+      'Cybersecurity',
+    ],
   },
 ];
 
@@ -45,22 +92,26 @@ interface SkillEntry {
 }
 
 export default function StepSkills({ initialData, onComplete, saving }: Props) {
-  const [selected, setSelected] = useState<SkillEntry[]>((initialData?.skills as SkillEntry[]) || []);
-  const [expandedCategory, setExpandedCategory] = useState<string | null>(SKILL_CATEGORIES[0].label);
+  const [selected, setSelected] = useState<SkillEntry[]>(
+    (initialData?.skills as SkillEntry[]) || []
+  );
+  const [expandedCategory, setExpandedCategory] = useState<string | null>(
+    SKILL_CATEGORIES[0].label
+  );
 
-  const isSelected = (name: string) => selected.some(s => s.name === name);
-  const getSkill = (name: string) => selected.find(s => s.name === name);
+  const isSelected = (name: string) => selected.some((s) => s.name === name);
+  const getSkill = (name: string) => selected.find((s) => s.name === name);
 
   const toggleSkill = (name: string, category: string) => {
     if (isSelected(name)) {
-      setSelected(prev => prev.filter(s => s.name !== name));
+      setSelected((prev) => prev.filter((s) => s.name !== name));
     } else {
-      setSelected(prev => [...prev, { name, proficiency: 'Beginner', category }]);
+      setSelected((prev) => [...prev, { name, proficiency: 'Beginner', category }]);
     }
   };
 
   const setProficiency = (name: string, proficiency: string) => {
-    setSelected(prev => prev.map(s => s.name === name ? { ...s, proficiency } : s));
+    setSelected((prev) => prev.map((s) => (s.name === name ? { ...s, proficiency } : s)));
   };
 
   const canContinue = selected.length >= 1;
@@ -74,7 +125,7 @@ export default function StepSkills({ initialData, onComplete, saving }: Props) {
       {/* Selected skills summary */}
       {selected.length > 0 && (
         <div className="flex flex-wrap gap-2">
-          {selected.map(skill => (
+          {selected.map((skill) => (
             <span
               key={skill.name}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 text-sm"
@@ -94,27 +145,39 @@ export default function StepSkills({ initialData, onComplete, saving }: Props) {
 
       {/* Skill categories */}
       <div className="space-y-2 max-h-[320px] overflow-y-auto pr-1 custom-scrollbar">
-        {SKILL_CATEGORIES.map(cat => (
-          <div key={cat.label} className="rounded-xl border border-neutral-200 dark:border-neutral-800 overflow-hidden">
+        {SKILL_CATEGORIES.map((cat) => (
+          <div
+            key={cat.label}
+            className="rounded-xl border border-neutral-200 dark:border-neutral-800 overflow-hidden"
+          >
             <button
               onClick={() => setExpandedCategory(expandedCategory === cat.label ? null : cat.label)}
               className="w-full px-4 py-3 flex items-center justify-between bg-white dark:bg-neutral-900 hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors"
             >
-              <span className="font-medium text-sm text-neutral-700 dark:text-neutral-300">{cat.label}</span>
+              <span className="font-medium text-sm text-neutral-700 dark:text-neutral-300">
+                {cat.label}
+              </span>
               <motion.span
                 animate={{ rotate: expandedCategory === cat.label ? 180 : 0 }}
                 className="text-neutral-400"
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
                   <path d="m6 9 6 6 6-6" />
                 </svg>
               </motion.span>
             </button>
-            
+
             <AnimateHeight isOpen={expandedCategory === cat.label}>
               <div className="px-4 pb-3 pt-1">
                 <div className="flex flex-wrap gap-2">
-                  {cat.skills.map(skill => {
+                  {cat.skills.map((skill) => {
                     const sel = isSelected(skill);
                     const entry = getSkill(skill);
                     return (
@@ -137,7 +200,9 @@ export default function StepSkills({ initialData, onComplete, saving }: Props) {
                                 onClick={() => setProficiency(skill, p)}
                                 title={p}
                                 className={`w-5 h-1.5 rounded-full transition-colors ${
-                                  PROFICIENCY.indexOf(entry.proficiency as typeof PROFICIENCY[number]) >= i
+                                  PROFICIENCY.indexOf(
+                                    entry.proficiency as (typeof PROFICIENCY)[number]
+                                  ) >= i
                                     ? 'bg-blue-500'
                                     : 'bg-neutral-300 dark:bg-neutral-700'
                                 }`}
@@ -156,7 +221,7 @@ export default function StepSkills({ initialData, onComplete, saving }: Props) {
       </div>
 
       <motion.button
-        onClick={() => onComplete({ skills: selected, interests: selected.map(s => s.name) })}
+        onClick={() => onComplete({ skills: selected, interests: selected.map((s) => s.name) })}
         disabled={!canContinue || saving}
         className={`w-full py-4 rounded-2xl font-semibold text-white transition-all ${
           canContinue && !saving

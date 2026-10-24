@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { X, Flag, AlertTriangle, Loader2, CheckCircle } from 'lucide-react';
+import { asApiError } from '@/lib/api/errors';
 import { reportAPI, ReportReason } from '@/lib/api/reports';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
+import { AlertTriangle, CheckCircle, Flag, Loader2, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface ReportModalProps {
   isOpen: boolean;
@@ -15,7 +16,7 @@ interface ReportModalProps {
   reportedUserId?: string; // For chat reports
 }
 
-export default function ReportModal({
+function ReportModalSession({
   isOpen,
   onClose,
   type,
@@ -46,11 +47,6 @@ export default function ReportModal({
 
     if (isOpen) {
       fetchReasons();
-      // Reset state
-      setSelectedReason('');
-      setDescription('');
-      setSuccess(false);
-      setError('');
     }
   }, [isOpen]);
 
@@ -97,8 +93,8 @@ export default function ReportModal({
       setTimeout(() => {
         onClose();
       }, 2000);
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to submit report');
+    } catch (err: unknown) {
+      setError(asApiError(err).response?.data?.error || 'Failed to submit report');
     } finally {
       setLoading(false);
     }
@@ -148,9 +144,7 @@ export default function ReportModal({
               <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-full">
                 <Flag className="w-5 h-5 text-red-600 dark:text-red-400" />
               </div>
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                {getTitle()}
-              </h2>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{getTitle()}</h2>
             </div>
             <button
               onClick={onClose}
@@ -171,7 +165,8 @@ export default function ReportModal({
                   Report Submitted
                 </h3>
                 <p className="text-gray-600 dark:text-gray-400">
-                  Thank you for helping keep our community safe. We'll review your report shortly.
+                  Thank you for helping keep our community safe. We&apos;ll review your report
+                  shortly.
                 </p>
               </div>
             ) : fetchingReasons ? (
@@ -233,9 +228,7 @@ export default function ReportModal({
                     maxLength={500}
                     className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                   />
-                  <p className="text-xs text-gray-400 text-right">
-                    {description.length}/500
-                  </p>
+                  <p className="text-xs text-gray-400 text-right">{description.length}/500</p>
                 </div>
 
                 {/* Error */}
@@ -281,4 +274,10 @@ export default function ReportModal({
       </div>
     </AnimatePresence>
   );
+}
+
+export default function ReportModal(props: ReportModalProps) {
+  return props.isOpen ? (
+    <ReportModalSession key={props.type + ':' + props.targetId} {...props} />
+  ) : null;
 }

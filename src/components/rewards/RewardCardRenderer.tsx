@@ -1,16 +1,16 @@
 'use client';
 
-import { AnimatePresence } from 'framer-motion';
 import type { ActiveRewardCard } from '@/hooks/useVariableRewards';
 import type { RewardCardType } from '@/lib/api/variable-rewards';
-import { MatchBurstCard } from './MatchBurstCard';
-import { TrendingCard } from './TrendingCard';
+import { AnimatePresence } from 'framer-motion';
+import { ConnectionUpdateCard } from './ConnectionUpdateCard';
 import { HiddenGemCard } from './HiddenGemCard';
+import { MatchBurstCard } from './MatchBurstCard';
 import { MilestoneCard } from './MilestoneCard';
 import { OpportunityCard } from './OpportunityCard';
 import { SocialProofCard } from './SocialProofCard';
 import { SurpriseBoostCard } from './SurpriseBoostCard';
-import { ConnectionUpdateCard } from './ConnectionUpdateCard';
+import { TrendingCard } from './TrendingCard';
 
 interface RewardCardRendererProps {
   card: ActiveRewardCard;
@@ -29,37 +29,59 @@ export function RewardCardRenderer({ card, onDismiss }: RewardCardRendererProps)
       {type === 'MATCH_BURST' && (
         <MatchBurstCard
           matches={data.matches}
-          onDismiss={() => onDismiss('MATCH_BURST', data.matches.map(m => m.id))}
+          onDismiss={() =>
+            onDismiss(
+              'MATCH_BURST',
+              data.matches.map((m) => m.id)
+            )
+          }
         />
       )}
       {type === 'TRENDING' && data.trendingData && (
-        <TrendingCard
-          data={data.trendingData}
-          onDismiss={() => onDismiss('TRENDING')}
-        />
+        <TrendingCard data={data.trendingData} onDismiss={() => onDismiss('TRENDING')} />
       )}
       {type === 'HIDDEN_GEM' && (
         <HiddenGemCard
           gems={data.hiddenGems}
-          onDismiss={() => onDismiss('HIDDEN_GEM', data.hiddenGems.map(g => g.id))}
+          onDismiss={() =>
+            onDismiss(
+              'HIDDEN_GEM',
+              data.hiddenGems.map((g) => g.id)
+            )
+          }
         />
       )}
       {type === 'MILESTONE' && (
         <MilestoneCard
           milestones={data.milestones}
-          onDismiss={() => onDismiss('MILESTONE', data.milestones.map(m => m.id))}
+          onDismiss={() =>
+            onDismiss(
+              'MILESTONE',
+              data.milestones.map((m) => m.id)
+            )
+          }
         />
       )}
       {type === 'OPPORTUNITY' && (
         <OpportunityCard
           opportunities={data.opportunities}
-          onDismiss={() => onDismiss('OPPORTUNITY', data.opportunities.map(o => o.id))}
+          onDismiss={() =>
+            onDismiss(
+              'OPPORTUNITY',
+              data.opportunities.map((o) => o.id)
+            )
+          }
         />
       )}
       {type === 'SOCIAL_PROOF' && (
         <SocialProofCard
           viewers={data.viewers}
-          onDismiss={() => onDismiss('SOCIAL_PROOF', data.viewers.map(v => v.id))}
+          onDismiss={() =>
+            onDismiss(
+              'SOCIAL_PROOF',
+              data.viewers.map((v) => v.id)
+            )
+          }
         />
       )}
       {type === 'SURPRISE_BOOST' && data.surpriseBoostData && (

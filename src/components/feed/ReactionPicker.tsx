@@ -1,15 +1,9 @@
 'use client';
 
+import type { ReactionSummary as ReactionSummaryType, ReactionType } from '@/types/post';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Heart, HelpCircle, Lightbulb, PartyPopper, ThumbsUp } from 'lucide-react';
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  ThumbsUp, 
-  PartyPopper, 
-  Heart, 
-  Lightbulb, 
-  HelpCircle 
-} from 'lucide-react';
-import type { ReactionType, ReactionSummary as ReactionSummaryType } from '@/types/post';
 
 interface ReactionPickerProps {
   isOpen: boolean;
@@ -27,42 +21,42 @@ export const REACTIONS: {
   bgColor: string;
   hoverScale: number;
 }[] = [
-  { 
-    type: 'LIKE', 
-    icon: ThumbsUp, 
-    label: 'Like', 
+  {
+    type: 'LIKE',
+    icon: ThumbsUp,
+    label: 'Like',
     color: 'text-blue-600',
     bgColor: 'bg-blue-100 dark:bg-blue-900/30',
     hoverScale: 1.3,
   },
-  { 
-    type: 'CELEBRATE', 
-    icon: PartyPopper, 
-    label: 'Celebrate', 
+  {
+    type: 'CELEBRATE',
+    icon: PartyPopper,
+    label: 'Celebrate',
     color: 'text-green-600',
     bgColor: 'bg-green-100 dark:bg-green-900/30',
     hoverScale: 1.3,
   },
-  { 
-    type: 'SUPPORT', 
-    icon: Heart, 
-    label: 'Support', 
+  {
+    type: 'SUPPORT',
+    icon: Heart,
+    label: 'Support',
     color: 'text-purple-600',
     bgColor: 'bg-purple-100 dark:bg-purple-900/30',
     hoverScale: 1.3,
   },
-  { 
-    type: 'INSIGHTFUL', 
-    icon: Lightbulb, 
-    label: 'Insightful', 
+  {
+    type: 'INSIGHTFUL',
+    icon: Lightbulb,
+    label: 'Insightful',
     color: 'text-amber-600',
     bgColor: 'bg-amber-100 dark:bg-amber-900/30',
     hoverScale: 1.3,
   },
-  { 
-    type: 'CURIOUS', 
-    icon: HelpCircle, 
-    label: 'Curious', 
+  {
+    type: 'CURIOUS',
+    icon: HelpCircle,
+    label: 'Curious',
     color: 'text-pink-600',
     bgColor: 'bg-pink-100 dark:bg-pink-900/30',
     hoverScale: 1.3,
@@ -71,45 +65,44 @@ export const REACTIONS: {
 
 // Helper to get reaction config by type
 export function getReactionConfig(type: ReactionType) {
-  return REACTIONS.find(r => r.type === type) || REACTIONS[0];
+  return REACTIONS.find((r) => r.type === type) || REACTIONS[0];
 }
 
 // Reaction icons for summary display
-export function ReactionIcon({ 
-  type, 
+export function ReactionIcon({
+  type,
   size = 16,
-  className = '' 
-}: { 
-  type: ReactionType; 
+  className = '',
+}: {
+  type: ReactionType;
   size?: number;
   className?: string;
 }) {
   const config = getReactionConfig(type);
   const Icon = config.icon;
-  
+
   return (
-    <div className={`inline-flex items-center justify-center rounded-full p-1 ${config.bgColor} ${className}`}>
+    <div
+      className={`inline-flex items-center justify-center rounded-full p-1 ${config.bgColor} ${className}`}
+    >
       <Icon className={`${config.color}`} size={size} />
     </div>
   );
 }
 
-export function ReactionPicker({ 
-  isOpen, 
+export function ReactionPicker({
+  isOpen,
   currentReaction,
-  onSelect, 
-  onClose 
+  onSelect,
+  onClose,
 }: ReactionPickerProps) {
   return (
     <AnimatePresence>
       {isOpen && (
         <>
           {/* Backdrop */}
-          <div 
-            className="fixed inset-0 z-40"
-            onClick={onClose}
-          />
-          
+          <div className="fixed inset-0 z-40" onClick={onClose} />
+
           {/* Reaction picker */}
           <motion.div
             initial={{ opacity: 0, y: 10, scale: 0.9 }}
@@ -122,7 +115,7 @@ export function ReactionPicker({
               {REACTIONS.map((reaction) => {
                 const Icon = reaction.icon;
                 const isSelected = currentReaction === reaction.type;
-                
+
                 return (
                   <motion.button
                     key={reaction.type}
@@ -133,18 +126,16 @@ export function ReactionPicker({
                       onClose();
                     }}
                     className={`relative p-2 rounded-full transition-colors group ${
-                      isSelected 
-                        ? reaction.bgColor 
-                        : 'hover:bg-gray-100 dark:hover:bg-neutral-700'
+                      isSelected ? reaction.bgColor : 'hover:bg-gray-100 dark:hover:bg-neutral-700'
                     }`}
                     title={reaction.label}
                   >
-                    <Icon 
+                    <Icon
                       className={`w-6 h-6 transition-transform ${
                         isSelected ? reaction.color : 'text-gray-500 dark:text-neutral-400'
                       } group-hover:${reaction.color}`}
                     />
-                    
+
                     {/* Tooltip */}
                     <motion.span
                       initial={{ opacity: 0, y: 5 }}
@@ -165,30 +156,30 @@ export function ReactionPicker({
 }
 
 // Summary of reactions (shows top 3 reaction icons)
-export function ReactionSummaryDisplay({ 
+export function ReactionSummaryDisplay({
   reactionSummary,
   totalCount,
   onClick,
-}: { 
+}: {
   reactionSummary: ReactionSummaryType[];
   totalCount: number;
   onClick?: () => void;
 }) {
   if (totalCount === 0) return null;
-  
+
   // Get top 3 unique reaction types
   const topReactions = reactionSummary.slice(0, 3);
-  
+
   return (
-    <button 
+    <button
       onClick={onClick}
       className="flex items-center gap-1 text-sm text-gray-500 dark:text-neutral-400 hover:underline"
     >
       <div className="flex -space-x-1">
-        {topReactions.map((reaction, index) => (
-          <ReactionIcon 
-            key={reaction.type} 
-            type={reaction.type} 
+        {topReactions.map((reaction) => (
+          <ReactionIcon
+            key={reaction.type}
+            type={reaction.type}
             size={14}
             className="border-2 border-white dark:border-neutral-900"
           />

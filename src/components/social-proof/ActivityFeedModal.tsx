@@ -1,9 +1,11 @@
 'use client';
+import { useAuth as useResourceAuth } from '@/lib/auth/useAuth';
+import { useQuery } from '@tanstack/react-query';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { getActivityFeed } from '@/lib/api/social-proof';
 import { AnimatePresence, motion } from 'framer-motion';
-import { getActivityFeed, type ActivityFeedItem } from '@/lib/api/social-proof';
 import { X } from 'lucide-react';
+import { useRef } from 'react';
 
 /**
  * ActivityFeedModal — Real-time anonymized activity stream
@@ -26,28 +28,16 @@ interface ActivityFeedModalProps {
 }
 
 export default function ActivityFeedModal({ isOpen, onClose }: ActivityFeedModalProps) {
-  const [activities, setActivities] = useState<ActivityFeedItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const resourceViewer = useResourceAuth().user;
+  const feedResource = useQuery({
+    queryKey: ['activity-feed', resourceViewer?.id],
+    queryFn: () => getActivityFeed(20, 10),
+    enabled: isOpen,
+    refetchInterval: isOpen ? 30000 : false,
+  });
+  const activities = feedResource.data ?? [];
+  const loading = feedResource.isPending;
   const scrollRef = useRef<HTMLDivElement>(null);
-
-  const fetchFeed = useCallback(async () => {
-    try {
-      const data = await getActivityFeed(20, 10);
-      setActivities(data);
-    } catch (error) {
-      console.error('Failed to fetch activity feed:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  // Fetch on open and refresh every 10 seconds
-  useEffect(() => {
-    if (!isOpen) return;
-    fetchFeed();
-    const interval = setInterval(fetchFeed, 10000);
-    return () => clearInterval(interval);
-  }, [isOpen, fetchFeed]);
 
   if (!isOpen) return null;
 
@@ -77,9 +67,7 @@ export default function ActivityFeedModal({ isOpen, onClose }: ActivityFeedModal
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-60" />
               <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500" />
             </span>
-            <h2 className="text-base font-semibold text-gray-900 dark:text-white">
-              Live Activity
-            </h2>
+            <h2 className="text-base font-semibold text-gray-900 dark:text-white">Live Activity</h2>
           </div>
           <button
             onClick={onClose}
@@ -116,9 +104,7 @@ export default function ActivityFeedModal({ isOpen, onClose }: ActivityFeedModal
 
                   {/* Activity text */}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-gray-700 dark:text-neutral-300">
-                      {activity.label}
-                    </p>
+                    <p className="text-sm text-gray-700 dark:text-neutral-300">{activity.label}</p>
                   </div>
 
                   {/* Time ago */}
@@ -144,14 +130,22 @@ export default function ActivityFeedModal({ isOpen, onClose }: ActivityFeedModal
 
 function getActivityIcon(type: string): string {
   switch (type) {
-    case 'CONNECTION_MADE': return '🤝';
-    case 'POST_CREATED': return '📝';
-    case 'GROUP_JOINED': return '👥';
-    case 'EVENT_RSVP': return '📅';
-    case 'USER_SIGNED_UP': return '🆕';
-    case 'COMMENT_POSTED': return '💬';
-    case 'PROFILE_UPDATED': return '✏️';
-    default: return '⚡';
+    case 'CONNECTION_MADE':
+      return '🤝';
+    case 'POST_CREATED':
+      return '📝';
+    case 'GROUP_JOINED':
+      return '👥';
+    case 'EVENT_RSVP':
+      return '📅';
+    case 'USER_SIGNED_UP':
+      return '🆕';
+    case 'COMMENT_POSTED':
+      return '💬';
+    case 'PROFILE_UPDATED':
+      return '✏️';
+    default:
+      return '⚡';
   }
 }
 

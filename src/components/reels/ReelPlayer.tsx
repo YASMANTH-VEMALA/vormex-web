@@ -1,20 +1,20 @@
 'use client';
 
-import { useRef, useEffect, useState, useCallback } from 'react';
 import Hls from 'hls.js';
-import { Loader2, Play, Pause } from 'lucide-react';
+import { Loader2, Pause, Play } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface ReelPlayerProps {
   hlsUrl: string | null;
   mp4Url: string;
   thumbnailUrl?: string | null;
   isActive: boolean;
+  shouldPreload?: boolean;
   isMuted: boolean;
   onProgress?: (progress: number, watchTimeMs: number) => void;
   onComplete?: () => void;
   onTap?: () => void;
   onDoubleTap?: () => void;
-  onMuteToggle?: () => void;
 }
 
 export function ReelPlayer({
@@ -22,15 +22,16 @@ export function ReelPlayer({
   mp4Url,
   thumbnailUrl,
   isActive,
+  shouldPreload = false,
   isMuted,
   onProgress,
   onComplete,
   onTap,
   onDoubleTap,
-  onMuteToggle,
 }: ReelPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
+  const isActiveRef = useRef(isActive);
   const [isLoaded, setIsLoaded] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [showControls, setShowControls] = useState(false);
@@ -41,8 +42,14 @@ export function ReelPlayer({
   const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
+    isActiveRef.current = isActive;
+  }, [isActive]);
+
+  useEffect(() => {
     const video = videoRef.current;
-    if (!video) return;
+    if (!video || !shouldPreload) return;
+
+    setError(false);
 
     const initHls = () => {
       if (hlsUrl && Hls.isSupported()) {
@@ -61,7 +68,7 @@ export function ReelPlayer({
 
         hls.on(Hls.Events.MANIFEST_PARSED, () => {
           setIsLoaded(true);
-          if (isActive) {
+          if (isActiveRef.current) {
             video.play().catch(() => {});
           }
         });
@@ -80,7 +87,7 @@ export function ReelPlayer({
         video.src = hlsUrl;
         video.addEventListener('loadedmetadata', () => {
           setIsLoaded(true);
-          if (isActive) {
+          if (isActiveRef.current) {
             video.play().catch(() => {});
           }
         });
@@ -88,7 +95,7 @@ export function ReelPlayer({
         video.src = mp4Url;
         video.addEventListener('loadedmetadata', () => {
           setIsLoaded(true);
-          if (isActive) {
+          if (isActiveRef.current) {
             video.play().catch(() => {});
           }
         });
@@ -100,19 +107,25 @@ export function ReelPlayer({
     return () => {
       hlsRef.current?.destroy();
       hlsRef.current = null;
+      video.pause();
+      video.removeAttribute('src');
+      video.load();
+      setIsLoaded(false);
     };
-  }, [hlsUrl, mp4Url]);
+  }, [hlsUrl, mp4Url, shouldPreload]);
 
   useEffect(() => {
     const video = videoRef.current;
     if (!video || !isLoaded) return;
 
     if (isActive) {
-      video.play().then(() => setIsPlaying(true)).catch(() => {});
+      video
+        .play()
+        .then(() => setIsPlaying(true))
+        .catch(() => {});
     } else {
       video.pause();
       video.currentTime = 0;
-      setIsPlaying(false);
     }
   }, [isActive, isLoaded]);
 
@@ -156,53 +169,62 @@ export function ReelPlayer({
     };
   }, [onProgress, onComplete]);
 
-  const handleTap = useCallback((e: React.MouseEvent | React.TouchEvent) => {
-    e.stopPropagation();
-    const now = Date.now();
-    
-    if (now - lastTap.current < 300) {
-      onDoubleTap?.();
-      lastTap.current = 0;
-    } else {
-      lastTap.current = now;
-      setTimeout(() => {
-        if (lastTap.current !== 0 && Date.now() - lastTap.current >= 300) {
-          onTap?.();
-          // Tap to pause/play
-          const video = videoRef.current;
-          if (video && isLoaded) {
-            if (video.paused) {
-              video.play().then(() => setIsPlaying(true)).catch(() => {});
-            } else {
-              video.pause();
-              setIsPlaying(false);
+  const handleTap = useCallback(
+    (e: React.MouseEvent | React.TouchEvent) => {
+      e.stopPropagation();
+      const now = Date.now();
+
+      if (now - lastTap.current < 300) {
+        onDoubleTap?.();
+        lastTap.current = 0;
+      } else {
+        lastTap.current = now;
+        setTimeout(() => {
+          if (lastTap.current !== 0 && Date.now() - lastTap.current >= 300) {
+            onTap?.();
+            // Tap to pause/play
+            const video = videoRef.current;
+            if (video && isLoaded) {
+              if (video.paused) {
+                video
+                  .play()
+                  .then(() => setIsPlaying(true))
+                  .catch(() => {});
+              } else {
+                video.pause();
+                setIsPlaying(false);
+              }
             }
+            lastTap.current = 0;
           }
-          lastTap.current = 0;
-        }
-      }, 300);
-    }
+        }, 300);
+      }
 
-    setShowControls(true);
-    if (controlsTimeoutRef.current) {
-      clearTimeout(controlsTimeoutRef.current);
-    }
-    controlsTimeoutRef.current = setTimeout(() => {
-      setShowControls(false);
-    }, 2000);
-  }, [onTap, onDoubleTap, isLoaded]);
+      setShowControls(true);
+      if (controlsTimeoutRef.current) {
+        clearTimeout(controlsTimeoutRef.current);
+      }
+      controlsTimeoutRef.current = setTimeout(() => {
+        setShowControls(false);
+      }, 2000);
+    },
+    [onTap, onDoubleTap, isLoaded]
+  );
 
-  const togglePlayPause = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    const video = videoRef.current;
-    if (!video) return;
+  const togglePlayPause = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      const video = videoRef.current;
+      if (!video) return;
 
-    if (isPlaying) {
-      video.pause();
-    } else {
-      video.play().catch(() => {});
-    }
-  }, [isPlaying]);
+      if (isPlaying) {
+        video.pause();
+      } else {
+        video.play().catch(() => {});
+      }
+    },
+    [isPlaying]
+  );
 
   return (
     <div
@@ -210,11 +232,7 @@ export function ReelPlayer({
       onClick={handleTap}
     >
       {!isLoaded && thumbnailUrl && (
-        <img
-          src={thumbnailUrl}
-          alt=""
-          className="absolute inset-0 w-full h-full object-contain"
-        />
+        <img src={thumbnailUrl} alt="" className="absolute inset-0 w-full h-full object-contain" />
       )}
 
       {!isLoaded && (
@@ -225,12 +243,12 @@ export function ReelPlayer({
 
       <video
         ref={videoRef}
-        className="w-full h-full object-contain"
+        className="h-full w-full object-cover sm:object-contain"
         playsInline
         loop
         muted={isMuted}
         poster={thumbnailUrl || undefined}
-        preload="metadata"
+        preload={shouldPreload ? 'auto' : 'none'}
       />
 
       <div className="absolute top-0 left-0 right-0 h-1 bg-white/20">

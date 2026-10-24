@@ -42,38 +42,40 @@ export interface ReferralLeaderboard {
   referralCount: number;
 }
 
+export interface ReferralShareLinks {
+  code: string;
+  link: string;
+  whatsapp: string;
+  twitter: string;
+  linkedin: string;
+}
+
 // Get my referral code
 export const getMyReferralCode = async (): Promise<string> => {
-  const response = await apiClient.get('/referrals/code');
-  return response.data;
+  return apiClient.get('/referrals/code');
 };
 
 // Apply a referral code
 export const applyReferralCode = async (code: string) => {
-  const response = await apiClient.post('/referrals/apply', { code });
-  return response;
+  return apiClient.post('/referrals/apply', { code });
 };
 
 // Get my referral stats
 export const getReferralStats = async (): Promise<ReferralStats> => {
-  const response = await apiClient.get('/referrals/stats');
-  return response.data;
+  return apiClient.get('/referrals/stats');
 };
 
 // Get my referrals list
 export const getMyReferrals = async (): Promise<Referral[]> => {
-  const response = await apiClient.get('/referrals/list');
-  return response.data;
+  return apiClient.get('/referrals/list');
 };
 
 // Get referral leaderboard
 export const getReferralLeaderboard = async (limit?: number): Promise<ReferralLeaderboard[]> => {
-  const response = await apiClient.get('/referrals/leaderboard', { params: { limit } });
-  return response.data;
+  return apiClient.get('/referrals/leaderboard', { params: { limit } });
 };
 
 // Get share links
-export const getShareLinks = async () => {
-  const response = await apiClient.get('/referrals/share');
-  return response.data;
+export const getShareLinks = async (): Promise<ReferralShareLinks> => {
+  return apiClient.get('/referrals/share');
 };

@@ -1,17 +1,17 @@
 'use client';
 
-import { Moon, Sun, Monitor } from 'lucide-react';
+import { Monitor, Moon, Sun } from 'lucide-react';
 import { useTheme } from 'next-themes';
-import { useEffect, useState } from 'react';
+import { useSyncExternalStore } from 'react';
 import { Button } from './Button';
 
 export function ThemeToggle() {
   const { theme, setTheme, resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
 
   const cycleTheme = () => {
     if (theme === 'light') {
@@ -27,11 +27,7 @@ export function ThemeToggle() {
     if (theme === 'system') {
       return <Monitor className="h-4 w-4" />;
     }
-    return resolvedTheme === 'dark' ? (
-      <Sun className="h-4 w-4" />
-    ) : (
-      <Moon className="h-4 w-4" />
-    );
+    return resolvedTheme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />;
   };
 
   const getAriaLabel = () => {
@@ -46,12 +42,7 @@ export function ThemeToggle() {
 
   if (!mounted) {
     return (
-      <Button
-        variant="ghost"
-        size="icon"
-        className="h-9 w-9"
-        aria-label="Toggle theme"
-      >
+      <Button variant="ghost" size="icon" className="h-9 w-9" aria-label="Toggle theme">
         <Sun className="h-4 w-4" />
       </Button>
     );
@@ -70,4 +61,3 @@ export function ThemeToggle() {
     </Button>
   );
 }
-

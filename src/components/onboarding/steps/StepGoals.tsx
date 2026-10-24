@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useState } from 'react';
 
 interface Props {
   initialData?: Record<string, unknown>;
@@ -10,40 +10,103 @@ interface Props {
 }
 
 const GOALS = [
-  { id: 'learn_coding', label: 'Learn to Code', emoji: '💻', description: 'Master programming languages & build projects' },
-  { id: 'web_dev', label: 'Web Development', emoji: '🌐', description: 'Build websites & web applications' },
-  { id: 'mobile_dev', label: 'Mobile Development', emoji: '📱', description: 'Build Android/iOS apps' },
-  { id: 'ai_ml', label: 'AI & Machine Learning', emoji: '🤖', description: 'Explore artificial intelligence & data' },
-  { id: 'competitive_programming', label: 'Competitive Programming', emoji: '🏆', description: 'DSA, LeetCode & coding contests' },
-  { id: 'start_business', label: 'Start a Business', emoji: '🚀', description: 'Build a startup & find co-founders' },
-  { id: 'get_internship', label: 'Get an Internship', emoji: '💼', description: 'Land internships at top companies' },
-  { id: 'design', label: 'UI/UX Design', emoji: '🎨', description: 'Create beautiful user experiences' },
-  { id: 'data_science', label: 'Data Science', emoji: '📊', description: 'Analyze data & build insights' },
-  { id: 'cybersecurity', label: 'Cybersecurity', emoji: '🔒', description: 'Ethical hacking & security' },
-  { id: 'devops', label: 'DevOps & Cloud', emoji: '☁️', description: 'Deploy, scale & manage infrastructure' },
-  { id: 'content_creation', label: 'Content Creation', emoji: '🎬', description: 'YouTube, blogging & tech content' },
-  { id: 'research', label: 'Research & Academia', emoji: '🔬', description: 'Papers, publications & research' },
+  {
+    id: 'learn_coding',
+    label: 'Learn to Code',
+    emoji: '💻',
+    description: 'Master programming languages & build projects',
+  },
+  {
+    id: 'web_dev',
+    label: 'Web Development',
+    emoji: '🌐',
+    description: 'Build websites & web applications',
+  },
+  {
+    id: 'mobile_dev',
+    label: 'Mobile Development',
+    emoji: '📱',
+    description: 'Build Android/iOS apps',
+  },
+  {
+    id: 'ai_ml',
+    label: 'AI & Machine Learning',
+    emoji: '🤖',
+    description: 'Explore artificial intelligence & data',
+  },
+  {
+    id: 'competitive_programming',
+    label: 'Competitive Programming',
+    emoji: '🏆',
+    description: 'DSA, LeetCode & coding contests',
+  },
+  {
+    id: 'start_business',
+    label: 'Start a Business',
+    emoji: '🚀',
+    description: 'Build a startup & find co-founders',
+  },
+  {
+    id: 'get_internship',
+    label: 'Get an Internship',
+    emoji: '💼',
+    description: 'Land internships at top companies',
+  },
+  {
+    id: 'design',
+    label: 'UI/UX Design',
+    emoji: '🎨',
+    description: 'Create beautiful user experiences',
+  },
+  {
+    id: 'data_science',
+    label: 'Data Science',
+    emoji: '📊',
+    description: 'Analyze data & build insights',
+  },
+  {
+    id: 'cybersecurity',
+    label: 'Cybersecurity',
+    emoji: '🔒',
+    description: 'Ethical hacking & security',
+  },
+  {
+    id: 'devops',
+    label: 'DevOps & Cloud',
+    emoji: '☁️',
+    description: 'Deploy, scale & manage infrastructure',
+  },
+  {
+    id: 'content_creation',
+    label: 'Content Creation',
+    emoji: '🎬',
+    description: 'YouTube, blogging & tech content',
+  },
+  {
+    id: 'research',
+    label: 'Research & Academia',
+    emoji: '🔬',
+    description: 'Papers, publications & research',
+  },
   { id: 'freelance', label: 'Freelancing', emoji: '💰', description: 'Build a freelance career' },
 ];
 
 export default function StepGoals({ initialData, onComplete, saving }: Props) {
   const [primary, setPrimary] = useState<string>((initialData?.primaryGoal as string) || '');
-  const [secondary, setSecondary] = useState<string[]>((initialData?.secondaryGoals as string[]) || []);
+  const [secondary, setSecondary] = useState<string[]>(
+    (initialData?.secondaryGoals as string[]) || []
+  );
 
   const toggleSecondary = (id: string) => {
     if (id === primary) return;
-    setSecondary(prev =>
-      prev.includes(id)
-        ? prev.filter(g => g !== id)
-        : prev.length < 3
-        ? [...prev, id]
-        : prev
+    setSecondary((prev) =>
+      prev.includes(id) ? prev.filter((g) => g !== id) : prev.length < 3 ? [...prev, id] : prev
     );
   };
 
   const handlePrimarySelect = (id: string) => {
     setPrimary(id);
-    setSecondary(prev => prev.filter(g => g !== id));
+    setSecondary((prev) => prev.filter((g) => g !== id));
   };
 
   const canContinue = primary !== '';
@@ -51,7 +114,8 @@ export default function StepGoals({ initialData, onComplete, saving }: Props) {
   return (
     <div className="space-y-6">
       <p className="text-center text-sm text-neutral-500 dark:text-neutral-400">
-        Select your <span className="font-semibold text-blue-500">primary goal</span>, then optionally pick up to 3 secondary interests
+        Select your <span className="font-semibold text-blue-500">primary goal</span>, then
+        optionally pick up to 3 secondary interests
       </p>
 
       <div className="grid grid-cols-2 gap-3 max-h-[400px] overflow-y-auto pr-1 custom-scrollbar">
@@ -77,8 +141,8 @@ export default function StepGoals({ initialData, onComplete, saving }: Props) {
                 isPrimary
                   ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/40 shadow-lg shadow-blue-500/10'
                   : isSecondary
-                  ? 'border-purple-400 bg-purple-50 dark:bg-purple-950/30'
-                  : 'border-neutral-200 dark:border-neutral-800 hover:border-neutral-300 dark:hover:border-neutral-700 bg-white dark:bg-neutral-900'
+                    ? 'border-purple-400 bg-purple-50 dark:bg-purple-950/30'
+                    : 'border-neutral-200 dark:border-neutral-800 hover:border-neutral-300 dark:hover:border-neutral-700 bg-white dark:bg-neutral-900'
               }`}
             >
               {isPrimary && (
@@ -87,7 +151,9 @@ export default function StepGoals({ initialData, onComplete, saving }: Props) {
                 </span>
               )}
               <span className="text-2xl block mb-1">{goal.emoji}</span>
-              <span className={`font-semibold text-sm block ${isSelected ? 'text-blue-600 dark:text-blue-400' : 'text-neutral-800 dark:text-neutral-200'}`}>
+              <span
+                className={`font-semibold text-sm block ${isSelected ? 'text-blue-600 dark:text-blue-400' : 'text-neutral-800 dark:text-neutral-200'}`}
+              >
                 {goal.label}
               </span>
               <span className="text-xs text-neutral-500 dark:text-neutral-400 leading-tight block mt-0.5">

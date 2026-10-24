@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { getGroupSocialStats, type GroupStats } from '@/lib/api/social-proof';
-import { Users, UserPlus, Wifi, Star } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Star, UserPlus, Users } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 /**
  * CircleStatsCard — Group/Circle growth social proof
@@ -119,11 +119,13 @@ function StatRow({
   return (
     <div className="flex items-center gap-2">
       <span className="flex-shrink-0 flex items-center justify-center w-5">{icon}</span>
-      <span className={`text-sm ${
-        highlight
-          ? 'font-medium text-gray-800 dark:text-neutral-200'
-          : 'text-gray-600 dark:text-neutral-400'
-      }`}>
+      <span
+        className={`text-sm ${
+          highlight
+            ? 'font-medium text-gray-800 dark:text-neutral-200'
+            : 'text-gray-600 dark:text-neutral-400'
+        }`}
+      >
         {label}
       </span>
       {badge && (

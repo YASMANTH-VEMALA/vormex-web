@@ -1,30 +1,44 @@
 'use client';
+import type {
+  DockContextType,
+  DockIconProps,
+  DockItemProps,
+  DockLabelProps,
+  DockProps,
+  DockProviderProps,
+  UserAvatarIconProps,
+} from './dock.types';
+export type {
+  DockContextType,
+  DockIconProps,
+  DockItemProps,
+  DockLabelProps,
+  DockProps,
+  DockProviderProps,
+  UserAvatarIconProps,
+} from './dock.types';
 
-import {
-  motion,
-  MotionValue,
-  useMotionValue,
-  useSpring,
-  useTransform,
-  type SpringOptions,
-  AnimatePresence,
-} from 'framer-motion';
+import { PeopleYouKnowTabIcon } from '@/components/find-people/FindPeopleTabIcons';
+import { UserAvatar } from '@/components/ui/UserAvatar';
+import { useUnreadMessagesCount } from '@/hooks/useUnreadMessagesCount';
+import { useAuth } from '@/lib/auth/useAuth';
+import { cn } from '@/lib/utils';
+import { AnimatePresence, motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import { Bell, Film, Group, HomeIcon, MessageCircle, MoreHorizontal, Plus } from 'lucide-react';
+import dynamic from 'next/dynamic';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   Children,
   cloneElement,
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
   useRef,
   useState,
 } from 'react';
-import { cn } from '@/lib/utils';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { HomeIcon, Users, Plus, Bell, MessageCircle, UsersRound, MoreHorizontal, Film } from 'lucide-react';
-import dynamic from 'next/dynamic';
-import { useAuth } from '@/lib/auth/useAuth';
 import { BottomNavigation } from './BottomNavigation';
 
 // Dynamically import CreatePostModal to avoid circular dependencies
@@ -32,51 +46,10 @@ const CreatePostModal = dynamic(() => import('@/components/feed/CreatePostModal'
   ssr: false,
 });
 
-
 const DOCK_HEIGHT = 128;
 const DEFAULT_MAGNIFICATION = 80;
 const DEFAULT_DISTANCE = 150;
 const DEFAULT_PANEL_HEIGHT = 64;
-
-type DockProps = {
-  children: React.ReactNode;
-  className?: string;
-  distance?: number;
-  panelHeight?: number;
-  magnification?: number;
-  spring?: SpringOptions;
-};
-
-type DockItemProps = {
-  className?: string;
-  children: React.ReactNode;
-  href?: string;
-  isActive?: boolean;
-};
-
-type DockLabelProps = {
-  className?: string;
-  children: React.ReactNode;
-  isHovered?: MotionValue<number>;
-};
-
-type DockIconProps = {
-  className?: string;
-  children: React.ReactNode;
-  width?: MotionValue<number>;
-};
-
-type DockContextType = {
-  mouseX: MotionValue;
-  spring: SpringOptions;
-  magnification: number;
-  distance: number;
-};
-
-type DockProviderProps = {
-  children: React.ReactNode;
-  value: DockContextType;
-};
 
 const DockContext = createContext<DockContextType | undefined>(undefined);
 
@@ -125,26 +98,26 @@ function Dock({
           isHovered.set(0);
           mouseX.set(Infinity);
         }}
-        className={cn(
-          'mx-auto flex w-fit gap-4 rounded-2xl bg-transparent px-4',
-          className
-        )}
+        className={cn('mx-auto flex w-fit gap-4 rounded-2xl bg-transparent px-4', className)}
         style={{ height: panelHeight }}
         role="toolbar"
         aria-label="Application dock"
       >
-        <DockProvider value={{ mouseX, spring, distance, magnification }}>
-          {children}
-        </DockProvider>
+        <DockProvider value={{ mouseX, spring, distance, magnification }}>{children}</DockProvider>
       </motion.div>
     </motion.div>
   );
 }
 
-function DockItem({ children, className, href, isActive }: DockItemProps) {
+function DockItem({ children, className, href, isActive, badge }: DockItemProps) {
+  const router = useRouter();
   const ref = useRef<HTMLDivElement>(null);
   const { distance, magnification, mouseX, spring } = useDock();
   const isHovered = useMotionValue(0);
+  const prefetchRoute = useCallback(() => {
+    if (!href || href === '#create') return;
+    router.prefetch(href);
+  }, [href, router]);
   const mouseDistance = useTransform(mouseX, (val) => {
     const domRect = ref.current?.getBoundingClientRect() ?? { x: 0, width: 0 };
     return val - domRect.x - domRect.width / 2;
@@ -162,8 +135,13 @@ function DockItem({ children, className, href, isActive }: DockItemProps) {
       style={{ width }}
       onHoverStart={() => isHovered.set(1)}
       onHoverEnd={() => isHovered.set(0)}
-      onFocus={() => isHovered.set(1)}
+      onMouseEnter={prefetchRoute}
+      onFocus={() => {
+        isHovered.set(1);
+        prefetchRoute();
+      }}
       onBlur={() => isHovered.set(0)}
+      onTouchStart={prefetchRoute}
       className={cn(
         'relative inline-flex items-center justify-center',
         isActive && 'ring-2 ring-blue-500 dark:ring-blue-400 rounded-full',
@@ -174,10 +152,18 @@ function DockItem({ children, className, href, isActive }: DockItemProps) {
       aria-haspopup="true"
     >
       {Children.map(children, (child) =>
-        cloneElement(child as React.ReactElement<DockIconProps | DockLabelProps>, {
-          width,
-          isHovered
-        } as Partial<DockIconProps & DockLabelProps>)
+        cloneElement(
+          child as React.ReactElement<DockIconProps | DockLabelProps>,
+          {
+            width,
+            isHovered,
+          } as Partial<DockIconProps & DockLabelProps>
+        )
+      )}
+      {typeof badge === 'number' && badge > 0 && (
+        <span className="absolute -top-1 -right-1 z-10 flex h-4 min-w-4 items-center justify-center rounded-full bg-blue-600 px-1 text-[10px] font-bold text-white ring-2 ring-white dark:ring-neutral-900">
+          {badge > 99 ? '99+' : badge}
+        </span>
       )}
     </motion.div>
   );
@@ -193,7 +179,7 @@ function DockItem({ children, className, href, isActive }: DockItemProps) {
   return content;
 }
 
-function DockLabel({ children, className, isHovered, ...rest }: DockLabelProps) {
+function DockLabel({ children, className, isHovered }: DockLabelProps) {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -226,7 +212,7 @@ function DockLabel({ children, className, isHovered, ...rest }: DockLabelProps) 
   );
 }
 
-function DockIcon({ children, className, width, ...rest }: DockIconProps) {
+function DockIcon({ children, className, width }: DockIconProps) {
   const defaultWidth = useMotionValue(40);
   const widthValue = width || defaultWidth;
   const widthTransform = useTransform(widthValue, (val) => val / 2);
@@ -240,41 +226,49 @@ function DockIcon({ children, className, width, ...rest }: DockIconProps) {
   );
 }
 
+function UserAvatarIcon({ imageSrc, name, size = 'full' }: UserAvatarIconProps) {
+  const sizeClass = size === 'small' ? 'w-6 h-6' : 'h-full w-full';
+
+  return (
+    <UserAvatar
+      imageSrc={imageSrc}
+      name={name}
+      className={`${sizeClass} bg-gradient-to-br from-blue-500 to-purple-500 text-white`}
+      fallbackClassName={size === 'small' ? 'text-xs' : 'text-sm'}
+    />
+  );
+}
+
 // Vormex Dock Navigation Component
 export function VormexDock() {
   const pathname = usePathname();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const { user } = useAuth();
+  const unreadMessagesCount = useUnreadMessagesCount();
 
-  // Hide dock on login, auth, and onboarding pages
-  const hideDockPages = ['/login', '/forgot-password', '/reset-password', '/verify-email', '/onboarding'];
-  if (hideDockPages.includes(pathname)) {
+  // Hide dock on auth/onboarding routes, and inside an open conversation where
+  // the chat input sits at the bottom. The /messages list keeps the dock so
+  // users can navigate back out of messaging. Reels keep the full screen clear.
+  const hideDockPrefixes = [
+    '/login',
+    '/forgot-password',
+    '/reset-password',
+    '/verify-email',
+    '/onboarding',
+    '/messages/',
+    '/vormex-delete-account',
+    '/privacy',
+    '/terms',
+    '/support',
+  ];
+  if (
+    pathname === '/' ||
+    pathname === '/reels' ||
+    pathname.startsWith('/reels/') ||
+    hideDockPrefixes.some((prefix) => pathname.startsWith(prefix))
+  ) {
     return null;
   }
-
-  // Profile picture component
-  const ProfilePicture = ({ size = 'full' }: { size?: 'full' | 'small' }) => {
-    const sizeClass = size === 'small' ? 'w-6 h-6' : 'h-full w-full';
-
-    if (user?.profileImage) {
-      return (
-        <img
-          src={user.profileImage}
-          alt={user.name || 'Profile'}
-          className={`${sizeClass} rounded-full object-cover`}
-        />
-      );
-    }
-
-    // Fallback to initials
-    return (
-      <div className={`${sizeClass} rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center`}>
-        <span className={`text-white font-semibold ${size === 'small' ? 'text-xs' : 'text-sm'}`}>
-          {user?.name?.charAt(0)?.toUpperCase() || '?'}
-        </span>
-      </div>
-    );
-  };
 
   const navItems: Array<{
     title: string;
@@ -284,58 +278,61 @@ export function VormexDock() {
     isProfile?: boolean;
     badge?: number;
   }> = [
-      {
-        title: 'Home',
-        href: '/',
-        icon: <HomeIcon className="h-full w-full text-neutral-600 dark:text-neutral-300" />,
-      },
-      {
-        title: 'Reels',
-        href: '/reels',
-        icon: <Film className="h-full w-full text-neutral-600 dark:text-neutral-300" />,
-      },
-      {
-        title: 'Find People',
-        href: '/find-people',
-        icon: <Users className="h-full w-full text-neutral-600 dark:text-neutral-300" />,
-      },
-      {
-        title: 'Circles',
-        href: '/circles',
-        icon: <UsersRound className="h-full w-full text-neutral-600 dark:text-neutral-300" />,
-      },
-      {
-        title: 'Create',
-        href: '#create',
-        icon: <Plus className="h-full w-full text-neutral-600 dark:text-neutral-300" />,
-        isCreate: true,
-      },
-      {
-        title: 'Messages',
-        href: '/messages',
-        icon: <MessageCircle className="h-full w-full text-neutral-600 dark:text-neutral-300" />,
-      },
-      {
-        title: 'Notifications',
-        href: '/notifications',
-        icon: <Bell className="h-full w-full text-neutral-600 dark:text-neutral-300" />,
-      },
-      {
-        title: 'More',
-        href: '/more',
-        icon: <MoreHorizontal className="h-full w-full text-neutral-600 dark:text-neutral-300" />,
-      },
-      {
-        title: 'Profile',
-        href: '/profile',
-        icon: <ProfilePicture />,
-        isProfile: true,
-      },
-    ];
+    {
+      title: 'Home',
+      href: '/feed',
+      icon: <HomeIcon className="h-full w-full text-neutral-600 dark:text-neutral-300" />,
+    },
+    {
+      title: 'Reels',
+      href: '/reels',
+      icon: <Film className="h-full w-full text-neutral-600 dark:text-neutral-300" />,
+    },
+    {
+      title: 'Find People',
+      href: '/find-people',
+      icon: (
+        <PeopleYouKnowTabIcon className="h-full w-full text-neutral-600 dark:text-neutral-300" />
+      ),
+    },
+    {
+      title: 'Groups',
+      href: '/groups',
+      icon: <Group className="h-full w-full text-neutral-600 dark:text-neutral-300" />,
+    },
+    {
+      title: 'Messages',
+      href: '/messages',
+      icon: <MessageCircle className="h-full w-full text-neutral-600 dark:text-neutral-300" />,
+      badge: unreadMessagesCount,
+    },
+    {
+      title: 'Create',
+      href: '#create',
+      icon: <Plus className="h-full w-full text-neutral-600 dark:text-neutral-300" />,
+      isCreate: true,
+    },
+    {
+      title: 'Notifications',
+      href: '/notifications',
+      icon: <Bell className="h-full w-full text-neutral-600 dark:text-neutral-300" />,
+    },
+    {
+      title: 'More',
+      href: '/more',
+      icon: <MoreHorizontal className="h-full w-full text-neutral-600 dark:text-neutral-300" />,
+    },
+    {
+      title: 'Profile',
+      href: '/profile',
+      icon: <UserAvatarIcon imageSrc={user?.profileImage} name={user?.name} />,
+      isProfile: true,
+    },
+  ];
 
   const isActive = (href: string) => {
-    if (href === '/') {
-      return pathname === '/';
+    if (href === '/feed') {
+      return pathname === '/feed';
     }
     if (href === '#create') {
       return false;
@@ -343,11 +340,21 @@ export function VormexDock() {
     return pathname.startsWith(href);
   };
 
+  // The feed renders its own labelled navigation rail from `xl` up
+  // (FeedLeftNav), so the floating dock stands down there rather than showing
+  // two navigations at once.
+  const feedHasOwnNavRail = pathname === '/feed';
+
   return (
     <>
-      <div className="hidden lg:block fixed bottom-4 left-1/2 -translate-x-1/2 z-50 bg-transparent rounded-2xl px-4 py-2 shadow-lg">
+      <div
+        className={cn(
+          'hidden lg:block fixed bottom-4 left-1/2 -translate-x-1/2 z-50 bg-transparent rounded-2xl px-4 py-2 shadow-lg',
+          feedHasOwnNavRail && 'xl:hidden'
+        )}
+      >
         <Dock className="items-end pb-3">
-          {navItems.map((item) => (
+          {navItems.map((item) =>
             item.isCreate ? (
               <div
                 key={item.href}
@@ -369,10 +376,11 @@ export function VormexDock() {
                 key={item.href}
                 href={item.href}
                 isActive={isActive(item.href)}
-                className={`aspect-square rounded-full overflow-hidden ${isActive(item.href)
+                className={`aspect-square rounded-full overflow-hidden ${
+                  isActive(item.href)
                     ? 'ring-2 ring-blue-500 ring-offset-2 ring-offset-white dark:ring-offset-neutral-900'
                     : 'hover:ring-2 hover:ring-gray-300 dark:hover:ring-neutral-600'
-                  } transition-all`}
+                } transition-all`}
               >
                 <DockLabel>{item.title}</DockLabel>
                 <DockIcon>{item.icon}</DockIcon>
@@ -382,13 +390,14 @@ export function VormexDock() {
                 key={item.href}
                 href={item.href}
                 isActive={isActive(item.href)}
+                badge={item.badge}
                 className="aspect-square rounded-full bg-gray-200 dark:bg-neutral-800 hover:bg-gray-300 dark:hover:bg-neutral-700 transition-colors"
               >
                 <DockLabel>{item.title}</DockLabel>
                 <DockIcon>{item.icon}</DockIcon>
               </DockItem>
             )
-          ))}
+          )}
         </Dock>
       </div>
 
@@ -398,44 +407,75 @@ export function VormexDock() {
         items={[
           {
             title: 'Home',
-            href: '/',
+            href: '/feed',
             icon: <HomeIcon className="w-full h-full" />,
-            isActive: pathname === '/'
+            isActive: pathname === '/feed',
           },
           {
             title: 'Reels',
             href: '/reels',
             icon: <Film className="w-full h-full" />,
-            isActive: pathname.startsWith('/reels')
+            isActive: pathname.startsWith('/reels'),
           },
           {
             title: 'Create',
             href: '#create',
             icon: <Plus className="w-full h-full" />,
             isActive: false,
-            onClick: () => setShowCreateModal(true)
+            onClick: () => setShowCreateModal(true),
           },
           {
             title: 'Messages',
             href: '/messages',
             icon: <MessageCircle className="w-full h-full" />,
-            isActive: pathname.startsWith('/messages')
+            isActive: pathname.startsWith('/messages'),
+            badge: unreadMessagesCount,
           },
           {
-            title: 'Profile',
-            href: '/profile',
-            icon: <ProfilePicture size="small" />,
-            isActive: pathname.startsWith('/profile')
-          }
+            title: 'More',
+            href: '/more',
+            icon: <MoreHorizontal className="w-full h-full" />,
+            isActive: pathname.startsWith('/more'),
+            menuItems: [
+              {
+                title: 'Find People',
+                href: '/find-people',
+                icon: <PeopleYouKnowTabIcon className="w-full h-full" />,
+                isActive: pathname.startsWith('/find-people'),
+              },
+              {
+                title: 'Groups',
+                href: '/groups',
+                icon: <Group className="w-full h-full" />,
+                isActive: pathname.startsWith('/groups'),
+              },
+              {
+                title: 'Notifications',
+                href: '/notifications',
+                icon: <Bell className="w-full h-full" />,
+                isActive: pathname.startsWith('/notifications'),
+              },
+              {
+                title: 'Profile',
+                href: '/profile',
+                icon: (
+                  <UserAvatarIcon imageSrc={user?.profileImage} name={user?.name} size="small" />
+                ),
+                isActive: pathname.startsWith('/profile'),
+              },
+              {
+                title: 'All More',
+                href: '/more',
+                icon: <MoreHorizontal className="w-full h-full" />,
+                isActive: pathname.startsWith('/more'),
+              },
+            ],
+          },
         ]}
       />
 
       {/* Create Post Modal */}
-      <CreatePostModal
-        isOpen={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
-      />
-
+      <CreatePostModal isOpen={showCreateModal} onClose={() => setShowCreateModal(false)} />
     </>
   );
 }

@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth/useAuth';
+import { useRouter } from 'next/navigation';
+import React, { useEffect } from 'react';
+import { SessionUnavailable } from './SessionUnavailable';
 
 interface AuthRedirectProps {
   children: React.ReactNode;
@@ -10,7 +11,7 @@ interface AuthRedirectProps {
 }
 
 export function AuthRedirect({ children, redirectTo = '/' }: AuthRedirectProps) {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, sessionError, retrySession } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -18,6 +19,10 @@ export function AuthRedirect({ children, redirectTo = '/' }: AuthRedirectProps) 
       router.push(redirectTo);
     }
   }, [isAuthenticated, loading, router, redirectTo]);
+
+  if (!loading && !isAuthenticated && sessionError) {
+    return <SessionUnavailable onRetry={retrySession} />;
+  }
 
   if (loading) {
     return (
@@ -36,4 +41,3 @@ export function AuthRedirect({ children, redirectTo = '/' }: AuthRedirectProps) 
 
   return <>{children}</>;
 }
-

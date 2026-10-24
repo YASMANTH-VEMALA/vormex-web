@@ -1,33 +1,160 @@
+import { persistBrowserSession } from '@/lib/auth/sessionCookies';
+import { isSessionRefreshRejection } from '@/lib/auth/sessionRefreshPolicy';
+import { removeToken } from '@/lib/auth/authHelpers';
+import { getInstallHeaders } from '@/lib/device/installId';
+import { API_URL } from '@/lib/utils/constants';
 import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 import Cookies from 'js-cookie';
-import { API_URL } from '@/lib/utils/constants';
-import { getToken, removeToken } from '@/lib/auth/authHelpers';
+import { isTimeoutErrorCode } from './errors';
+import { createSingleFlightCoordinator } from './singleFlight';
+
+const CSRF_COOKIE = 'vx_csrf';
+const AUTH_PRESENT_COOKIE = 'vx_auth_present';
+const UNSAFE_METHODS = new Set(['post', 'put', 'patch', 'delete']);
+const API_TIMEOUT_MS = 15_000;
+const AUTH_REFRESH_LOCK = 'vormex-auth-refresh';
+const AUTH_REFRESH_EPOCH_KEY = 'vx_auth_refresh_epoch';
+const AUTH_PUBLIC_PATHS = [
+  '/auth/login',
+  '/auth/register',
+  '/auth/refresh',
+  '/auth/logout',
+  '/auth/google',
+  '/auth/forgot-password',
+  '/auth/reset-password',
+  '/auth/verify-email',
+  '/auth/resend-verification',
+] as const;
+const refreshCoordinator = createSingleFlightCoordinator<void>();
+
+interface RetriableRequestConfig extends InternalAxiosRequestConfig {
+  _retry?: boolean;
+}
+
+function clearBrowserAuthState(): void {
+  Cookies.remove('authToken');
+  Cookies.remove(AUTH_PRESENT_COOKIE);
+  Cookies.remove(CSRF_COOKIE);
+  Cookies.remove('onboardingCompleted');
+  removeToken();
+}
+
+function redirectToLoginIfNeeded(isAuthRequest: boolean): Promise<never> | null {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  const currentPath = window.location.pathname;
+  const isAuthPage = currentPath === '/' || currentPath === '/login';
+
+  if (!isAuthPage && !isAuthRequest) {
+    window.location.replace('/');
+    return new Promise<never>(() => {});
+  }
+
+  return null;
+}
+
+function isAuthRequestUrl(url: string): boolean {
+  return AUTH_PUBLIC_PATHS.some((path) => url.includes(path));
+}
+
+function readCsrfToken(): string | undefined {
+  return Cookies.get(CSRF_COOKIE);
+}
+
+function handleUnauthenticatedSession(isAuthRequest: boolean): Promise<never> | null {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+  clearBrowserAuthState();
+  return redirectToLoginIfNeeded(isAuthRequest);
+}
+
+function readRefreshEpoch(): number {
+  try {
+    return Number(window.localStorage.getItem(AUTH_REFRESH_EPOCH_KEY) || 0);
+  } catch {
+    return 0;
+  }
+}
+
+function writeRefreshEpoch(): void {
+  try {
+    window.localStorage.setItem(AUTH_REFRESH_EPOCH_KEY, String(Date.now()));
+  } catch {
+    // Cookie refresh remains valid when storage is unavailable.
+  }
+}
+
+async function performSessionRefresh(requestFailedAt: number): Promise<void> {
+  // A different tab may have refreshed while this request was waiting for the lock.
+  if (readRefreshEpoch() >= requestFailedAt) return;
+
+  const csrfTokenForRefresh = readCsrfToken();
+  const refreshResponse = await axios.post(
+    `${API_URL}/auth/refresh`,
+    {},
+    {
+      withCredentials: true,
+      timeout: API_TIMEOUT_MS,
+      headers: {
+        'Content-Type': 'application/json',
+        ...getInstallHeaders(),
+        ...(csrfTokenForRefresh ? { 'X-CSRF-Token': csrfTokenForRefresh } : {}),
+      },
+    }
+  );
+  persistBrowserSession(
+    refreshResponse.data?.csrfToken,
+    refreshResponse.data?.session?.expiresAt,
+    refreshResponse.data?.user?.onboardingCompleted
+  );
+  writeRefreshEpoch();
+}
+
+async function refreshBrowserSession(requestFailedAt: number): Promise<void> {
+  return refreshCoordinator.run(async () => {
+    if (typeof navigator !== 'undefined' && navigator.locks) {
+      await navigator.locks.request(AUTH_REFRESH_LOCK, () =>
+        performSessionRefresh(requestFailedAt)
+      );
+      return;
+    }
+    await performSessionRefresh(requestFailedAt);
+  });
+}
 
 // Create axios instance with base configuration
 const apiClient: AxiosInstance = axios.create({
   baseURL: API_URL,
+  // Bound interactive requests so page loaders always settle into success or retry UI.
+  timeout: API_TIMEOUT_MS,
   headers: {
     'Content-Type': 'application/json',
   },
   withCredentials: true,
 });
 
-// Request interceptor: Add auth token to requests
+// Request interceptor: attach CSRF token for httpOnly-cookie auth.
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    // Get token from cookies (for backward compatibility) or localStorage
     if (typeof window !== 'undefined') {
-      const token = Cookies.get('authToken') || getToken();
-      if (token && config.headers) {
-        config.headers.Authorization = `Bearer ${token}`;
+      if (config.headers) {
+        Object.assign(config.headers, getInstallHeaders());
+      }
+      const method = (config.method || 'get').toLowerCase();
+      const csrfToken = readCsrfToken();
+      if (csrfToken && UNSAFE_METHODS.has(method) && config.headers) {
+        config.headers['X-CSRF-Token'] = csrfToken;
       }
     }
-    
+
     // Remove Content-Type for FormData - let browser set it with boundary
     if (config.data instanceof FormData) {
       delete config.headers['Content-Type'];
     }
-    
+
     return config;
   },
   (error: AxiosError) => {
@@ -41,37 +168,49 @@ apiClient.interceptors.response.use(
     // Return response data directly
     return response.data;
   },
-  (error: AxiosError) => {
+  async (error: AxiosError) => {
     const status = error.response?.status;
     const url = error.config?.url || '';
-    
-    // Handle 401 Unauthorized or 404 on auth/me (user not found after db reset)
-    if (status === 401 || (status === 404 && url.includes('/auth/me'))) {
-      // Remove token from both cookies and localStorage
-      if (typeof window !== 'undefined') {
-        Cookies.remove('authToken');
-        removeToken();
-        // Only redirect if not already on login page and not during auth request
-        const currentPath = window.location.pathname;
-        const isAuthPage = currentPath === '/login';
-        const isAuthRequest = url.includes('/auth/login') || 
-                            url.includes('/auth/register');
-        
-        if (!isAuthPage && !isAuthRequest) {
-          window.location.href = '/login';
+    const errorCode = (error.response?.data as { code?: string } | undefined)?.code;
+    const originalRequest = error.config as RetriableRequestConfig | undefined;
+    const isAuthRequest = isAuthRequestUrl(url);
+
+    if (isTimeoutErrorCode(error.code)) {
+      // Existing page-level error states display this message and expose their retry action.
+      error.message = 'Request timed out. Please try again.';
+    }
+
+    if (status === 401 && originalRequest && !originalRequest._retry && !isAuthRequest) {
+      originalRequest._retry = true;
+
+      try {
+        await refreshBrowserSession(Date.now());
+        return apiClient(originalRequest);
+      } catch (refreshError) {
+        // A timeout, offline device, or unavailable backend does not revoke a session.
+        if (!isSessionRefreshRejection(refreshError)) {
+          return Promise.reject(refreshError);
         }
       }
     }
-    
-    // Handle 403 Forbidden (email not verified)
-    if (status === 403) {
-      // Let the component handle this error
+
+    // Handle 401 Unauthorized or 404 on auth/me (user not found after db reset).
+    // Invalid CSRF tokens also require a clean session before redirecting.
+    // Other 403s (for example email verification) are left for components to handle.
+    if (
+      status === 401 ||
+      (status === 404 && url.includes('/auth/me')) ||
+      (status === 403 && errorCode === 'invalid_csrf')
+    ) {
+      const redirectPromise = handleUnauthenticatedSession(isAuthRequest);
+      if (redirectPromise) {
+        return redirectPromise;
+      }
     }
-    
+
     // Return rejected promise with error
     return Promise.reject(error);
   }
 );
 
 export default apiClient;
-

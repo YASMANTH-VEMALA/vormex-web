@@ -1,49 +1,27 @@
 'use client';
+import type { AddAchievementModalProps } from './AddAchievementModal.types';
+import { createAddAchievementModalInitialState } from './createAddAchievementModalInitialState';
+export type { AddAchievementModalProps } from './AddAchievementModal.types';
 
-import { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import * as Dialog from '@radix-ui/react-dialog';
-import {
-  X,
-  Trophy,
-  Target,
-  Medal,
-  Gift,
-  Sparkles,
-  Loader2,
-  Calendar,
-  Building,
-  Link as LinkIcon,
-  FileText,
-  Upload,
-  ImageIcon,
-  Trash2,
-  Check,
-} from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { createAchievement, updateAchievement } from '@/lib/api/profile';
 import { uploadCertificate } from '@/lib/api/posts';
-import type { Achievement, AchievementInput } from '@/types/profile';
-
-const CARD_COLORS = [
-  { name: 'Neutral', value: '#525252' },
-  { name: 'Red', value: '#ef4444' },
-  { name: 'Orange', value: '#f97316' },
-  { name: 'Amber', value: '#f59e0b' },
-  { name: 'Green', value: '#10b981' },
-  { name: 'Blue', value: '#3b82f6' },
-  { name: 'Indigo', value: '#6366f1' },
-  { name: 'Purple', value: '#8b5cf6' },
-  { name: 'Pink', value: '#ec4899' },
-];
-
-interface AddAchievementModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onAchievementAdded: (achievement: Achievement) => void;
-  achievementToEdit?: Achievement | null;
-  onAchievementUpdated?: (achievement: Achievement) => void;
-}
+import { createAchievement, updateAchievement } from '@/lib/api/profile';
+import type { AchievementInput } from '@/types/profile';
+import * as Dialog from '@radix-ui/react-dialog';
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  Building,
+  Calendar,
+  Gift,
+  Link as LinkIcon,
+  Medal,
+  Sparkles,
+  Target,
+  Trophy,
+  Upload,
+  X,
+} from 'lucide-react';
+import { useRef, useState } from 'react';
 
 // Achievement type options
 const ACHIEVEMENT_TYPES = [
@@ -54,61 +32,38 @@ const ACHIEVEMENT_TYPES = [
   { value: 'Recognition', label: 'Recognition', icon: <Sparkles className="w-4 h-4" /> },
 ] as const;
 
-export function AddAchievementModal({
+function AddAchievementModalSession({
   isOpen,
   onClose,
   onAchievementAdded,
   achievementToEdit,
   onAchievementUpdated,
 }: AddAchievementModalProps) {
-  const [loading, setLoading] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [initialValues] = useState(() =>
+    createAddAchievementModalInitialState({ achievementToEdit })
+  );
+  const [loading, setLoading] = useState(initialValues.loading);
+  const [uploading, setUploading] = useState(initialValues.uploading);
+  const [error, setError] = useState<string | null>(initialValues.error);
 
   // Form state
-  const [title, setTitle] = useState('');
-  const [type, setType] = useState<AchievementInput['type']>('Award');
-  const [organization, setOrganization] = useState('');
-  const [date, setDate] = useState('');
-  const [description, setDescription] = useState('');
-  const [certificateUrl, setCertificateUrl] = useState('');
-  const [certificateFile, setCertificateFile] = useState<File | null>(null);
-  const [certificatePreview, setCertificatePreview] = useState<string | null>(null);
-  const [uploadMethod, setUploadMethod] = useState<'url' | 'file'>('file');
-  const [selectedColor, setSelectedColor] = useState(CARD_COLORS[0].value);
+  const [title, setTitle] = useState(initialValues.title);
+  const [type, setType] = useState<AchievementInput['type']>(initialValues.type);
+  const [organization, setOrganization] = useState(initialValues.organization);
+  const [date, setDate] = useState(initialValues.date);
+  const [description, setDescription] = useState(initialValues.description);
+  const [certificateUrl, setCertificateUrl] = useState(initialValues.certificateUrl);
+  const [certificateFile, setCertificateFile] = useState<File | null>(
+    initialValues.certificateFile
+  );
+  const [certificatePreview, setCertificatePreview] = useState<string | null>(
+    initialValues.certificatePreview
+  );
+  const [uploadMethod, setUploadMethod] = useState<'url' | 'file'>(initialValues.uploadMethod);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    if (isOpen) {
-      if (achievementToEdit) {
-        setTitle(achievementToEdit.title);
-        setType(achievementToEdit.type);
-        setOrganization(achievementToEdit.organization);
-        setDate(achievementToEdit.date.split('T')[0]);
-        setDescription(achievementToEdit.description || '');
-        setCertificateUrl(achievementToEdit.certificateUrl || '');
-        setSelectedColor(achievementToEdit.color || CARD_COLORS[0].value);
-
-        if (achievementToEdit.certificateUrl) {
-          if (achievementToEdit.certificateUrl.match(/\.(jpeg|jpg|png|webp)/i) ||
-            achievementToEdit.certificateUrl.includes('bunnycdn')) {
-            setCertificatePreview(achievementToEdit.certificateUrl);
-            setUploadMethod('file');
-          } else {
-            setUploadMethod('url');
-          }
-        } else {
-          setUploadMethod('file');
-        }
-      } else {
-        resetForm();
-      }
-      setError(null);
-    }
-  }, [isOpen, achievementToEdit]);
-
-  const resetForm = () => {
+  function resetForm() {
     setTitle('');
     setType('Award');
     setOrganization('');
@@ -118,9 +73,8 @@ export function AddAchievementModal({
     setCertificateFile(null);
     setCertificatePreview(null);
     setUploadMethod('file');
-    setSelectedColor(CARD_COLORS[0].value);
     setError(null);
-  };
+  }
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -186,7 +140,7 @@ export function AddAchievementModal({
         try {
           const result = await uploadCertificate(certificateFile);
           finalCertificateUrl = result.certificateUrl;
-        } catch (uploadErr: any) {
+        } catch (uploadErr: unknown) {
           console.error('Failed to upload certificate:', uploadErr);
           setError('Failed to upload certificate image. Please try again.');
           setLoading(false);
@@ -205,7 +159,6 @@ export function AddAchievementModal({
         date,
         description: description.trim() || undefined,
         certificateUrl: finalCertificateUrl || undefined,
-        color: selectedColor,
       };
 
       if (achievementToEdit && onAchievementUpdated) {
@@ -216,9 +169,9 @@ export function AddAchievementModal({
         onAchievementAdded(achievement);
       }
       handleClose();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to save achievement:', err);
-      setError(err.response?.data?.error || err.message || 'Failed to save achievement');
+      setError(err instanceof Error ? err.message : 'Failed to save achievement');
     } finally {
       setLoading(false);
       setUploading(false);
@@ -252,7 +205,7 @@ export function AddAchievementModal({
                     {/* Header */}
                     <div className="p-6 border-b border-neutral-200 dark:border-neutral-800 flex items-center justify-between">
                       <Dialog.Title className="text-xl font-bold tracking-tight text-neutral-900 dark:text-white uppercase flex items-center gap-2">
-                        <div style={{ color: selectedColor }}>
+                        <div className="text-neutral-500">
                           <Trophy className="w-5 h-5" />
                         </div>
                         {achievementToEdit ? 'Edit Achievement' : 'Add Achievement'}
@@ -283,13 +236,16 @@ export function AddAchievementModal({
                               key={t.value}
                               type="button"
                               onClick={() => setType(t.value as AchievementInput['type'])}
-                              className={`flex flex-col items-center gap-1.5 p-3 border transition-all ${type === t.value
+                              className={`flex flex-col items-center gap-1.5 p-3 border transition-all ${
+                                type === t.value
                                   ? 'bg-black dark:bg-white text-white dark:text-black border-black dark:border-white'
                                   : 'bg-white dark:bg-neutral-900 text-neutral-600 dark:text-neutral-400 border-neutral-200 dark:border-neutral-800 hover:border-black dark:hover:border-white'
-                                }`}
+                              }`}
                             >
                               {t.icon}
-                              <span className="text-[9px] font-bold uppercase tracking-wider">{t.label}</span>
+                              <span className="text-[9px] font-bold uppercase tracking-wider">
+                                {t.label}
+                              </span>
                             </button>
                           ))}
                         </div>
@@ -297,7 +253,9 @@ export function AddAchievementModal({
 
                       {/* Title */}
                       <div>
-                        <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider mb-1.5 block">Title</label>
+                        <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider mb-1.5 block">
+                          Title
+                        </label>
                         <input
                           type="text"
                           value={title}
@@ -309,7 +267,9 @@ export function AddAchievementModal({
 
                       {/* Organization */}
                       <div>
-                        <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider mb-1.5 block">Organization</label>
+                        <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider mb-1.5 block">
+                          Organization
+                        </label>
                         <div className="relative">
                           <Building className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
                           <input
@@ -324,7 +284,9 @@ export function AddAchievementModal({
 
                       {/* Date */}
                       <div>
-                        <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider mb-1.5 block">Date</label>
+                        <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider mb-1.5 block">
+                          Date
+                        </label>
                         <div className="relative">
                           <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
                           <input
@@ -336,28 +298,11 @@ export function AddAchievementModal({
                         </div>
                       </div>
 
-                      {/* Color Picker */}
-                      <div>
-                        <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider mb-2 block">Card Color</label>
-                        <div className="flex flex-wrap gap-2">
-                          {CARD_COLORS.map((color) => (
-                            <button
-                              key={color.value}
-                              type="button"
-                              onClick={() => setSelectedColor(color.value)}
-                              className={`w-8 h-8 rounded-none border border-neutral-200 dark:border-neutral-800 flex items-center justify-center transition-transform hover:scale-105 ${selectedColor === color.value ? 'ring-2 ring-black dark:ring-white ring-offset-2 dark:ring-offset-black' : ''}`}
-                              style={{ backgroundColor: color.value }}
-                              title={color.name}
-                            >
-                              {selectedColor === color.value && <Check className="w-4 h-4 text-white drop-shadow-md" />}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
                       {/* Description */}
                       <div>
-                        <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider mb-1.5 block">Description</label>
+                        <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider mb-1.5 block">
+                          Description
+                        </label>
                         <textarea
                           value={description}
                           onChange={(e) => setDescription(e.target.value)}
@@ -369,7 +314,9 @@ export function AddAchievementModal({
 
                       {/* Certificate Upload */}
                       <div>
-                        <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider mb-1.5 block">Proof / Certificate</label>
+                        <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider mb-1.5 block">
+                          Proof / Certificate
+                        </label>
 
                         <div className="flex gap-2 mb-3">
                           <button
@@ -395,9 +342,16 @@ export function AddAchievementModal({
                           >
                             {certificatePreview ? (
                               <>
-                                <img src={certificatePreview} alt="Preview" className="h-full object-contain p-2" />
+                                <img
+                                  src={certificatePreview}
+                                  alt="Preview"
+                                  className="h-full object-contain p-2"
+                                />
                                 <button
-                                  onClick={(e) => { e.stopPropagation(); handleRemoveFile(); }}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleRemoveFile();
+                                  }}
                                   className="absolute top-2 right-2 p-1 bg-black text-white"
                                 >
                                   <X className="w-3 h-3" />
@@ -406,10 +360,18 @@ export function AddAchievementModal({
                             ) : (
                               <>
                                 <Upload className="w-6 h-6 text-neutral-400 group-hover:text-black dark:group-hover:text-white mb-2" />
-                                <span className="text-xs font-bold uppercase text-neutral-500">Click to Upload</span>
+                                <span className="text-xs font-bold uppercase text-neutral-500">
+                                  Click to Upload
+                                </span>
                               </>
                             )}
-                            <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileSelect} className="hidden" />
+                            <input
+                              ref={fileInputRef}
+                              type="file"
+                              accept="image/*"
+                              onChange={handleFileSelect}
+                              className="hidden"
+                            />
                           </div>
                         ) : (
                           <div className="relative">
@@ -439,7 +401,13 @@ export function AddAchievementModal({
                           disabled={loading || uploading}
                           className="flex-[2] py-4 bg-black dark:bg-white text-white dark:text-black rounded-none text-xs font-bold uppercase tracking-wider hover:opacity-90 disabled:opacity-50"
                         >
-                          {uploading ? 'Uploading...' : loading ? 'Saving...' : achievementToEdit ? 'Save Changes' : 'Add Achievement'}
+                          {uploading
+                            ? 'Uploading...'
+                            : loading
+                              ? 'Saving...'
+                              : achievementToEdit
+                                ? 'Save Changes'
+                                : 'Add Achievement'}
                         </Button>
                       </div>
                     </form>
@@ -452,4 +420,11 @@ export function AddAchievementModal({
       </Dialog.Portal>
     </Dialog.Root>
   );
+}
+
+/** A fresh form session owns its draft; background prop updates cannot overwrite it. */
+export function AddAchievementModal(props: AddAchievementModalProps) {
+  return props.isOpen ? (
+    <AddAchievementModalSession key={props.achievementToEdit?.id ?? 'new'} {...props} />
+  ) : null;
 }

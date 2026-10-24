@@ -1,70 +1,74 @@
 'use client';
+import { useAuth as useResourceAuth } from '@/lib/auth/useAuth';
+import { useQuery } from '@tanstack/react-query';
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import {
-  ChevronLeft,
-  Plus,
-  Eye,
-  Heart,
-  MessageCircle,
-  Sparkles,
-  Clock,
-  Loader2,
-  Camera,
-} from 'lucide-react';
-import Link from 'next/link';
-import Image from 'next/image';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
-import { StoryCarousel, StoryViewer, StoryCreator, StoryHighlights } from '@/components/stories';
-import { useAuth } from '@/lib/auth/useAuth';
+import { StoryCarousel, StoryCreator, StoryHighlights, StoryViewer } from '@/components/stories';
 import {
-  getStoriesFeed,
   getMyStories,
+  getStoriesFeed,
   getUserHighlights,
-  type StoryGroup,
   type Story,
+  type StoryGroup,
   type StoryHighlight,
 } from '@/lib/api/stories';
+import { useAuth } from '@/lib/auth/useAuth';
+import { writeCachedStories } from '@/lib/stories/browserCache';
+import { motion } from 'framer-motion';
+import {
+  Camera,
+  ChevronLeft,
+  Clock,
+  Eye,
+  Heart,
+  Loader2,
+  MessageCircle,
+  Plus,
+  Sparkles,
+} from 'lucide-react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { useState } from 'react';
 
 function StoriesPage() {
   const { user } = useAuth();
-  const [storyGroups, setStoryGroups] = useState<StoryGroup[]>([]);
-  const [myStories, setMyStories] = useState<Story[]>([]);
-  const [highlights, setHighlights] = useState<StoryHighlight[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [initialStoryGroups] = useState<StoryGroup[]>([]);
+  const [initialMyStories] = useState<Story[]>([]);
+  const [initialHighlights] = useState<StoryHighlight[]>([]);
+
   const [activeTab, setActiveTab] = useState<'feed' | 'my-stories'>('feed');
-  
+
   // Modal states
   const [showStoryCreator, setShowStoryCreator] = useState(false);
   const [showStoryViewer, setShowStoryViewer] = useState(false);
   const [selectedStoryGroup, setSelectedStoryGroup] = useState<StoryGroup | null>(null);
   const [selectedStoryIndex, setSelectedStoryIndex] = useState(0);
 
-  const fetchData = useCallback(async () => {
-    if (!user) return;
-    
-    try {
-      setLoading(true);
-      const [feedRes, myStoriesRes, highlightsRes] = await Promise.all([
+  const resourceViewer = useResourceAuth().user;
+  const fetchDataResource = useQuery({
+    queryKey: ['web-resource', 'stories', resourceViewer?.id ?? 'anonymous'],
+    queryFn: async () => {
+      const [feed, mine, highlights] = await Promise.all([
         getStoriesFeed(),
         getMyStories(),
-        getUserHighlights(user.id),
+        getUserHighlights(resourceViewer!.id),
       ]);
-      
-      setStoryGroups(feedRes?.storyGroups || []);
-      setMyStories(myStoriesRes?.stories || []);
-      setHighlights(highlightsRes?.highlights || []);
-    } catch (error) {
-      console.error('Error fetching stories:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, [user]);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+      const storyGroups = feed?.storyGroups || [];
+      writeCachedStories(resourceViewer!.id, storyGroups);
+      return {
+        storyGroups,
+        myStories: mine?.stories || [],
+        highlights: highlights?.highlights || [],
+      };
+    },
+    enabled: Boolean(resourceViewer?.id),
+    retry: false,
+  });
+  const storyGroups = fetchDataResource.data?.storyGroups ?? initialStoryGroups;
+  const myStories = fetchDataResource.data?.myStories ?? initialMyStories;
+  const highlights = fetchDataResource.data?.highlights ?? initialHighlights;
+  const loading = fetchDataResource.isPending;
+  const fetchData = () => fetchDataResource.refetch();
 
   const handleOpenStory = (group: StoryGroup, startIndex = 0) => {
     setSelectedStoryGroup(group);
@@ -77,7 +81,6 @@ function StoriesPage() {
     fetchData();
   };
 
-  const ownStoryGroup = storyGroups.find(g => g.isOwnStory);
   const totalViews = myStories.reduce((sum, s) => sum + s.viewsCount, 0);
   const totalReactions = myStories.reduce((sum, s) => sum + s.reactionsCount, 0);
 
@@ -86,7 +89,7 @@ function StoriesPage() {
     const expires = new Date(expiresAt);
     const diff = expires.getTime() - now.getTime();
     const hours = Math.floor(diff / (1000 * 60 * 60));
-    
+
     if (hours <= 0) return 'Expiring soon';
     if (hours < 1) return 'Less than 1h';
     return `${hours}h left`;
@@ -107,7 +110,10 @@ function StoriesPage() {
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center justify-between px-4 py-3">
             <div className="flex items-center gap-3">
-              <Link href="/" className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors">
+              <Link
+                href="/"
+                className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors"
+              >
                 <ChevronLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
               </Link>
               <div>
@@ -159,13 +165,12 @@ function StoriesPage() {
             {/* Highlights Section */}
             {highlights.length > 0 && (
               <div className="px-4 py-4">
-                <h2 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3">Your Highlights</h2>
+                <h2 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3">
+                  Your Highlights
+                </h2>
                 <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-2">
                   {highlights.map((highlight) => (
-                    <div
-                      key={highlight.id}
-                      className="flex flex-col items-center gap-2 shrink-0"
-                    >
+                    <div key={highlight.id} className="flex flex-col items-center gap-2 shrink-0">
                       <div className="w-16 h-16 rounded-full bg-gray-100 dark:bg-neutral-800 border-2 border-gray-300 dark:border-neutral-600 flex items-center justify-center overflow-hidden">
                         {highlight.coverImage ? (
                           <Image
@@ -197,13 +202,17 @@ function StoriesPage() {
 
             {/* Story Grid - All Stories */}
             <div className="px-4 py-4">
-              <h2 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3">All Stories</h2>
+              <h2 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3">
+                All Stories
+              </h2>
               {storyGroups.length === 0 ? (
                 <div className="text-center py-12">
                   <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 dark:bg-neutral-800 flex items-center justify-center">
                     <Sparkles className="w-8 h-8 text-gray-400" />
                   </div>
-                  <h3 className="text-base font-medium text-gray-900 dark:text-white mb-1">No stories yet</h3>
+                  <h3 className="text-base font-medium text-gray-900 dark:text-white mb-1">
+                    No stories yet
+                  </h3>
                   <p className="text-sm text-gray-500 mb-4">Be the first to share a story!</p>
                   <button
                     onClick={() => setShowStoryCreator(true)}
@@ -231,25 +240,27 @@ function StoriesPage() {
                           className="object-cover transition-transform group-hover:scale-105"
                         />
                       ) : (
-                        <div 
+                        <div
                           className="w-full h-full"
                           style={{ backgroundColor: group.stories[0].backgroundColor || '#3B82F6' }}
                         />
                       )}
-                      
+
                       {/* Gradient Overlay */}
                       <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/70" />
-                      
+
                       {/* Unviewed Ring */}
                       {group.hasUnviewed && (
                         <div className="absolute inset-0 ring-2 ring-inset ring-purple-500 rounded-xl" />
                       )}
-                      
+
                       {/* User Info */}
                       <div className="absolute top-2 left-2 z-10">
-                        <div className={`w-8 h-8 rounded-full overflow-hidden ring-2 ${
-                          group.hasUnviewed ? 'ring-purple-500' : 'ring-white/50'
-                        }`}>
+                        <div
+                          className={`w-8 h-8 rounded-full overflow-hidden ring-2 ${
+                            group.hasUnviewed ? 'ring-purple-500' : 'ring-white/50'
+                          }`}
+                        >
                           {group.user.profileImage ? (
                             <Image
                               src={group.user.profileImage}
@@ -267,14 +278,16 @@ function StoriesPage() {
                           )}
                         </div>
                       </div>
-                      
+
                       {/* Story Count */}
                       {group.stories.length > 1 && (
                         <div className="absolute top-2 right-2 bg-black/50 px-1.5 py-0.5 rounded-full">
-                          <span className="text-white text-[10px] font-medium">{group.stories.length}</span>
+                          <span className="text-white text-[10px] font-medium">
+                            {group.stories.length}
+                          </span>
                         </div>
                       )}
-                      
+
                       {/* Bottom Info */}
                       <div className="absolute bottom-0 left-0 right-0 p-2">
                         <p className="text-white text-xs font-medium truncate">
@@ -298,21 +311,27 @@ function StoriesPage() {
                   <div className="flex items-center justify-center gap-1.5 text-gray-500 mb-1">
                     <Camera className="w-4 h-4" />
                   </div>
-                  <p className="text-xl font-semibold text-gray-900 dark:text-white">{myStories.length}</p>
+                  <p className="text-xl font-semibold text-gray-900 dark:text-white">
+                    {myStories.length}
+                  </p>
                   <p className="text-xs text-gray-500">Active Stories</p>
                 </div>
                 <div className="bg-white dark:bg-neutral-900 rounded-xl p-4 border border-gray-200 dark:border-neutral-800 text-center">
                   <div className="flex items-center justify-center gap-1.5 text-gray-500 mb-1">
                     <Eye className="w-4 h-4" />
                   </div>
-                  <p className="text-xl font-semibold text-gray-900 dark:text-white">{totalViews}</p>
+                  <p className="text-xl font-semibold text-gray-900 dark:text-white">
+                    {totalViews}
+                  </p>
                   <p className="text-xs text-gray-500">Total Views</p>
                 </div>
                 <div className="bg-white dark:bg-neutral-900 rounded-xl p-4 border border-gray-200 dark:border-neutral-800 text-center">
                   <div className="flex items-center justify-center gap-1.5 text-gray-500 mb-1">
                     <Heart className="w-4 h-4" />
                   </div>
-                  <p className="text-xl font-semibold text-gray-900 dark:text-white">{totalReactions}</p>
+                  <p className="text-xl font-semibold text-gray-900 dark:text-white">
+                    {totalReactions}
+                  </p>
                   <p className="text-xs text-gray-500">Reactions</p>
                 </div>
               </div>
@@ -324,7 +343,9 @@ function StoriesPage() {
                 <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 dark:bg-neutral-800 flex items-center justify-center">
                   <Camera className="w-8 h-8 text-gray-400" />
                 </div>
-                <h3 className="text-base font-medium text-gray-900 dark:text-white mb-1">No active stories</h3>
+                <h3 className="text-base font-medium text-gray-900 dark:text-white mb-1">
+                  No active stories
+                </h3>
                 <p className="text-sm text-gray-500 mb-4">Your stories appear here for 24 hours</p>
                 <button
                   onClick={() => setShowStoryCreator(true)}
@@ -335,7 +356,7 @@ function StoriesPage() {
               </div>
             ) : (
               <div className="space-y-3">
-                {myStories.map((story, index) => (
+                {myStories.map((story) => (
                   <motion.div
                     key={story.id}
                     initial={{ opacity: 0, y: 10 }}
@@ -353,7 +374,7 @@ function StoriesPage() {
                             className="object-cover"
                           />
                         ) : (
-                          <div 
+                          <div
                             className="w-full h-full"
                             style={{ backgroundColor: story.backgroundColor || '#3B82F6' }}
                           />
@@ -366,7 +387,7 @@ function StoriesPage() {
                           </div>
                         )}
                       </div>
-                      
+
                       {/* Info */}
                       <div className="flex-1 p-4 flex flex-col justify-between">
                         <div>
@@ -380,10 +401,14 @@ function StoriesPage() {
                             </span>
                           </div>
                           <p className="text-sm text-gray-500 dark:text-gray-400">
-                            Posted {new Date(story.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            Posted{' '}
+                            {new Date(story.createdAt).toLocaleTimeString([], {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
                           </p>
                         </div>
-                        
+
                         <div className="flex items-center gap-4 mt-2">
                           <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
                             <Eye className="w-4 h-4" />
@@ -410,7 +435,9 @@ function StoriesPage() {
             {/* Highlights Section */}
             {highlights.length > 0 && (
               <div className="mt-8">
-                <h2 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3">Your Highlights</h2>
+                <h2 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3">
+                  Your Highlights
+                </h2>
                 <StoryHighlights userId={user?.id || ''} />
               </div>
             )}

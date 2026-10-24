@@ -1,18 +1,107 @@
 'use client';
 
-// Empty state - the layout.tsx handles the sidebar with ChatList
-// This page just shows the "Select a conversation" message
+import { ChatList } from '@/components/chat';
+import { useAuth } from '@/lib/auth/useAuth';
+import { AlertTriangle, ArrowLeft, MessageCircle, Search, X } from 'lucide-react';
+import Link from 'next/link';
+import { useEffect, useState } from 'react';
+
 export default function MessagesPage() {
+  const { user } = useAuth();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [notice, setNotice] = useState('');
+
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (url.searchParams.get('notice') !== 'conversation_unavailable') return;
+
+    url.searchParams.delete('notice');
+    window.history.replaceState(
+      window.history.state,
+      '',
+      `${url.pathname}${url.search}${url.hash}`
+    );
+    const showTimeoutId = window.setTimeout(
+      () => setNotice('This conversation is unavailable.'),
+      0
+    );
+    const timeoutId = window.setTimeout(() => setNotice(''), 5000);
+    return () => {
+      window.clearTimeout(showTimeoutId);
+      window.clearTimeout(timeoutId);
+    };
+  }, []);
+
   return (
-    <div className="flex-1 flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-      <div className="text-center text-gray-500 dark:text-gray-400">
-        <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-          <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-          </svg>
+    <div className="flex-1 min-h-0">
+      {notice && (
+        <div
+          role="status"
+          className="fixed left-1/2 top-4 z-50 flex -translate-x-1/2 items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-900 shadow-lg dark:border-amber-900/60 dark:bg-amber-950 dark:text-amber-100"
+        >
+          <AlertTriangle className="h-4 w-4 shrink-0" />
+          {notice}
         </div>
-        <h2 className="text-xl font-semibold mb-2">Your Messages</h2>
-        <p className="text-sm">Select a conversation to start chatting</p>
+      )}
+      {/* Mobile: show conversation list here (desktop sidebar already shows it) */}
+      <div className="flex h-full min-h-0 flex-col md:hidden">
+        <div className="px-4 pt-4 pb-3 border-b border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
+          <div className="flex items-center gap-1">
+            <Link
+              href="/"
+              className="p-2 -ml-2 rounded-full text-gray-600 dark:text-neutral-300 hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors"
+              aria-label="Back to home"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Link>
+            <h1 className="text-lg font-bold tracking-tight text-gray-900 dark:text-white">
+              Messaging
+            </h1>
+          </div>
+          <div className="relative mt-3">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search conversations"
+              className="w-full pl-9 pr-9 py-2 rounded-full bg-gray-100 dark:bg-neutral-800 text-sm text-gray-900 dark:text-white placeholder-gray-500 outline-none transition-all focus:ring-2 focus:ring-blue-500"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-200 dark:hover:bg-neutral-700"
+                aria-label="Clear search"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+        </div>
+        <div className="flex-1 min-h-0 overflow-hidden">
+          <ChatList currentUserId={user?.id} searchQuery={searchQuery} />
+        </div>
+      </div>
+
+      {/* Desktop: empty state */}
+      <div className="hidden md:flex flex-1 items-center justify-center p-6 bg-gray-50 dark:bg-neutral-950">
+        <div className="text-center max-w-sm">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-blue-50 dark:bg-blue-950/40 flex items-center justify-center">
+            <MessageCircle className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+          </div>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+            Select a conversation
+          </h2>
+          <p className="mt-1 text-sm text-gray-500 dark:text-neutral-400">
+            Pick a chat from the left to start messaging, or find someone new to connect with.
+          </p>
+          <Link
+            href="/find-people"
+            className="mt-5 inline-flex items-center gap-2 px-5 py-2 rounded-full border border-blue-600 dark:border-blue-400 text-blue-600 dark:text-blue-400 text-sm font-semibold hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-colors"
+          >
+            Find people
+          </Link>
+        </div>
       </div>
     </div>
   );

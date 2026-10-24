@@ -1,0 +1,2445 @@
+{
+  "capturedAt": "2026-10-22",
+  "routes": [
+    {
+      "method": "post",
+      "endpoint": "/api/auth/register"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/auth/login"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/auth/refresh"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/auth/logout"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/auth/logout-all"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/auth/socket-ticket"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/auth/me"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/auth/forgot-password"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/auth/reset-password"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/auth/google"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/auth/google/code"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/auth/verify-email"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/auth/verify-email"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/auth/resend-verification"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/integrations/github/start"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/integrations/github/callback"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/integrations/github/sync"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/integrations/github/disconnect"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/integrations/github/stats"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/users/:userId/profile/sections"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/users/:userId/profile"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/users/:userId/feed"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/users/:userId/activity"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/users/:userId/activity/years"
+    },
+    {
+      "method": "put",
+      "endpoint": "/api/users/me"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/users/me/banner"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/users/me/avatar"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/users/me/skills"
+    },
+    {
+      "method": "put",
+      "endpoint": "/api/users/me/skills/:id"
+    },
+    {
+      "method": "delete",
+      "endpoint": "/api/users/me/skills/:id"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/skills/search"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/users/me/experiences"
+    },
+    {
+      "method": "put",
+      "endpoint": "/api/users/me/experiences/:id"
+    },
+    {
+      "method": "delete",
+      "endpoint": "/api/users/me/experiences/:id"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/users/:userId/experiences"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/users/me/education"
+    },
+    {
+      "method": "put",
+      "endpoint": "/api/users/me/education/:id"
+    },
+    {
+      "method": "delete",
+      "endpoint": "/api/users/me/education/:id"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/users/:userId/education"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/users/me/projects"
+    },
+    {
+      "method": "put",
+      "endpoint": "/api/users/me/projects/:id"
+    },
+    {
+      "method": "delete",
+      "endpoint": "/api/users/me/projects/:id"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/users/me/projects/:id/feature"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/users/:userId/projects"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/users/me/certificates"
+    },
+    {
+      "method": "put",
+      "endpoint": "/api/users/me/certificates/:id"
+    },
+    {
+      "method": "delete",
+      "endpoint": "/api/users/me/certificates/:id"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/users/:userId/certificates"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/users/me/achievements"
+    },
+    {
+      "method": "put",
+      "endpoint": "/api/users/me/achievements/:id"
+    },
+    {
+      "method": "delete",
+      "endpoint": "/api/users/me/achievements/:id"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/users/:userId/achievements"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/users/me/interests"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/users/me/interests"
+    },
+    {
+      "method": "put",
+      "endpoint": "/api/users/me/interests/:interest"
+    },
+    {
+      "method": "delete",
+      "endpoint": "/api/users/me/interests/:interest"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/upload/avatar"
+    },
+    {
+      "method": "delete",
+      "endpoint": "/api/upload/avatar"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/upload/banner"
+    },
+    {
+      "method": "delete",
+      "endpoint": "/api/upload/banner"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/upload/certificate"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/upload/project"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/upload/logo"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/upload/group-icon"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/upload/group-cover"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/upload/chat"
+    },
+    {
+      "method": "delete",
+      "endpoint": "/api/upload"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/engagement/dashboard"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/engagement/streaks"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/engagement/streaks/history"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/engagement/streaks/leaderboard"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/engagement/streaks/:userId"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/engagement/streaks/freeze"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/engagement/streaks/shield"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/engagement/streaks/visibility"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/engagement/login"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/engagement/reward-cards"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/engagement/reward-events"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/engagement/daily-matches"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/engagement/people-like-you"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/engagement/hidden-gem"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/engagement/trending-status"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/engagement/live-activity"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/engagement/leaderboard"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/engagement/nudges"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/engagement/weekly-goals"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/engagement/connection-limit"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/engagement/session-summary"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/engagement/recent-joins"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/engagement/celebration/:connectionId"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/progress/me"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/stories/feed"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/stories/me"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/stories/archive"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/stories/highlights/user/:userId"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/stories/highlights"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/stories/highlights/:highlightId"
+    },
+    {
+      "method": "patch",
+      "endpoint": "/api/stories/highlights/:highlightId"
+    },
+    {
+      "method": "delete",
+      "endpoint": "/api/stories/highlights/:highlightId"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/stories/highlights/:highlightId/stories/:storyId"
+    },
+    {
+      "method": "delete",
+      "endpoint": "/api/stories/highlights/:highlightId/stories/:storyId"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/stories/user/:userId"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/stories"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/stories/:storyId"
+    },
+    {
+      "method": "delete",
+      "endpoint": "/api/stories/:storyId"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/stories/:storyId/view"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/stories/:storyId/viewers"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/stories/:storyId/react"
+    },
+    {
+      "method": "delete",
+      "endpoint": "/api/stories/:storyId/react"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/stories/:storyId/reply"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/stories/:storyId/replies"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/stories/:storyId/archive"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/feed/reward-data"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/feed/mark-shown"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/posts/feed"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/posts/feed/impressions"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/posts/upload-url"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/posts/finalize-upload"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/posts/:postId"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/posts"
+    },
+    {
+      "method": "put",
+      "endpoint": "/api/posts/:postId"
+    },
+    {
+      "method": "delete",
+      "endpoint": "/api/posts/:postId"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/posts/:postId/collaborators/respond"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/posts/:postId/like"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/posts/:postId/likes"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/posts/:postId/poll/vote"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/posts/:postId/share"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/posts/:postId/comments"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/posts/:postId/comments"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/posts/:postId/comments/:commentId/like"
+    },
+    {
+      "method": "delete",
+      "endpoint": "/api/posts/:postId/comments/:commentId"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/saved"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/saved/profiles"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/saved/:postId/check"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/saved/:postId/toggle"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/saved/:postId"
+    },
+    {
+      "method": "delete",
+      "endpoint": "/api/saved/:postId"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/mentions/search"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/mentions"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/mentions/pending"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/mentions/count"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/mentions/profile/:userId"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/mentions"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/mentions/:mentionId/respond"
+    },
+    {
+      "method": "patch",
+      "endpoint": "/api/mentions/:mentionId/profile"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/connections/request"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/connections/:connectionId/accept"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/connections/:connectionId/reject"
+    },
+    {
+      "method": "delete",
+      "endpoint": "/api/connections/:connectionId/cancel"
+    },
+    {
+      "method": "delete",
+      "endpoint": "/api/connections/user/:userId/request"
+    },
+    {
+      "method": "delete",
+      "endpoint": "/api/connections/:connectionId"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/connections"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/connections/user/:userId"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/connections/pending"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/connections/sent"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/connections/status/:userId"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/follow/:userId"
+    },
+    {
+      "method": "delete",
+      "endpoint": "/api/follow/:userId"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/follow/status/:userId"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/follow/followers/:userId"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/follow/following/:userId"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/follow/mutual/:userId"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/follow/counts/:userId"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/chat/conversations"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/chat/sync"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/chat/conversations"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/chat/users/:userId/status"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/chat/conversations/:conversationId"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/chat/conversations/:conversationId/messages"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/chat/conversations/:conversationId/messages"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/chat/conversations/:conversationId/read"
+    },
+    {
+      "method": "delete",
+      "endpoint": "/api/chat/conversations/:conversationId"
+    },
+    {
+      "method": "delete",
+      "endpoint": "/api/chat/messages/:messageId"
+    },
+    {
+      "method": "patch",
+      "endpoint": "/api/chat/messages/:messageId"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/chat/messages/:messageId/reactions"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/chat/unread-count"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/chat/search"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/chat/message-limit/:userId"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/chat/requests"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/chat/requests/count"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/chat/requests/:conversationId/accept"
+    },
+    {
+      "method": "delete",
+      "endpoint": "/api/chat/requests/:conversationId"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/chat/upload"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/people/filter-options"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/people/college-logo"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/people/contacts"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/people/contacts/import"
+    },
+    {
+      "method": "delete",
+      "endpoint": "/api/people/contacts"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/people/contacts/:entryId/invite"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/people/saved-searches"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/people/saved-searches"
+    },
+    {
+      "method": "patch",
+      "endpoint": "/api/people/saved-searches/:id"
+    },
+    {
+      "method": "delete",
+      "endpoint": "/api/people/saved-searches/:id"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/people/discovery/pass"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/people/discovery/rewind"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/people/suggestions"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/people/same-college"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/people/near-me"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/people/colleges"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/people/search"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/people"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/matching/smart"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/matching/mentors"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/matching/accountability"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/matching/ice-breakers/:targetUserId"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/accountability/partners"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/accountability/partners/:pairId/check-in"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/accountability/mentorships"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/skills/passport/:userId"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/skills/passport"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/skills/:userId/endorse"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/skills/verification-links"
+    },
+    {
+      "method": "delete",
+      "endpoint": "/api/skills/verification-links/:provider"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/skill-swap/suggestions"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/skill-swap/requests"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/skill-swap/requests"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/skill-swap/requests/:requestId/respond"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/skill-swap/sessions/:sessionId/complete"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/groups/my"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/groups/message-shortcuts"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/groups/discover"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/groups/invites/pending"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/groups/invites/link/:code"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/groups/invites/link/:code/join"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/groups/invites/:inviteId/respond"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/groups/categories"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/groups"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/groups"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/groups/:groupId/invite-link"
+    },
+    {
+      "method": "patch",
+      "endpoint": "/api/groups/:groupId/invite-link/settings"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/groups/:groupId/invite-link/reset"
+    },
+    {
+      "method": "patch",
+      "endpoint": "/api/groups/:groupId/message-shortcut"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/groups/:groupId/invites"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/groups/:groupId/join-requests"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/groups/:groupId/join-requests/:requestId/respond"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/groups/:groupId/invites"
+    },
+    {
+      "method": "delete",
+      "endpoint": "/api/groups/:groupId/invites/:inviteId"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/groups/:groupId/posts/:postId/like"
+    },
+    {
+      "method": "put",
+      "endpoint": "/api/groups/:groupId/posts/:postId/pin"
+    },
+    {
+      "method": "delete",
+      "endpoint": "/api/groups/:groupId/posts/:postId"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/groups/:groupId/messages/:messageId/reactions"
+    },
+    {
+      "method": "delete",
+      "endpoint": "/api/groups/:groupId/messages/:messageId"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/groups/:identifier"
+    },
+    {
+      "method": "put",
+      "endpoint": "/api/groups/:groupId"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/groups/:groupId/upload/icon"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/groups/:groupId/upload/cover"
+    },
+    {
+      "method": "delete",
+      "endpoint": "/api/groups/:groupId"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/groups/:groupId/join"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/groups/:groupId/leave"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/groups/:groupId/members"
+    },
+    {
+      "method": "put",
+      "endpoint": "/api/groups/:groupId/members/:userId"
+    },
+    {
+      "method": "delete",
+      "endpoint": "/api/groups/:groupId/members/:userId"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/groups/:groupId/posts"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/groups/:groupId/posts"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/groups/:groupId/messages"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/groups/:groupId/messages"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/hackathons"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/hackathons/me/teams"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/hackathons"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/hackathons/import/external"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/hackathons/teams/:teamId/apply"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/hackathons/team-applications/:applicationId/respond"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/hackathons/:identifier"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/hackathons/:hackathonId/teams"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/hackathons/:hackathonId/save"
+    },
+    {
+      "method": "delete",
+      "endpoint": "/api/hackathons/:hackathonId/save"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/hackathons/:hackathonId/teams/form"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/events"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/events/upcoming"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/events/my"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/events"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/events/:eventId"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/events/:eventId/rsvp"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/college-communities"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/college-communities/me/verification"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/college-communities"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/college-communities/verify"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/college-communities/:communityId/join"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/circles/discover"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/circles/my/all"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/circles"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/circles/:circleId/members"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/circles/:circleId/posts"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/circles/:circleId/posts"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/circles/:circleId/join"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/circles/:circleId/leave"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/circles/:slug"
+    },
+    {
+      "method": "put",
+      "endpoint": "/api/circles/:circleId"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/onboarding"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/onboarding/step"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/onboarding/complete"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/onboarding/matches"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/games/stats"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/games/xp-history"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/games/leaderboard"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/games/arcade/catalog"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/games/arcade/rooms"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/games/arcade/rooms"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/games/arcade/rooms/:roomId"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/games/arcade/rooms/:roomId/join"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/games/arcade/rooms/:roomId/ready"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/games/arcade/rooms/:roomId/finish"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/games/arcade/rooms/:roomId/abandon"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/games/arcade/invite/:inviteCode"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/games/arcade/invite/:inviteCode/join"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/games/arcade/history"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/games/arcade/leaderboard"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/games/trivia/daily"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/games/trivia/questions"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/games/trivia/answer"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/games/wordle/daily"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/games/wordle/guess"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/games/coding/problems"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/games/coding/problems/:problemId"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/games/coding/problems/:problemId/submit"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/games/battle/create"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/games/battle/available"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/games/battle/:battleId/join"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/games/battle/:battleId"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/games/battle/:battleId/answer"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/games/typing/texts"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/games/typing/start"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/games/typing/:raceId/finish"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/games/typing/history"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/location/nearby"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/location/update"
+    },
+    {
+      "method": "put",
+      "endpoint": "/api/location/settings"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/location/current"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/location/me"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/proximity/v1/capabilities"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/proximity/v1/settings"
+    },
+    {
+      "method": "put",
+      "endpoint": "/api/proximity/v1/settings"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/proximity/v1/sessions"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/proximity/v1/sessions/current"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/proximity/v1/sessions/:sessionId/resume"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/proximity/v1/sessions/:sessionId/heartbeat"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/proximity/v1/sessions/:sessionId/stop"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/proximity/v1/presence"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/proximity/v1/live"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/proximity/v1/history"
+    },
+    {
+      "method": "delete",
+      "endpoint": "/api/proximity/v1/history"
+    },
+    {
+      "method": "delete",
+      "endpoint": "/api/proximity/v1/history/:targetUserId"
+    },
+    {
+      "method": "put",
+      "endpoint": "/api/proximity/v1/history/:targetUserId/hidden"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/proximity/v1/summaries/pending"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/proximity/v1/summaries/:sessionId/viewed"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/social-proof/live-stats"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/social-proof/onboarding-stats"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/social-proof/leaderboard"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/social-proof/trending"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/social-proof/activity-feed"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/social-proof/profile-views/:userId"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/social-proof/profile-views/:userId/history"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/social-proof/profile-saves/:targetUserId/toggle"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/social-proof/profile-saves/:userId"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/social-proof/recent-profile-views"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/social-proof/profile-insights/:userId"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/social-proof/group-stats/:groupId"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/social-proof/event-stats/:eventId"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/social-proof/track-event-view"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/social-proof/record-activity"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/social-proof/heartbeat"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/notifications"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/notifications/unread-count"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/notifications/settings"
+    },
+    {
+      "method": "put",
+      "endpoint": "/api/notifications/settings"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/notifications/read"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/notifications/read-all"
+    },
+    {
+      "method": "delete",
+      "endpoint": "/api/notifications/:notificationId"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/reports/reasons"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/reports/post/:postId"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/reports/comment/:commentId"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/reports/chat/:conversationId"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/reports/user/:userId"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/reports/group/:groupId"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/reports/my-reports"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/identity/me"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/identity/phone/verify"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/identity/student-email/request"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/identity/student-email/confirm"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/identity/student-badge/claim"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/identity/id/request-upload"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/identity/id/submit"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/safety/blocks"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/safety/blocks/:userId"
+    },
+    {
+      "method": "delete",
+      "endpoint": "/api/safety/blocks/:userId"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/store/items"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/store/categories"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/store/items/:slug"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/store/purchase"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/store/inventory"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/store/history"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/store/purchases"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/store/inventory/:inventoryId/activate"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/store/balance"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/premium/subscription"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/premium/creator-pro"
+    },
+    {
+      "method": "patch",
+      "endpoint": "/api/premium/creator-pro/settings"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/premium/boosts/me"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/premium/boosts/profile"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/premium/post-boosts/credits"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/premium/post-boosts"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/premium/post-boosts"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/premium/post-boosts/:campaignId"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/premium/post-boosts/:campaignId/cancel"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/premium/checkout"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/premium/verify"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/premium/play/verify"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/premium/cancel"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/badges"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/badges/categories"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/badges/user/:userId"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/badges/me"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/badges/progress"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/badges/check"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/badges/unnotified"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/badges/leaderboard"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/referrals/code"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/referrals/apply"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/referrals/stats"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/referrals/list"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/referrals/leaderboard"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/referrals/share"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/learning/paths"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/learning/paths/:slug"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/learning/featured"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/learning/categories"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/learning/enroll"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/learning/my-enrollments"
+    },
+    {
+      "method": "delete",
+      "endpoint": "/api/learning/enroll/:pathId"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/learning/lessons/:lessonId"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/learning/lessons/:lessonId/complete"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/learning/quiz/submit"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/learning/quiz/:quizId/attempts"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/jobs/companies"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/jobs/companies/:slug"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/jobs"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/jobs/featured"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/jobs/types"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/jobs/applications/me"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/jobs/saved"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/jobs/recommended"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/jobs/:slug"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/jobs/:jobId/apply"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/jobs/:jobId/save"
+    },
+    {
+      "method": "delete",
+      "endpoint": "/api/jobs/:jobId/save"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/interviews/categories"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/interviews/categories/:slug"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/interviews/questions"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/interviews/questions/:questionId"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/interviews/sessions/start"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/interviews/sessions"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/interviews/sessions/:sessionId"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/interviews/responses"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/interviews/sessions/:sessionId/complete"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/interviews/stats"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/challenges"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/challenges/categories"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/challenges/leaderboard"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/challenges/daily"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/challenges/:slug"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/challenges/:challengeId/submit"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/challenges/:challengeId/run"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/challenges/submissions/me"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/challenges/stats/me"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/ai/entitlements"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/ai/chat/conversation-starters"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/ai/chat/revival-suggestions"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/ai/chat/fix-grammar"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/ai/chat/smart-replies"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/ai/chat/change-tone"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/ai/chat/translate"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/ai/chat/expand"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/ai/chat/assistant"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/ai/chat/career-chat"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/agent/sessions"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/agent/sessions/:sessionId/turns"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/agent/sessions/:sessionId/voice"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/agent/pending-actions"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/agent/approve/:actionId"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/agent/reject/:actionId"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/agent/goals"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/agent/goals"
+    },
+    {
+      "method": "delete",
+      "endpoint": "/api/agent/goals/:goalId"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/talk/turn"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/talk/profile-preview/:userId"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/devices/register"
+    },
+    {
+      "method": "delete",
+      "endpoint": "/api/devices/unregister"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/reels/feed"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/reels/feed/following"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/reels/trending"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/reels/drafts"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/reels/upload-url"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/reels/upload-complete"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/reels/hashtag/:hashtag"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/reels/audio/:audioId"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/reels/user/:userId"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/reels/user/:userId/liked"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/reels/user/:userId/saved"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/reels/analytics/creator"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/reels/analytics/reel/:reelId"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/reels/webhook/transcoding"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/reels"
+    },
+    {
+      "method": "put",
+      "endpoint": "/api/reels/:reelId"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/reels/:reelId/publish"
+    },
+    {
+      "method": "delete",
+      "endpoint": "/api/reels/:reelId"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/reels/:reelId/like"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/reels/:reelId/save"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/reels/:reelId/share"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/reels/:reelId/share/chat"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/reels/:reelId/view"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/reels/:reelId"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/reels/:reelId/preload"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/reels/:reelId/audio"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/reels/:reelId/comments"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/reels/:reelId/comments"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/reels/:reelId/comments/:commentId/like"
+    },
+    {
+      "method": "delete",
+      "endpoint": "/api/reels/:reelId/comments/:commentId"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/reels/:reelId/comments/:commentId/heart"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/reels/:reelId/poll/vote"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/reels/:reelId/quiz/answer"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/reels/:reelId/responses"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/reels/:reelId/report"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/audio/trending"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/audio/search"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/audio/categories"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/audio/moods"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/audio/genre/:genre"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/audio/saved"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/audio/:audioId/save"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/audio/:audioId"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/audio/:audioId/reels"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/ads/sidebar"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/ads/:campaignId/impression"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/ads/:campaignId/click"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/admin/verify"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/admin/verify"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/admin/2fa/setup"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/admin/2fa/verify"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/admin/2fa/validate"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/admin/dashboard/stats"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/admin/notifications/filters"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/admin/notifications/reengagement/status"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/admin/notifications/reengagement/dry-run"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/admin/notifications/send"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/admin/premium/overview"
+    },
+    {
+      "method": "put",
+      "endpoint": "/api/admin/premium/settings"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/admin/premium/users"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/admin/premium/users/:id"
+    },
+    {
+      "method": "patch",
+      "endpoint": "/api/admin/premium/users/:id"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/admin/premium/users/:id/cancel"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/admin/premium/users/:id/message"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/admin/premium/events"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/admin/ads"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/admin/ads"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/admin/ads/:id/analytics"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/admin/ads/:id"
+    },
+    {
+      "method": "patch",
+      "endpoint": "/api/admin/ads/:id"
+    },
+    {
+      "method": "delete",
+      "endpoint": "/api/admin/ads/:id"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/admin/users"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/admin/users/:id"
+    },
+    {
+      "method": "put",
+      "endpoint": "/api/admin/users/:id"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/admin/users/:id/ban"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/admin/users/:id/unban"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/admin/users/:id/verify"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/admin/users/:id/warn"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/admin/users/:id/restrict"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/admin/users/:id/suspend"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/admin/users/:id/clear-safety-restrictions"
+    },
+    {
+      "method": "delete",
+      "endpoint": "/api/admin/users/:id"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/admin/posts"
+    },
+    {
+      "method": "delete",
+      "endpoint": "/api/admin/posts/:id"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/admin/reels"
+    },
+    {
+      "method": "delete",
+      "endpoint": "/api/admin/reels/:id"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/admin/groups"
+    },
+    {
+      "method": "delete",
+      "endpoint": "/api/admin/groups/:id"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/admin/groups/:id/members"
+    },
+    {
+      "method": "patch",
+      "endpoint": "/api/admin/groups/:id/members/:userId"
+    },
+    {
+      "method": "delete",
+      "endpoint": "/api/admin/groups/:id/members/:userId"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/admin/groups/:id/clear-chat"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/admin/chats/storage"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/admin/chats/clear"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/admin/identity-reviews"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/admin/identity-reviews/:id/evidence"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/admin/identity-reviews/:id"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/admin/identity-reviews/:id/approve"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/admin/identity-reviews/:id/reject"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/admin/reports/stats"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/admin/reports"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/admin/reports/:id"
+    },
+    {
+      "method": "patch",
+      "endpoint": "/api/admin/reports/:id/status"
+    },
+    {
+      "method": "patch",
+      "endpoint": "/api/admin/reports/:id/priority"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/admin/reports/:id/action"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/admin/audit-logs"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/daily-hooks"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/public/discovery/openapi.json"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/public/discovery/people"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/public/discovery/search"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/public/discovery/people/search"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/public/discovery/profiles/:username"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/public/discovery/profiles/:username/posts"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/public/discovery/posts/search"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/public/discovery/posts/:postId"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/public/discovery/opportunities/search"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/public/discovery/sitemap/profiles"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/public/discovery/visibility/me"
+    },
+    {
+      "method": "patch",
+      "endpoint": "/api/public/discovery/visibility/me"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/discovery/events"
+    },
+    {
+      "method": "post",
+      "endpoint": "/api/discovery/feedback"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/discovery/preferences"
+    },
+    {
+      "method": "patch",
+      "endpoint": "/api/discovery/preferences"
+    }
+  ]
+}

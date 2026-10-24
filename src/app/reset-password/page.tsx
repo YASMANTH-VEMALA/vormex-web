@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { authAPI } from '@/lib/api/auth';
-import { resetPasswordSchema } from '@/lib/validations/auth';
-import { handleApiError } from '@/lib/utils/errorHandler';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
+import { authAPI } from '@/lib/api/auth';
+import { handleApiError } from '@/lib/utils/errorHandler';
+import { PASSWORD_MIN_LENGTH, resetPasswordSchema } from '@/lib/validations/auth';
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useState } from 'react';
 import '../login/login.css';
 
 function ResetPasswordContent() {
@@ -21,7 +21,7 @@ function ResetPasswordContent() {
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!token) {
       setError('Reset token is missing');
       return;
@@ -64,7 +64,9 @@ function ResetPasswordContent() {
         <div className="main" style={{ maxWidth: '500px', width: '100%', minWidth: 'auto' }}>
           <div className="form">
             <h2 className="form_title title">Reset Password</h2>
-            <div className="error-message">Reset token is missing. Please use the link from your email.</div>
+            <div className="error-message">
+              Reset token is missing. Please use the link from your email.
+            </div>
             <Link href="/forgot-password" className="form__link" style={{ marginTop: '20px' }}>
               Request New Reset Link
             </Link>
@@ -92,7 +94,8 @@ function ResetPasswordContent() {
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
             required
-            minLength={8}
+            minLength={PASSWORD_MIN_LENGTH}
+            maxLength={128}
           />
           <input
             className="form__input"
@@ -101,7 +104,8 @@ function ResetPasswordContent() {
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             required
-            minLength={8}
+            minLength={PASSWORD_MIN_LENGTH}
+            maxLength={128}
           />
           {error && <div className="error-message">{error}</div>}
           {success && <div className="success-message">{success}</div>}
@@ -119,18 +123,19 @@ function ResetPasswordContent() {
 
 export default function ResetPasswordPage() {
   return (
-    <Suspense fallback={
-      <div className="auth-page-wrapper">
-        <div className="main" style={{ maxWidth: '500px', width: '100%', minWidth: 'auto' }}>
-          <div className="form">
-            <h2 className="form_title title">Reset Password</h2>
-            <p className="description">Loading...</p>
+    <Suspense
+      fallback={
+        <div className="auth-page-wrapper">
+          <div className="main" style={{ maxWidth: '500px', width: '100%', minWidth: 'auto' }}>
+            <div className="form">
+              <h2 className="form_title title">Reset Password</h2>
+              <p className="description">Loading...</p>
+            </div>
           </div>
         </div>
-      </div>
-    }>
+      }
+    >
       <ResetPasswordContent />
     </Suspense>
   );
 }
-

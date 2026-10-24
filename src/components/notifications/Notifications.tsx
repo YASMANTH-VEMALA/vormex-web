@@ -1,36 +1,36 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import Image from 'next/image';
-import { useRouter } from 'next/navigation';
-import {
-  Bell,
-  Heart,
-  MessageCircle,
-  AtSign,
-  UserPlus,
-  Loader2,
-  CheckCheck,
-  PartyPopper,
-  HandHeart,
-  Lightbulb,
-  HelpCircle,
-  ThumbsUp,
-  Users,
-  Settings,
-} from 'lucide-react';
-import Link from 'next/link';
-import { formatDistanceToNow } from 'date-fns';
 import {
   getNotifications,
   getUnreadNotificationCount,
-  markNotificationsAsRead,
   markAllNotificationsAsRead,
+  markNotificationsAsRead,
   type Notification,
   type NotificationType,
 } from '@/lib/api/notifications';
 import { initializeSocket } from '@/lib/socket';
+import { formatDistanceToNow } from 'date-fns';
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  AtSign,
+  Bell,
+  CheckCheck,
+  HandHeart,
+  Heart,
+  HelpCircle,
+  Lightbulb,
+  Loader2,
+  MessageCircle,
+  PartyPopper,
+  Settings,
+  ThumbsUp,
+  UserPlus,
+  Users,
+} from 'lucide-react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 // Get icon for notification type
 function getNotificationIcon(type: NotificationType, reactionType?: string | null) {
@@ -72,7 +72,7 @@ function getNotificationIcon(type: NotificationType, reactionType?: string | nul
 // Get notification message
 function getNotificationMessage(notification: Notification): string {
   const actorName = notification.actor?.name || 'Someone';
-  
+
   switch (notification.type) {
     case 'POST_REACTION':
       const reactionLabels: Record<string, string> = {
@@ -118,13 +118,13 @@ interface NotificationItemProps {
 
 function NotificationItem({ notification, onMarkRead }: NotificationItemProps) {
   const router = useRouter();
-  
+
   const handleClick = () => {
     // Mark as read
     if (!notification.isRead) {
       onMarkRead(notification.id);
     }
-    
+
     // Navigate based on notification type
     if (notification.type === 'GROUP_INVITE' || notification.type === 'GROUP_JOIN_APPROVED') {
       router.push('/groups?tab=invites');
@@ -136,21 +136,24 @@ function NotificationItem({ notification, onMarkRead }: NotificationItemProps) {
       } else {
         router.push(`/post/${notification.postId}`);
       }
-    } else if (notification.type === 'CONNECTION_REQUEST' || notification.type === 'CONNECTION_ACCEPTED') {
+    } else if (
+      notification.type === 'CONNECTION_REQUEST' ||
+      notification.type === 'CONNECTION_ACCEPTED'
+    ) {
       if (notification.actor) {
         router.push(`/profile/${notification.actor.username}`);
       }
     }
   };
-  
+
   return (
     <motion.button
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       onClick={handleClick}
       className={`w-full flex items-start gap-3 p-4 text-left transition-colors ${
-        notification.isRead 
-          ? 'bg-transparent hover:bg-gray-50 dark:hover:bg-neutral-800/50' 
+        notification.isRead
+          ? 'bg-transparent hover:bg-gray-50 dark:hover:bg-neutral-800/50'
           : 'bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30'
       }`}
     >
@@ -175,7 +178,7 @@ function NotificationItem({ notification, onMarkRead }: NotificationItemProps) {
           {getNotificationIcon(notification.type, notification.reactionType)}
         </div>
       </div>
-      
+
       {/* Content */}
       <div className="flex-1 min-w-0">
         <p className="text-sm text-gray-900 dark:text-white">
@@ -195,7 +198,7 @@ function NotificationItem({ notification, onMarkRead }: NotificationItemProps) {
           {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
         </p>
       </div>
-      
+
       {/* Unread indicator */}
       {!notification.isRead && (
         <div className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0 mt-2" />
@@ -210,15 +213,15 @@ interface NotificationsProps {
   isDropdown?: boolean;
 }
 
-export function Notifications({ isOpen = true, onClose, isDropdown = false }: NotificationsProps) {
+export function Notifications({ isOpen = true, isDropdown = false }: NotificationsProps) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [unreadCount, setUnreadCount] = useState(0);
-  
+
   // Fetch notifications
   useEffect(() => {
     if (!isOpen) return;
-    
+
     const fetchNotifications = async () => {
       setLoading(true);
       try {
@@ -234,17 +237,19 @@ export function Notifications({ isOpen = true, onClose, isDropdown = false }: No
         setLoading(false);
       }
     };
-    
+
     fetchNotifications();
   }, [isOpen]);
 
   // Setup real-time notifications
   useEffect(() => {
     const refetch = () => {
-      setUnreadCount(prev => prev + 1);
-      getNotifications().then(res => setNotifications(res.notifications)).catch(console.error);
+      setUnreadCount((prev) => prev + 1);
+      getNotifications()
+        .then((res) => setNotifications(res.notifications))
+        .catch(console.error);
     };
-    const socket = initializeSocket({
+    initializeSocket({
       onNotificationNew: refetch,
       onNotificationMention: refetch,
       onNotificationComment: refetch,
@@ -252,7 +257,7 @@ export function Notifications({ isOpen = true, onClose, isDropdown = false }: No
       onNotificationReaction: refetch,
       onNotificationCommentLike: refetch,
     });
-    
+
     return () => {
       // Cleanup listeners if needed
     };
@@ -262,10 +267,8 @@ export function Notifications({ isOpen = true, onClose, isDropdown = false }: No
   const handleMarkRead = async (id: string) => {
     try {
       await markNotificationsAsRead([id]);
-      setNotifications(prev => 
-        prev.map(n => n.id === id ? { ...n, isRead: true } : n)
-      );
-      setUnreadCount(prev => Math.max(0, prev - 1));
+      setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)));
+      setUnreadCount((prev) => Math.max(0, prev - 1));
     } catch (error) {
       console.error('Error marking notification as read:', error);
     }
@@ -275,7 +278,7 @@ export function Notifications({ isOpen = true, onClose, isDropdown = false }: No
   const handleMarkAllRead = async () => {
     try {
       await markAllNotificationsAsRead();
-      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
       setUnreadCount(0);
     } catch (error) {
       console.error('Error marking all as read:', error);
@@ -295,7 +298,7 @@ export function Notifications({ isOpen = true, onClose, isDropdown = false }: No
             </span>
           )}
         </div>
-        
+
         <div className="flex items-center gap-2">
           {unreadCount > 0 && (
             <button
@@ -316,7 +319,7 @@ export function Notifications({ isOpen = true, onClose, isDropdown = false }: No
           )}
         </div>
       </div>
-      
+
       {/* Notifications List */}
       <div className={`overflow-y-auto ${isDropdown ? 'max-h-96' : 'flex-1'}`}>
         {loading ? (
@@ -369,7 +372,7 @@ export function Notifications({ isOpen = true, onClose, isDropdown = false }: No
 export function NotificationBell() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [showDropdown, setShowDropdown] = useState(false);
-  
+
   // Fetch unread count
   useEffect(() => {
     const fetchCount = async () => {
@@ -380,22 +383,31 @@ export function NotificationBell() {
         console.error('Error fetching notification count:', error);
       }
     };
-    
+
     fetchCount();
-    
-    // Poll for updates every 30 seconds
-    const interval = setInterval(fetchCount, 30000);
-    return () => clearInterval(interval);
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        void fetchCount();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, []);
 
   // Real-time updates
   useEffect(() => {
     initializeSocket({
-      onNotificationMention: () => setUnreadCount(prev => prev + 1),
-      onNotificationComment: () => setUnreadCount(prev => prev + 1),
-      onNotificationLike: () => setUnreadCount(prev => prev + 1),
-      onNotificationReaction: () => setUnreadCount(prev => prev + 1),
-      onNotificationCommentLike: () => setUnreadCount(prev => prev + 1),
+      onNotificationNew: () => setUnreadCount((prev) => prev + 1),
+      onNotificationMention: () => setUnreadCount((prev) => prev + 1),
+      onNotificationComment: () => setUnreadCount((prev) => prev + 1),
+      onNotificationLike: () => setUnreadCount((prev) => prev + 1),
+      onNotificationReaction: () => setUnreadCount((prev) => prev + 1),
+      onNotificationCommentLike: () => setUnreadCount((prev) => prev + 1),
     });
   }, []);
 
@@ -412,13 +424,10 @@ export function NotificationBell() {
           </span>
         )}
       </button>
-      
+
       {showDropdown && (
         <>
-          <div
-            className="fixed inset-0 z-40"
-            onClick={() => setShowDropdown(false)}
-          />
+          <div className="fixed inset-0 z-40" onClick={() => setShowDropdown(false)} />
           <div className="absolute right-0 top-full mt-2 z-50">
             <Notifications isDropdown onClose={() => setShowDropdown(false)} />
           </div>

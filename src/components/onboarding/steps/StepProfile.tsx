@@ -1,13 +1,12 @@
 'use client';
 
-import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useState } from 'react';
 
 interface Props {
   initialData?: Record<string, unknown>;
   onComplete: (data: Record<string, unknown>) => void;
   saving: boolean;
-  userName: string;
   userCollege: string;
 }
 
@@ -35,13 +34,19 @@ const LOOKING_FOR = [
   { id: 'hackathon_team', label: 'Hackathon Teammate' },
 ];
 
-export default function StepProfile({ initialData, onComplete, saving, userName, userCollege }: Props) {
-  const [college, setCollege] = useState<string>((initialData?.college as string) || userCollege || '');
-  const [primaryGoal, setPrimaryGoal] = useState<string>((initialData?.primaryGoal as string) || '');
-  const [lookingFor, setLookingFor] = useState<string[]>((initialData?.lookingFor as string[]) || []);
+export default function StepProfile({ initialData, onComplete, saving, userCollege }: Props) {
+  const [college, setCollege] = useState<string>(
+    (initialData?.college as string) || userCollege || ''
+  );
+  const [primaryGoal, setPrimaryGoal] = useState<string>(
+    (initialData?.primaryGoal as string) || ''
+  );
+  const [lookingFor, setLookingFor] = useState<string[]>(
+    (initialData?.lookingFor as string[]) || []
+  );
 
   const toggleLookingFor = (id: string) => {
-    setLookingFor(prev => prev.includes(id) ? prev.filter(l => l !== id) : [...prev, id]);
+    setLookingFor((prev) => (prev.includes(id) ? prev.filter((l) => l !== id) : [...prev, id]));
   };
 
   const canContinue = college.trim().length >= 2 && primaryGoal !== '';
@@ -61,7 +66,9 @@ export default function StepProfile({ initialData, onComplete, saving, userName,
           className="w-full px-4 py-3 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900 text-sm focus:outline-none focus:ring-2 focus:ring-black/10 dark:focus:ring-white/10 focus:border-neutral-400 transition-all placeholder:text-neutral-400"
           autoFocus
         />
-        <p className="text-xs text-neutral-400 mt-1.5">We&apos;ll match you with students from your campus first</p>
+        <p className="text-xs text-neutral-400 mt-1.5">
+          We&apos;ll match you with students from your campus first
+        </p>
       </div>
 
       {/* Primary Goal */}
@@ -96,7 +103,7 @@ export default function StepProfile({ initialData, onComplete, saving, userName,
           I&apos;m looking for <span className="text-neutral-400 font-normal">(optional)</span>
         </label>
         <div className="flex flex-wrap gap-2">
-          {LOOKING_FOR.map(item => (
+          {LOOKING_FOR.map((item) => (
             <button
               key={item.id}
               onClick={() => toggleLookingFor(item.id)}

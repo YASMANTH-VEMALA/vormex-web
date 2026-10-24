@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { getOnboardingStats, type OnboardingStats } from '@/lib/api/social-proof';
+import { useEffect, useState } from 'react';
 
 /**
  * OnboardingSocialProof — Social proof banner for auth pages
@@ -30,9 +30,7 @@ export function OnboardingSocialProof() {
       {stats.activeToday > 0 && (
         <div className="social-proof-live">
           <span className="live-dot" />
-          <span className="live-text">
-            {formatNumber(stats.activeToday)} active today
-          </span>
+          <span className="live-text">{formatNumber(stats.activeToday)} active today</span>
         </div>
       )}
 

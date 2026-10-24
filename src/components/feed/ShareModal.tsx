@@ -1,13 +1,14 @@
 'use client';
+import { useDebouncedValue } from '@/hooks/useDebouncedValue';
+import { useAuth as useResourceAuth } from '@/lib/auth/useAuth';
+import { useQuery } from '@tanstack/react-query';
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { X, Search, Send, Loader2 } from 'lucide-react';
-import { getConnections } from '@/lib/api/connections';
-import { searchUsersForMention } from '@/lib/api/posts';
 import { getOrCreateConversation, sendMessage } from '@/lib/api/chat';
-import { sharePostToUser } from '@/lib/api/posts';
-import type { Connection } from '@/lib/api/connections';
-import type { MentionUser } from '@/types/post';
+import { getConnections } from '@/lib/api/connections';
+import { asApiError } from '@/lib/api/errors';
+import { searchUsersForMention, sharePostToUser } from '@/lib/api/posts';
+import { Loader2, Search, Send, X } from 'lucide-react';
+import { useState } from 'react';
 
 interface ShareModalProps {
   isOpen: boolean;
@@ -22,54 +23,38 @@ interface ShareModalProps {
   postMediaUrl?: string | null;
 }
 
-export function ShareModal({ isOpen, onClose, postId, postPreview, postAuthor, postMediaUrl }: ShareModalProps) {
+function ShareModalSession({
+  isOpen,
+  onClose,
+  postId,
+  postPreview,
+  postAuthor,
+  postMediaUrl,
+}: ShareModalProps) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [connections, setConnections] = useState<Connection[]>([]);
-  const [searchResults, setSearchResults] = useState<MentionUser[]>([]);
+  const resourceViewer = useResourceAuth().user;
+  const connectionsResource = useQuery({
+    queryKey: ['share-connections', resourceViewer?.id],
+    queryFn: () => getConnections(1, 50),
+    enabled: isOpen,
+  });
+  const connections =
+    connectionsResource.data?.connections.filter(
+      (connection) => connection.status === 'ACCEPTED'
+    ) ?? [];
+  const debouncedSearch = useDebouncedValue(searchQuery, 300);
+  const searchResource = useQuery({
+    queryKey: ['share-people', resourceViewer?.id, debouncedSearch],
+    queryFn: () => searchUsersForMention(debouncedSearch),
+    enabled: debouncedSearch.length >= 2,
+  });
+  const searchResults = searchQuery.length >= 2 ? (searchResource.data ?? []) : [];
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [loading, setLoading] = useState(false);
+  const loading = searchResource.isFetching;
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const postUrl = typeof window !== 'undefined' ? `${window.location.origin}/post/${postId}` : '';
-
-  const loadConnections = useCallback(async () => {
-    try {
-      const res = await getConnections(1, 50);
-      setConnections(res.connections?.filter((c) => c.status === 'ACCEPTED') || []);
-    } catch (err) {
-      console.error('Error loading connections:', err);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (isOpen) {
-      loadConnections();
-      setSearchQuery('');
-      setSearchResults([]);
-      setSelectedIds(new Set());
-      setError(null);
-    }
-  }, [isOpen, loadConnections]);
-
-  useEffect(() => {
-    if (!searchQuery || searchQuery.length < 2) {
-      setSearchResults([]);
-      return;
-    }
-    const timer = setTimeout(async () => {
-      setLoading(true);
-      try {
-        const users = await searchUsersForMention(searchQuery);
-        setSearchResults(users);
-      } catch (err) {
-        setSearchResults([]);
-      } finally {
-        setLoading(false);
-      }
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
 
   const toggleSelect = (userId: string) => {
     setSelectedIds((prev) => {
@@ -97,7 +82,7 @@ export function ShareModal({ isOpen, onClose, postId, postPreview, postAuthor, p
         author: postAuthor || null,
         mediaUrl: postMediaUrl || null,
       });
-      
+
       for (const userId of selectedIds) {
         const conv = await getOrCreateConversation(userId);
         await sendMessage(conv.id, {
@@ -107,8 +92,9 @@ export function ShareModal({ isOpen, onClose, postId, postPreview, postAuthor, p
         await sharePostToUser(postId, userId);
       }
       onClose();
-    } catch (err: any) {
-      setError(err?.response?.data?.error || err?.message || 'Failed to share');
+    } catch (err: unknown) {
+      const apiError = asApiError(err);
+      setError(apiError.response?.data?.error || apiError.message || 'Failed to share');
     } finally {
       setSending(false);
     }
@@ -164,7 +150,9 @@ export function ShareModal({ isOpen, onClose, postId, postPreview, postAuthor, p
             <>
               {searchQuery.length >= 2 && displaySearch.length > 0 && (
                 <div className="mb-4">
-                  <p className="text-xs font-medium text-gray-500 dark:text-neutral-400 mb-2">Search results</p>
+                  <p className="text-xs font-medium text-gray-500 dark:text-neutral-400 mb-2">
+                    Search results
+                  </p>
                   {displaySearch.map((u) => (
                     <ProfileRow
                       key={u.id}
@@ -205,9 +193,7 @@ export function ShareModal({ isOpen, onClose, postId, postPreview, postAuthor, p
           )}
         </div>
 
-        {error && (
-          <p className="px-4 py-2 text-sm text-red-500">{error}</p>
-        )}
+        {error && <p className="px-4 py-2 text-sm text-red-500">{error}</p>}
 
         <div className="p-4 border-t border-gray-200 dark:border-neutral-800">
           <button
@@ -215,11 +201,7 @@ export function ShareModal({ isOpen, onClose, postId, postPreview, postAuthor, p
             disabled={selectedIds.size === 0 || sending}
             className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium transition-colors"
           >
-            {sending ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
-            ) : (
-              <Send className="w-5 h-5" />
-            )}
+            {sending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
             Send to {selectedIds.size} {selectedIds.size === 1 ? 'person' : 'people'}
           </button>
         </div>
@@ -229,7 +211,6 @@ export function ShareModal({ isOpen, onClose, postId, postPreview, postAuthor, p
 }
 
 function ProfileRow({
-  id,
   name,
   username,
   avatar,
@@ -264,13 +245,15 @@ function ProfileRow({
       </div>
       <div
         className={`w-6 h-6 rounded-full border-2 flex-shrink-0 flex items-center justify-center ${
-          selected
-            ? 'border-blue-600 bg-blue-600'
-            : 'border-gray-300 dark:border-neutral-600'
+          selected ? 'border-blue-600 bg-blue-600' : 'border-gray-300 dark:border-neutral-600'
         }`}
       >
         {selected && <span className="text-white text-xs">✓</span>}
       </div>
     </button>
   );
+}
+
+export function ShareModal(props: ShareModalProps) {
+  return props.isOpen ? <ShareModalSession key={props.postId} {...props} /> : null;
 }

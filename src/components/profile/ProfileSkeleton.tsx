@@ -78,7 +78,10 @@ export function ProfileSkeleton() {
             <Skeleton className="h-6 w-28 mb-4" />
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
               {[...Array(3)].map((_, i) => (
-                <div key={i} className="bg-gray-100 dark:bg-neutral-800/50 rounded-lg border border-gray-300 dark:border-neutral-700/50 overflow-hidden">
+                <div
+                  key={i}
+                  className="bg-gray-100 dark:bg-neutral-800/50 rounded-lg border border-gray-300 dark:border-neutral-700/50 overflow-hidden"
+                >
                   <Skeleton className="aspect-video" />
                   <div className="p-4 space-y-2">
                     <Skeleton className="h-5 w-32" />
@@ -111,4 +114,3 @@ export function ProfileSkeleton() {
     </div>
   );
 }
-

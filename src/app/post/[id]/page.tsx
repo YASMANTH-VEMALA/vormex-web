@@ -1,52 +1,54 @@
 'use client';
+import { useSyncedState } from '@/hooks/useSyncedState';
 
-import React, { useState, useEffect, Suspense } from 'react';
-import { useParams, useSearchParams } from 'next/navigation';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { Comments } from '@/components/feed/Comments';
+import { PostCard } from '@/components/feed/PostCard';
+import { asApiError } from '@/lib/api/errors';
+import { getPost } from '@/lib/api/posts';
+import { joinPostRoom, leavePostRoom } from '@/lib/socket';
+import type { PollOption, Post } from '@/types/post';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import Link from 'next/link';
-import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
-import { PostCard } from '@/components/feed/PostCard';
-import { Comments } from '@/components/feed/Comments';
-import { getPost } from '@/lib/api/posts';
-import { joinPostRoom, leavePostRoom } from '@/lib/socket';
-import type { Post, PollOption } from '@/types/post';
+import { useParams, useSearchParams } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
 
 function PostDetailContent() {
   const params = useParams();
   const searchParams = useSearchParams();
   const postId = params.id as string;
   const highlightCommentId = searchParams.get('comment') || undefined;
-  
+
   const [post, setPost] = useState<Post | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showComments, setShowComments] = useState(!!highlightCommentId);
+  const [showComments, setShowComments] = useSyncedState(!!highlightCommentId);
 
   // Fetch post
   useEffect(() => {
     const fetchPost = async () => {
       setLoading(true);
       setError(null);
-      
+
       try {
         const data = await getPost(postId);
         setPost(data);
-        
+
         // Join room for real-time updates
         joinPostRoom(postId);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Error fetching post:', err);
-        setError(err.response?.data?.error || 'Post not found');
+        setError(asApiError(err).response?.data?.error || 'Post not found');
       } finally {
         setLoading(false);
       }
     };
-    
+
     if (postId) {
       fetchPost();
     }
-    
+
     return () => {
       if (postId) {
         leavePostRoom(postId);
@@ -54,21 +56,14 @@ function PostDetailContent() {
     };
   }, [postId]);
 
-  // Auto-open comments if there's a highlight
-  useEffect(() => {
-    if (highlightCommentId && post) {
-      setShowComments(true);
-    }
-  }, [highlightCommentId, post]);
-
   // Handle like update
   const handleLikeUpdate = (postId: string, liked: boolean, count: number) => {
-    setPost(prev => prev ? { ...prev, isLiked: liked, likesCount: count } : null);
+    setPost((prev) => (prev ? { ...prev, isLiked: liked, likesCount: count } : null));
   };
 
   // Handle poll update
   const handlePollUpdate = (postId: string, options: PollOption[]) => {
-    setPost(prev => prev ? { ...prev, pollOptions: options } : null);
+    setPost((prev) => (prev ? { ...prev, pollOptions: options } : null));
   };
 
   if (loading) {
@@ -86,7 +81,7 @@ function PostDetailContent() {
           {error || 'Post not found'}
         </h1>
         <p className="text-gray-500 dark:text-neutral-400 mb-4">
-          The post you're looking for doesn't exist or has been deleted.
+          The post you&apos;re looking for doesn&apos;t exist or has been deleted.
         </p>
         <Link
           href="/"
@@ -115,10 +110,7 @@ function PostDetailContent() {
 
       {/* Post Content */}
       <div className="max-w-2xl mx-auto p-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <PostCard
             post={post}
             onLikeUpdate={handleLikeUpdate}
@@ -135,7 +127,7 @@ function PostDetailContent() {
         onClose={() => setShowComments(false)}
         highlightCommentId={highlightCommentId}
         onCommentCountChange={(count) => {
-          setPost(prev => prev ? { ...prev, commentsCount: count } : null);
+          setPost((prev) => (prev ? { ...prev, commentsCount: count } : null));
         }}
       />
     </div>
@@ -145,11 +137,13 @@ function PostDetailContent() {
 export default function PostDetailPage() {
   return (
     <ProtectedRoute>
-      <Suspense fallback={
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
-        </div>
-      }>
+      <Suspense
+        fallback={
+          <div className="min-h-screen flex items-center justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
+          </div>
+        }
+      >
         <PostDetailContent />
       </Suspense>
     </ProtectedRoute>

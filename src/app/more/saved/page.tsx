@@ -1,58 +1,41 @@
 'use client';
+import { useSyncedState } from '@/hooks/useSyncedState';
+import { useAuth as useResourceAuth } from '@/lib/auth/useAuth';
+import { useInfiniteQuery } from '@tanstack/react-query';
+import { useMemo } from 'react';
 
-import { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
-import {
-  ArrowLeft,
-  Bookmark,
-  Loader2,
-  BookmarkX,
-} from 'lucide-react';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { PostCard } from '@/components/feed/PostCard';
-import { getSavedPosts, type SavedPostsResponse } from '@/lib/api/saved';
-import type { Post, PollOption, ReactionType, ReactionSummary } from '@/types/post';
+import { getSavedPosts } from '@/lib/api/saved';
+import type { PollOption, Post, ReactionSummary, ReactionType } from '@/types/post';
+import { AnimatePresence, motion } from 'framer-motion';
+import { ArrowLeft, Bookmark, BookmarkX, Loader2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
 export default function SavedPostsPage() {
   const router = useRouter();
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [nextCursor, setNextCursor] = useState<string | null>(null);
-  const [hasMore, setHasMore] = useState(true);
-  const [totalCount, setTotalCount] = useState(0);
+  const resourceViewer = useResourceAuth().user;
+  const savedResource = useInfiniteQuery({
+    queryKey: ['saved-posts', resourceViewer?.id],
+    initialPageParam: null as string | null,
+    queryFn: ({ pageParam }) => getSavedPosts(pageParam, 20),
+    getNextPageParam: (last) => (last.hasMore ? last.nextCursor : undefined),
+    enabled: !!resourceViewer?.id,
+  });
+  const savedPosts = useMemo(
+    () => savedResource.data?.pages.flatMap((page) => page.posts) || [],
+    [savedResource.data]
+  );
+  const [posts, setPosts] = useSyncedState(savedPosts);
+  const loading = savedResource.isPending;
+  const loadingMore = savedResource.isFetchingNextPage;
+  const nextCursor = savedResource.data?.pages.at(-1)?.nextCursor;
+  const hasMore = savedResource.hasNextPage;
+  const [, setTotalCount] = useState(0);
 
-  const fetchSavedPosts = useCallback(async (cursor?: string | null, append = false) => {
-    try {
-      if (!cursor) {
-        setLoading(true);
-      } else {
-        setLoadingMore(true);
-      }
-
-      const response: SavedPostsResponse = await getSavedPosts(cursor, 20);
-      
-      if (append) {
-        setPosts(prev => [...prev, ...response.posts]);
-      } else {
-        setPosts(response.posts);
-      }
-      
-      setNextCursor(response.nextCursor);
-      setHasMore(response.hasMore);
-      setTotalCount(prev => append ? prev + response.posts.length : response.posts.length);
-    } catch (error) {
-      console.error('Error fetching saved posts:', error);
-    } finally {
-      setLoading(false);
-      setLoadingMore(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchSavedPosts(null);
-  }, [fetchSavedPosts]);
+  const fetchSavedPosts = (_cursor?: string | null, append = false) =>
+    append ? savedResource.fetchNextPage() : savedResource.refetch();
 
   const loadMore = () => {
     if (!loadingMore && hasMore && nextCursor) {
@@ -67,8 +50,8 @@ export default function SavedPostsPage() {
     reactionType?: ReactionType | null,
     reactionSummary?: ReactionSummary[]
   ) => {
-    setPosts(prev =>
-      prev.map(post =>
+    setPosts((prev) =>
+      prev.map((post) =>
         post.id === postId
           ? {
               ...post,
@@ -83,28 +66,24 @@ export default function SavedPostsPage() {
   };
 
   const handlePollUpdate = (postId: string, options: PollOption[]) => {
-    setPosts(prev =>
-      prev.map(post =>
-        post.id === postId ? { ...post, pollOptions: options } : post
-      )
+    setPosts((prev) =>
+      prev.map((post) => (post.id === postId ? { ...post, pollOptions: options } : post))
     );
   };
 
   const handlePostDelete = (postId: string) => {
-    setPosts(prev => prev.filter(post => post.id !== postId));
-    setTotalCount(prev => prev - 1);
+    setPosts((prev) => prev.filter((post) => post.id !== postId));
+    setTotalCount((prev) => prev - 1);
   };
 
   const handlePostEdit = (postId: string, updatedPost: Post) => {
-    setPosts(prev =>
-      prev.map(post => (post.id === postId ? updatedPost : post))
-    );
+    setPosts((prev) => prev.map((post) => (post.id === postId ? updatedPost : post)));
   };
 
   // Handle unsave - remove from list when unsaved
   const handleUnsave = (postId: string) => {
-    setPosts(prev => prev.filter(post => post.id !== postId));
-    setTotalCount(prev => Math.max(0, prev - 1));
+    setPosts((prev) => prev.filter((post) => post.id !== postId));
+    setTotalCount((prev) => Math.max(0, prev - 1));
   };
 
   return (
@@ -152,7 +131,7 @@ export default function SavedPostsPage() {
                 No saved posts yet
               </h2>
               <p className="text-gray-500 dark:text-neutral-400 max-w-sm mx-auto">
-                When you save posts, they'll appear here so you can easily find them later.
+                When you save posts, they&apos;ll appear here so you can easily find them later.
               </p>
             </motion.div>
           ) : (

@@ -1,20 +1,20 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { cn } from '@/lib/utils';
-import {
-  Reply,
-  Copy,
-  Pencil,
-  Trash2,
-  Forward,
-  Star,
-  Pin,
-  MoreHorizontal,
-  Download,
-} from 'lucide-react';
 import { DEFAULT_CHAT_REACTIONS } from '@/lib/chat/customization';
+import { cn } from '@/lib/utils';
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  Copy,
+  Download,
+  Forward,
+  MoreHorizontal,
+  Pencil,
+  Pin,
+  Reply,
+  Star,
+  Trash2,
+} from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 
 interface MessageMenuProps {
   isOpen: boolean;
@@ -80,7 +80,7 @@ export default function MessageMenu({
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (!isOpen) return;
-      
+
       if (event.key === 'Escape') {
         onClose();
       } else if (event.key === 'r' && !event.metaKey && !event.ctrlKey) {
@@ -120,7 +120,10 @@ export default function MessageMenu({
       id: 'reply',
       label: 'Reply',
       icon: Reply,
-      onClick: () => { onReply(); onClose(); },
+      onClick: () => {
+        onReply();
+        onClose();
+      },
       shortcut: 'R',
     },
     {
@@ -130,37 +133,57 @@ export default function MessageMenu({
       onClick: handleCopy,
       shortcut: '⌘C',
     },
-    ...(isOwn ? [{
-      id: 'edit',
-      label: 'Edit',
-      icon: Pencil,
-      onClick: () => { onEdit?.(); onClose(); },
-    }] : []),
-    ...(hasMedia && mediaUrl ? [{
-      id: 'download',
-      label: 'Download',
-      icon: Download,
-      onClick: handleDownload,
-    }] : []),
+    ...(isOwn
+      ? [
+          {
+            id: 'edit',
+            label: 'Edit',
+            icon: Pencil,
+            onClick: () => {
+              onEdit?.();
+              onClose();
+            },
+          },
+        ]
+      : []),
+    ...(hasMedia && mediaUrl
+      ? [
+          {
+            id: 'download',
+            label: 'Download',
+            icon: Download,
+            onClick: handleDownload,
+          },
+        ]
+      : []),
     {
       id: 'forward',
       label: 'Forward',
       icon: Forward,
-      onClick: () => { onForward?.(); onClose(); },
+      onClick: () => {
+        onForward?.();
+        onClose();
+      },
       disabled: true, // Coming soon
     },
     {
       id: 'pin',
       label: 'Pin',
       icon: Pin,
-      onClick: () => { onPin?.(); onClose(); },
+      onClick: () => {
+        onPin?.();
+        onClose();
+      },
       disabled: true, // Coming soon
     },
     {
       id: 'star',
       label: 'Star',
       icon: Star,
-      onClick: () => { onStar?.(); onClose(); },
+      onClick: () => {
+        onStar?.();
+        onClose();
+      },
       disabled: true, // Coming soon
     },
     {
@@ -187,16 +210,20 @@ export default function MessageMenu({
             'border border-gray-200 dark:border-gray-700',
             'overflow-hidden'
           )}
-          style={position ? {
-            top: position.y,
-            left: anchorPosition === 'left' ? position.x : undefined,
-            right: anchorPosition === 'right' ? position.x : undefined,
-          } : {
-            top: '-8px',
-            [anchorPosition === 'left' ? 'left' : 'right']: '100%',
-            marginLeft: anchorPosition === 'left' ? '8px' : undefined,
-            marginRight: anchorPosition === 'right' ? '8px' : undefined,
-          }}
+          style={
+            position
+              ? {
+                  top: position.y,
+                  left: anchorPosition === 'left' ? position.x : undefined,
+                  right: anchorPosition === 'right' ? position.x : undefined,
+                }
+              : {
+                  top: '-8px',
+                  [anchorPosition === 'left' ? 'left' : 'right']: '100%',
+                  marginLeft: anchorPosition === 'left' ? '8px' : undefined,
+                  marginRight: anchorPosition === 'right' ? '8px' : undefined,
+                }
+          }
         >
           {/* Reaction bar */}
           {showReactions && !showDeleteOptions && (
@@ -205,7 +232,10 @@ export default function MessageMenu({
                 {availableReactions.map((emoji) => (
                   <button
                     key={emoji}
-                    onClick={() => { onReact(emoji); onClose(); }}
+                    onClick={() => {
+                      onReact(emoji);
+                      onClose();
+                    }}
                     className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-all hover:scale-125"
                   >
                     <span className="text-lg">{emoji}</span>
@@ -222,7 +252,10 @@ export default function MessageMenu({
                 Delete message?
               </div>
               <button
-                onClick={() => { onDelete(false); onClose(); }}
+                onClick={() => {
+                  onDelete(false);
+                  onClose();
+                }}
                 className="w-full flex items-center gap-3 px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               >
                 <Trash2 className="w-4 h-4" />
@@ -230,7 +263,10 @@ export default function MessageMenu({
               </button>
               {isOwn && (
                 <button
-                  onClick={() => { onDelete(true); onClose(); }}
+                  onClick={() => {
+                    onDelete(true);
+                    onClose();
+                  }}
                   className="w-full flex items-center gap-3 px-3 py-2 text-left text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -263,13 +299,9 @@ export default function MessageMenu({
                   <div className="flex items-center gap-3">
                     <item.icon className="w-4 h-4" />
                     <span>{item.label}</span>
-                    {item.disabled && (
-                      <span className="text-xs text-gray-400">(soon)</span>
-                    )}
+                    {item.disabled && <span className="text-xs text-gray-400">(soon)</span>}
                   </div>
-                  {item.shortcut && (
-                    <span className="text-xs text-gray-400">{item.shortcut}</span>
-                  )}
+                  {item.shortcut && <span className="text-xs text-gray-400">{item.shortcut}</span>}
                 </button>
               ))}
             </div>

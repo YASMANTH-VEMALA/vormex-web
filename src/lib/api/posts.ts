@@ -1,28 +1,67 @@
 // Posts API - Complete API client for Posts & Feed endpoints
 
-import apiClient from './client';
 import type {
-  Post,
-  FeedResponse,
   Comment,
   CommentsResponse,
+  FeedResponse,
   MentionUser,
-  MentionNotification,
+  PollOption,
+  Post,
+  ReactionSummary,
+  ReactionType,
 } from '@/types/post';
+import apiClient from './client';
 
 // ============================================
 // Feed Endpoints
 // ============================================
+
+const FEED_REQUEST_TIMEOUT_MS = 30_000;
+/*
+ * A post carries its own media, so it is bounded by the user's upload speed
+ * rather than by server think-time. The 15s interactive default would abort a
+ * video part-way and strand the header progress indicator at whatever fraction
+ * it had reached.
+ */
+const POST_CREATE_TIMEOUT_MS = 5 * 60_000;
 
 /**
  * Get home feed with cursor-based pagination
  * @param cursor - Optional cursor for pagination
  * @param limit - Number of posts per page (default: 20)
  */
-export async function getFeed(cursor?: string, limit: number = 20): Promise<FeedResponse> {
-  const params: Record<string, any> = { limit };
+export async function getFeed(
+  cursor?: string,
+  limit: number = 20,
+  adOptions?: { adSessionId?: string; adItemOffset?: number; refresh?: boolean }
+): Promise<FeedResponse> {
+  const params: Record<string, string | number> = { limit };
   if (cursor) params.cursor = cursor;
-  return apiClient.get('/posts/feed', { params });
+  if (adOptions?.adSessionId) params.adSessionId = adOptions.adSessionId;
+  if (typeof adOptions?.adItemOffset === 'number') params.adItemOffset = adOptions.adItemOffset;
+  return apiClient.get('/posts/feed', {
+    params,
+    // Opening or reloading the feed is an explicit request for a fresh ranking,
+    // so it skips the server's ranked-page snapshot. Background revalidation
+    // leaves the header off and reuses the snapshot.
+    headers: adOptions?.refresh ? { 'x-vormex-feed-refresh': 'true' } : undefined,
+    // A cold production ranking snapshot can outlive the global interactive
+    // timeout. Cached posts paint immediately while this request revalidates.
+    timeout: FEED_REQUEST_TIMEOUT_MS,
+  });
+}
+
+/**
+ * Report posts that entered the viewport.
+ *
+ * The backend ranker demotes already-seen posts; without this the signal stays
+ * empty and every reload produces the same ordering. Ranking stays server-side
+ * — this only ships ids.
+ */
+export async function recordFeedImpressions(
+  postIds: string[]
+): Promise<{ ok: boolean; recorded: number }> {
+  return apiClient.post('/posts/feed/impressions', { postIds });
 }
 
 /**
@@ -40,10 +79,25 @@ export async function getPost(postId: string): Promise<Post> {
 /**
  * Create a new post (supports all post types)
  * Uses FormData for file uploads
+ *
+ * @param onUploadProgress - Receives 0..1 of the request body actually sent.
+ *   Omitted whenever the browser cannot size the body, so callers must treat
+ *   "never called" as indeterminate rather than as no progress.
  */
-export async function createPost(formData: FormData): Promise<Post> {
+export async function createPost(
+  formData: FormData,
+  options?: { onUploadProgress?: (fraction: number) => void }
+): Promise<Post> {
   // Content-Type is automatically handled by the request interceptor for FormData
-  return apiClient.post('/posts', formData);
+  return apiClient.post('/posts', formData, {
+    timeout: POST_CREATE_TIMEOUT_MS,
+    onUploadProgress: options?.onUploadProgress
+      ? (event) => {
+          if (!event.total) return;
+          options.onUploadProgress?.(Math.min(1, event.loaded / event.total));
+        }
+      : undefined,
+  });
 }
 
 /**
@@ -70,12 +124,25 @@ export async function updatePost(
 // Engagement Endpoints
 // ============================================
 
+export interface ToggleLikeResponse {
+  liked: boolean;
+  isLiked: boolean;
+  likesCount: number;
+  reactionType: ReactionType | null;
+  reactionSummary: ReactionSummary[];
+}
+
 /**
- * Toggle like on a post
+ * Toggle/switch a reaction on a post.
+ * Same reaction again removes it; a different reaction switches it.
  * @param postId - Post ID
+ * @param reactionType - Reaction to apply (defaults to LIKE)
  */
-export async function toggleLike(postId: string): Promise<{ liked: boolean; likesCount: number }> {
-  return apiClient.post(`/posts/${postId}/like`);
+export async function toggleLike(
+  postId: string,
+  reactionType: ReactionType = 'LIKE'
+): Promise<ToggleLikeResponse> {
+  return apiClient.post(`/posts/${postId}/like`, { reactionType });
 }
 
 /**
@@ -83,7 +150,10 @@ export async function toggleLike(postId: string): Promise<{ liked: boolean; like
  * @param postId - Post ID
  * @param optionId - Poll option ID
  */
-export async function votePoll(postId: string, optionId: string): Promise<{ success: boolean; pollOptions: any[] }> {
+export async function votePoll(
+  postId: string,
+  optionId: string
+): Promise<{ success: boolean; pollOptions: PollOption[] }> {
   return apiClient.post(`/posts/${postId}/poll/vote`, { optionId });
 }
 
@@ -92,20 +162,11 @@ export async function votePoll(postId: string, optionId: string): Promise<{ succ
  * @param postId - Post ID
  * @param userId - Target user ID to share with
  */
-export async function sharePostToUser(postId: string, userId: string): Promise<{ message: string }> {
-  return apiClient.post(`/posts/${postId}/share`, { userId });
-}
-
-/**
- * Track post impression (view)
- * @param postId - Post ID
- * @param locationData - Optional location data
- */
-export async function trackImpression(
+export async function sharePostToUser(
   postId: string,
-  locationData?: { lat: number; lng: number; city?: string; country?: string }
-): Promise<{ success: boolean }> {
-  return apiClient.post(`/posts/${postId}/impression`, locationData);
+  userId: string
+): Promise<{ message: string }> {
+  return apiClient.post(`/posts/${postId}/share`, { userId });
 }
 
 // ============================================
@@ -125,7 +186,7 @@ export async function getComments(
   page: number = 1,
   limit: number = 20
 ): Promise<CommentsResponse> {
-  const params: Record<string, any> = { page, limit };
+  const params: Record<string, string | number> = { page, limit };
   if (parentId) params.parentId = parentId;
   return apiClient.get(`/posts/${postId}/comments`, { params });
 }
@@ -170,28 +231,6 @@ export async function toggleCommentLike(
 export async function searchUsersForMention(query: string): Promise<MentionUser[]> {
   const res = await apiClient.get('/mentions/search', { params: { q: query } });
   return (res as { users?: MentionUser[] }).users ?? [];
-}
-
-/**
- * Get unread mentions
- */
-export async function getUnreadMentions(): Promise<MentionNotification[]> {
-  return apiClient.get('/mentions/unread');
-}
-
-/**
- * Get unread mention count
- */
-export async function getUnreadMentionCount(): Promise<{ count: number }> {
-  return apiClient.get('/mentions/count');
-}
-
-/**
- * Mark mentions as read
- * @param mentionIds - Array of mention IDs to mark as read
- */
-export async function markMentionsAsRead(mentionIds: string[]): Promise<{ success: boolean }> {
-  return apiClient.post('/mentions/read', { mentionIds });
 }
 
 // ============================================
@@ -251,51 +290,12 @@ export async function uploadProjectImage(file: File): Promise<{ imageUrl: string
  * @param fileUrl - URL of file to delete
  * @param type - Type of file (avatar, banner, post)
  */
-export async function deleteUpload(fileUrl: string, type: 'avatar' | 'banner' | 'post'): Promise<{ success: boolean }> {
+export async function deleteUpload(
+  fileUrl: string,
+  type: 'avatar' | 'banner' | 'post'
+): Promise<{ success: boolean }> {
   return apiClient.delete('/upload', { data: { fileUrl, type } });
 }
 
 // ============================================
-// Location Endpoints
-// ============================================
-
-/**
- * Update user location
- */
-export async function updateLocation(
-  lat: number,
-  lng: number,
-  accuracy?: number,
-  activity?: string
-): Promise<any> {
-  return apiClient.post('/location/update', { lat, lng, accuracy, activity });
-}
-
-/**
- * Get current user's location
- */
-export async function getMyLocation(): Promise<any> {
-  return apiClient.get('/location/me');
-}
-
-/**
- * Get nearby users
- * @param radius - Search radius in km (default: 50)
- * @param limit - Max users to return (default: 20)
- */
-export async function getNearbyUsers(radius?: number, limit?: number): Promise<any[]> {
-  const params: Record<string, any> = {};
-  if (radius) params.radius = radius;
-  if (limit) params.limit = limit;
-  return apiClient.get('/location/nearby', { params });
-}
-
-/**
- * Update location settings
- */
-export async function updateLocationSettings(settings: {
-  locationPermission?: boolean;
-  shareLocationPublic?: boolean;
-}): Promise<{ message: string }> {
-  return apiClient.put('/location/settings', settings);
-}
+// Location endpoints live in '@/lib/api/location'

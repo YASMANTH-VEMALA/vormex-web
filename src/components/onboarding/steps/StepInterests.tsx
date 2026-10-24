@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { motion } from 'framer-motion';
 
 interface Props {
   initialData?: Record<string, unknown>;
@@ -12,35 +11,113 @@ interface Props {
 const INTEREST_GROUPS = [
   {
     label: 'Tech & Engineering',
-    items: ['Python', 'JavaScript', 'React', 'AI/ML', 'Data Science', 'Cybersecurity', 'Cloud/DevOps', 'Mobile Dev', 'Blockchain', 'Game Dev', 'DSA', 'Web Dev'],
+    items: [
+      'Python',
+      'JavaScript',
+      'React',
+      'AI/ML',
+      'Data Science',
+      'Cybersecurity',
+      'Cloud/DevOps',
+      'Mobile Dev',
+      'Blockchain',
+      'Game Dev',
+      'DSA',
+      'Web Dev',
+    ],
   },
   {
     label: 'Business & Finance',
-    items: ['Startups', 'Marketing', 'Finance', 'Investing', 'E-Commerce', 'Product Management', 'Sales', 'Accounting'],
+    items: [
+      'Startups',
+      'Marketing',
+      'Finance',
+      'Investing',
+      'E-Commerce',
+      'Product Management',
+      'Sales',
+      'Accounting',
+    ],
   },
   {
     label: 'Creative & Design',
-    items: ['UI/UX Design', 'Graphic Design', 'Video Editing', 'Photography', 'Animation', 'Illustration', 'Figma', '3D Modeling'],
+    items: [
+      'UI/UX Design',
+      'Graphic Design',
+      'Video Editing',
+      'Photography',
+      'Animation',
+      'Illustration',
+      'Figma',
+      '3D Modeling',
+    ],
   },
   {
     label: 'Content & Media',
-    items: ['YouTube', 'Blogging', 'Podcasting', 'Social Media', 'Copywriting', 'Filmmaking', 'Journalism', 'Public Speaking'],
+    items: [
+      'YouTube',
+      'Blogging',
+      'Podcasting',
+      'Social Media',
+      'Copywriting',
+      'Filmmaking',
+      'Journalism',
+      'Public Speaking',
+    ],
   },
   {
     label: 'Music & Arts',
-    items: ['Guitar', 'Singing', 'Piano', 'Music Production', 'Dancing', 'Painting', 'Poetry', 'Theatre'],
+    items: [
+      'Guitar',
+      'Singing',
+      'Piano',
+      'Music Production',
+      'Dancing',
+      'Painting',
+      'Poetry',
+      'Theatre',
+    ],
   },
   {
     label: 'Sports & Fitness',
-    items: ['Cricket', 'Football', 'Basketball', 'Badminton', 'Swimming', 'Gym/Fitness', 'Yoga', 'Running', 'Chess', 'Table Tennis'],
+    items: [
+      'Cricket',
+      'Football',
+      'Basketball',
+      'Badminton',
+      'Swimming',
+      'Gym/Fitness',
+      'Yoga',
+      'Running',
+      'Chess',
+      'Table Tennis',
+    ],
   },
   {
     label: 'Life & Growth',
-    items: ['Leadership', 'Communication', 'Time Management', 'Networking', 'Mental Health', 'Reading', 'Volunteering', 'Travel'],
+    items: [
+      'Leadership',
+      'Communication',
+      'Time Management',
+      'Networking',
+      'Mental Health',
+      'Reading',
+      'Volunteering',
+      'Travel',
+    ],
   },
   {
     label: 'Academic',
-    items: ['Research', 'Competitive Exams', 'GATE', 'GRE', 'CAT', 'Interview Prep', 'Resume Building', 'Placements'],
+    items: [
+      'Research',
+      'Competitive Exams',
+      'GATE',
+      'GRE',
+      'CAT',
+      'Interview Prep',
+      'Resume Building',
+      'Placements',
+    ],
   },
 ];
 
@@ -57,23 +134,23 @@ export default function StepInterests({ initialData, onComplete, saving }: Props
   const [customInput, setCustomInput] = useState('');
 
   const toggle = (item: string) => {
-    setSelected(prev => prev.includes(item) ? prev.filter(i => i !== item) : [...prev, item]);
+    setSelected((prev) => (prev.includes(item) ? prev.filter((i) => i !== item) : [...prev, item]));
   };
 
   const toggleTeach = (item: string) => {
     if (!selected.includes(item)) return;
-    setCanTeach(prev => prev.includes(item) ? prev.filter(i => i !== item) : [...prev, item]);
+    setCanTeach((prev) => (prev.includes(item) ? prev.filter((i) => i !== item) : [...prev, item]));
   };
 
   const addCustom = () => {
     const label = normalizeCustomLabel(customInput);
     if (!label) return;
-    const exists = selected.some(s => s.toLowerCase() === label.toLowerCase());
+    const exists = selected.some((s) => s.toLowerCase() === label.toLowerCase());
     if (exists) {
       setCustomInput('');
       return;
     }
-    setSelected(prev => [...prev, label]);
+    setSelected((prev) => [...prev, label]);
     setCustomInput('');
   };
 
@@ -84,9 +161,9 @@ export default function StepInterests({ initialData, onComplete, saving }: Props
     }
   };
 
-  const allItems = INTEREST_GROUPS.flatMap(g => g.items);
+  const allItems = INTEREST_GROUPS.flatMap((g) => g.items);
   const filtered = search
-    ? allItems.filter(i => i.toLowerCase().includes(search.toLowerCase()))
+    ? allItems.filter((i) => i.toLowerCase().includes(search.toLowerCase()))
     : null;
 
   const canContinue = selected.length >= 2;
@@ -94,7 +171,8 @@ export default function StepInterests({ initialData, onComplete, saving }: Props
   return (
     <div className="flex-1 flex flex-col gap-4">
       <p className="text-xs text-neutral-500 dark:text-neutral-400">
-        Pick at least 2 interests from the list or add your own. Tap the star on any to mark it as something you can teach others.
+        Pick at least 2 interests from the list or add your own. Tap the star on any to mark it as
+        something you can teach others.
       </p>
 
       {/* Search */}
@@ -129,14 +207,24 @@ export default function StepInterests({ initialData, onComplete, saving }: Props
       {/* Selected summary */}
       {selected.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
-          {selected.map(item => (
+          {selected.map((item) => (
             <span
               key={item}
               className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-black dark:bg-white text-white dark:text-black text-xs font-medium"
             >
-              {canTeach.includes(item) && <span className="text-yellow-300 dark:text-yellow-600">★</span>}
+              {canTeach.includes(item) && (
+                <span className="text-yellow-300 dark:text-yellow-600">★</span>
+              )}
               {item}
-              <button onClick={() => { toggle(item); setCanTeach(prev => prev.filter(i => i !== item)); }} className="ml-0.5 opacity-70 hover:opacity-100">&times;</button>
+              <button
+                onClick={() => {
+                  toggle(item);
+                  setCanTeach((prev) => prev.filter((i) => i !== item));
+                }}
+                className="ml-0.5 opacity-70 hover:opacity-100"
+              >
+                &times;
+              </button>
             </span>
           ))}
         </div>
@@ -146,7 +234,7 @@ export default function StepInterests({ initialData, onComplete, saving }: Props
       <div className="flex-1 overflow-y-auto -mx-1 px-1 space-y-4 max-h-[340px] custom-scrollbar">
         {filtered ? (
           <div className="flex flex-wrap gap-1.5">
-            {filtered.map(item => {
+            {filtered.map((item) => {
               const isSelected = selected.includes(item);
               const isTeach = canTeach.includes(item);
               return (
@@ -163,10 +251,15 @@ export default function StepInterests({ initialData, onComplete, saving }: Props
                   </button>
                   {isSelected && (
                     <button
-                      onClick={(e) => { e.stopPropagation(); toggleTeach(item); }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleTeach(item);
+                      }}
                       title="I can teach this"
                       className={`absolute -top-1 -right-1 w-4 h-4 rounded-full text-[8px] flex items-center justify-center ${
-                        isTeach ? 'bg-yellow-400 text-black' : 'bg-neutral-300 dark:bg-neutral-600 text-neutral-600 dark:text-neutral-300'
+                        isTeach
+                          ? 'bg-yellow-400 text-black'
+                          : 'bg-neutral-300 dark:bg-neutral-600 text-neutral-600 dark:text-neutral-300'
                       }`}
                     >
                       ★
@@ -177,11 +270,13 @@ export default function StepInterests({ initialData, onComplete, saving }: Props
             })}
           </div>
         ) : (
-          INTEREST_GROUPS.map(group => (
+          INTEREST_GROUPS.map((group) => (
             <div key={group.label}>
-              <p className="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider mb-2">{group.label}</p>
+              <p className="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider mb-2">
+                {group.label}
+              </p>
               <div className="flex flex-wrap gap-1.5">
-                {group.items.map(item => {
+                {group.items.map((item) => {
                   const isSelected = selected.includes(item);
                   const isTeach = canTeach.includes(item);
                   return (
@@ -198,10 +293,15 @@ export default function StepInterests({ initialData, onComplete, saving }: Props
                       </button>
                       {isSelected && (
                         <button
-                          onClick={(e) => { e.stopPropagation(); toggleTeach(item); }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleTeach(item);
+                          }}
                           title="I can teach this"
                           className={`absolute -top-1 -right-1 w-4 h-4 rounded-full text-[8px] flex items-center justify-center transition-colors ${
-                            isTeach ? 'bg-yellow-400 text-black' : 'bg-neutral-300 dark:bg-neutral-600 text-neutral-600 dark:text-neutral-300'
+                            isTeach
+                              ? 'bg-yellow-400 text-black'
+                              : 'bg-neutral-300 dark:bg-neutral-600 text-neutral-600 dark:text-neutral-300'
                           }`}
                         >
                           ★
@@ -219,12 +319,18 @@ export default function StepInterests({ initialData, onComplete, saving }: Props
       {/* Continue */}
       <div className="pt-3">
         <button
-          onClick={() => onComplete({
-            interests: selected,
-            skills: selected.map(s => ({ name: s, proficiency: 'Beginner', category: 'General' })),
-            canTeach,
-            wantToLearn: selected.filter(s => !canTeach.includes(s)),
-          })}
+          onClick={() =>
+            onComplete({
+              interests: selected,
+              skills: selected.map((s) => ({
+                name: s,
+                proficiency: 'Beginner',
+                category: 'General',
+              })),
+              canTeach,
+              wantToLearn: selected.filter((s) => !canTeach.includes(s)),
+            })
+          }
           disabled={!canContinue || saving}
           className={`w-full py-3.5 rounded-xl font-semibold text-sm transition-all ${
             canContinue && !saving
@@ -232,7 +338,9 @@ export default function StepInterests({ initialData, onComplete, saving }: Props
               : 'bg-neutral-200 dark:bg-neutral-800 text-neutral-400 cursor-not-allowed'
           }`}
         >
-          {saving ? 'Finding your matches...' : `Continue with ${selected.length} interest${selected.length !== 1 ? 's' : ''}`}
+          {saving
+            ? 'Finding your matches...'
+            : `Continue with ${selected.length} interest${selected.length !== 1 ? 's' : ''}`}
         </button>
       </div>
     </div>

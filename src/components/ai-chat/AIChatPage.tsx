@@ -1,26 +1,31 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import {
-  ChevronLeft,
-  Send,
-  Loader2,
-  Sparkles,
-  Briefcase,
-  FileText,
-  Users,
-  Target,
-  Bot,
-  User,
-  RefreshCw,
-  Lightbulb,
-  GraduationCap,
-  TrendingUp,
-} from 'lucide-react';
-import Link from 'next/link';
+  getAIErrorMessage,
+  sendCareerChatMessage,
+  type CareerChatHistoryItem,
+} from '@/lib/api/ai-chat';
 import { useAuth } from '@/lib/auth/useAuth';
-import apiClient from '@/lib/api/client';
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  Bot,
+  Briefcase,
+  ChevronLeft,
+  FileText,
+  GraduationCap,
+  Lightbulb,
+  Loader2,
+  RefreshCw,
+  Send,
+  Sparkles,
+  Target,
+  TrendingUp,
+  User,
+  Users,
+} from 'lucide-react';
+import Image from 'next/image';
+import Link from 'next/link';
+import React, { useEffect, useRef, useState } from 'react';
 
 interface Message {
   id: string;
@@ -106,13 +111,15 @@ const categories: Category[] = [
   },
 ];
 
-async function sendChatMessage(message: string, conversationHistory: { role: string; content: string }[]): Promise<string> {
-  const response = await apiClient.post('/ai/career-chat', {
+async function sendChatMessage(
+  message: string,
+  conversationHistory: { role: string; content: string }[]
+): Promise<string> {
+  const response = await sendCareerChatMessage(
     message,
-    conversationHistory,
-  });
-  const data = response as unknown as { reply?: string; message?: string };
-  return data.reply || data.message || 'I apologize, but I encountered an issue. Please try again.';
+    conversationHistory as CareerChatHistoryItem[]
+  );
+  return response.reply || 'I apologize, but I encountered an issue. Please try again.';
 }
 
 export function AIChatPage() {
@@ -133,19 +140,19 @@ export function AIChatPage() {
     if (!messageText || isLoading) return;
 
     const userMessage: Message = {
-      id: Date.now().toString(),
+      id: crypto.randomUUID(),
       role: 'user',
       content: messageText,
       timestamp: new Date(),
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    setMessages((prev) => [...prev, userMessage]);
     setInputValue('');
     setSelectedCategory(null);
     setIsLoading(true);
 
     try {
-      const conversationHistory = messages.map(m => ({
+      const conversationHistory = messages.map((m) => ({
         role: m.role,
         content: m.content,
       }));
@@ -153,22 +160,22 @@ export function AIChatPage() {
       const response = await sendChatMessage(messageText, conversationHistory);
 
       const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
+        id: crypto.randomUUID(),
         role: 'assistant',
         content: response,
         timestamp: new Date(),
       };
 
-      setMessages(prev => [...prev, assistantMessage]);
+      setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
       console.error('AI Chat error:', error);
       const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
+        id: crypto.randomUUID(),
         role: 'assistant',
-        content: 'I apologize, but I encountered an issue. Please try again later.',
+        content: getAIErrorMessage(error),
         timestamp: new Date(),
       };
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
     }
@@ -193,7 +200,10 @@ export function AIChatPage() {
         <div className="max-w-3xl mx-auto">
           <div className="flex items-center justify-between px-4 py-3">
             <div className="flex items-center gap-3">
-              <Link href="/more" className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors">
+              <Link
+                href="/more"
+                className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors"
+              >
                 <ChevronLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
               </Link>
               <div className="flex items-center gap-2">
@@ -201,7 +211,9 @@ export function AIChatPage() {
                   <Sparkles className="w-4 h-4 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-base font-semibold text-gray-900 dark:text-white">AI Career Assistant</h1>
+                  <h1 className="text-base font-semibold text-gray-900 dark:text-white">
+                    AI Career Assistant
+                  </h1>
                   <p className="text-xs text-gray-500">Your personal career guide</p>
                 </div>
               </div>
@@ -233,7 +245,8 @@ export function AIChatPage() {
                   How can I help you today?
                 </h2>
                 <p className="text-gray-500 dark:text-gray-400 max-w-md mx-auto">
-                  I'm your AI career assistant. Ask me about career advice, resume tips, interview preparation, and more.
+                  I&apos;m your AI career assistant. Ask me about career advice, resume tips,
+                  interview preparation, and more.
                 </p>
               </div>
 
@@ -242,18 +255,22 @@ export function AIChatPage() {
                 {categories.map((category) => (
                   <button
                     key={category.id}
-                    onClick={() => setSelectedCategory(selectedCategory?.id === category.id ? null : category)}
+                    onClick={() =>
+                      setSelectedCategory(selectedCategory?.id === category.id ? null : category)
+                    }
                     className={`p-4 rounded-xl border text-left transition-all ${
                       selectedCategory?.id === category.id
                         ? 'bg-purple-50 dark:bg-purple-900/20 border-purple-300 dark:border-purple-700'
                         : 'bg-white dark:bg-neutral-900 border-gray-200 dark:border-neutral-800 hover:border-gray-300 dark:hover:border-neutral-700'
                     }`}
                   >
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center mb-3 ${
-                      selectedCategory?.id === category.id
-                        ? 'bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400'
-                        : 'bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-gray-400'
-                    }`}>
+                    <div
+                      className={`w-10 h-10 rounded-lg flex items-center justify-center mb-3 ${
+                        selectedCategory?.id === category.id
+                          ? 'bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400'
+                          : 'bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-gray-400'
+                      }`}
+                    >
                       {category.icon}
                     </div>
                     <h3 className="font-medium text-sm text-gray-900 dark:text-white mb-0.5">
@@ -305,14 +322,23 @@ export function AIChatPage() {
                   animate={{ opacity: 1, y: 0 }}
                   className={`flex gap-3 ${message.role === 'user' ? 'flex-row-reverse' : ''}`}
                 >
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
-                    message.role === 'user'
-                      ? 'bg-blue-500'
-                      : 'bg-gradient-to-br from-purple-500 to-blue-600'
-                  }`}>
+                  <div
+                    className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+                      message.role === 'user'
+                        ? 'bg-blue-500'
+                        : 'bg-gradient-to-br from-purple-500 to-blue-600'
+                    }`}
+                  >
                     {message.role === 'user' ? (
                       user?.profileImage ? (
-                        <img src={user.profileImage} alt="" className="w-full h-full rounded-full object-cover" />
+                        <Image
+                          src={user.profileImage}
+                          alt=""
+                          width={32}
+                          height={32}
+                          className="w-full h-full rounded-full object-cover"
+                          unoptimized
+                        />
                       ) : (
                         <User className="w-4 h-4 text-white" />
                       )
@@ -320,16 +346,23 @@ export function AIChatPage() {
                       <Bot className="w-4 h-4 text-white" />
                     )}
                   </div>
-                  <div className={`max-w-[85%] ${
-                    message.role === 'user'
-                      ? 'bg-blue-500 text-white rounded-2xl rounded-tr-md px-4 py-3'
-                      : 'bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 text-gray-900 dark:text-white rounded-2xl rounded-tl-md px-4 py-3'
-                  }`}>
+                  <div
+                    className={`max-w-[85%] ${
+                      message.role === 'user'
+                        ? 'bg-blue-500 text-white rounded-2xl rounded-tr-md px-4 py-3'
+                        : 'bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 text-gray-900 dark:text-white rounded-2xl rounded-tl-md px-4 py-3'
+                    }`}
+                  >
                     <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
-                    <p className={`text-xs mt-1.5 ${
-                      message.role === 'user' ? 'text-blue-100' : 'text-gray-400'
-                    }`}>
-                      {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    <p
+                      className={`text-xs mt-1.5 ${
+                        message.role === 'user' ? 'text-blue-100' : 'text-gray-400'
+                      }`}
+                    >
+                      {message.timestamp.toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
                     </p>
                   </div>
                 </motion.div>
@@ -346,9 +379,18 @@ export function AIChatPage() {
                   </div>
                   <div className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-2xl rounded-tl-md px-4 py-3">
                     <div className="flex gap-1">
-                      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                      <span
+                        className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                        style={{ animationDelay: '0ms' }}
+                      />
+                      <span
+                        className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                        style={{ animationDelay: '150ms' }}
+                      />
+                      <span
+                        className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                        style={{ animationDelay: '300ms' }}
+                      />
                     </div>
                   </div>
                 </motion.div>

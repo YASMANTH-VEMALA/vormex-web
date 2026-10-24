@@ -6,10 +6,11 @@ export interface ProfileUser {
   name: string;
   email?: string; // Only included if viewing own profile
   avatar: string | null;
+  profileImage?: string | null;
   bannerImageUrl: string | null;
   headline: string | null;
   bio: string | null;
-  location: string | null;
+  location: ProfileLocation;
   college: string;
   degree: string | null;
   branch: string;
@@ -22,16 +23,39 @@ export interface ProfileUser {
   isOpenToOpportunities: boolean;
   profileVisibility: 'PUBLIC' | 'STUDENTS_ONLY' | 'CONNECTIONS';
   verified: boolean;
+  isVerified?: boolean;
+  profileBadgeStyle?: string | null;
+  isPremium?: boolean;
   interests: string[];
   profileRing?: string | null;
+  profileTheme?: string | null;
+  visitLoaderGiftId?: string | null;
+  canAccessProfileCustomization?: boolean;
   hasClaimedWelcomeGift?: boolean;
   createdAt: string;
+}
+
+export interface ProfileViewerContext {
+  connectionStatus?: string;
+  connectionId?: string | null;
+  direction?: string | null;
+  isFollowing?: boolean;
+  isFollowedBy?: boolean;
+  isProfileSaved?: boolean;
 }
 
 export interface SocialUrl {
   name: string;
   url: string;
 }
+
+export interface LocationParts {
+  city?: string | null;
+  region?: string | null;
+  country?: string | null;
+}
+
+export type ProfileLocation = string | LocationParts | null;
 
 export interface ProfileStats {
   xp: number;
@@ -59,6 +83,7 @@ export interface GitHubProfile {
   avatarUrl: string | null;
   profileUrl: string | null;
   stats: GitHubStats | null;
+  contributionCalendar: GitHubContributionCalendar | null;
   lastSyncedAt: string | null;
 }
 
@@ -84,6 +109,38 @@ export interface TopRepo {
   forks: number;
   language: string | null;
   description: string | null;
+  updatedAt?: string;
+}
+
+export type GitHubContributionLevel =
+  'NONE' | 'FIRST_QUARTILE' | 'SECOND_QUARTILE' | 'THIRD_QUARTILE' | 'FOURTH_QUARTILE';
+
+export interface GitHubContributionDay {
+  color: string;
+  contributionCount: number;
+  contributionLevel: GitHubContributionLevel;
+  date: string;
+  weekday: number;
+}
+
+export interface GitHubContributionWeek {
+  firstDay: string;
+  contributionDays: GitHubContributionDay[];
+}
+
+export interface GitHubContributionMonth {
+  firstDay: string;
+  name: string;
+  totalWeeks: number;
+  year: number;
+}
+
+export interface GitHubContributionCalendar {
+  colors: string[];
+  contributionYears: number[];
+  months: GitHubContributionMonth[];
+  totalContributions: number;
+  weeks: GitHubContributionWeek[];
 }
 
 export interface ActivityHeatmapDay {
@@ -118,7 +175,7 @@ export interface Experience {
   title: string;
   company: string;
   type: 'Internship' | 'Part-time' | 'Full-time' | 'Freelance' | 'Contract';
-  location: string | null;
+  location: ProfileLocation;
   startDate: string;
   endDate: string | null;
   isCurrent: boolean;
@@ -138,6 +195,7 @@ export interface Education {
   grade: string | null;
   activities: string | null;
   description: string | null;
+  logo?: string | null;
 }
 
 export interface Project {
@@ -213,6 +271,13 @@ export interface FullProfileResponse {
   projects: Project[];
   certificates: Certificate[];
   achievements: Achievement[];
+  viewerContext?: ProfileViewerContext;
+}
+
+export interface CoreProfileResponse {
+  user: ProfileUser;
+  stats: ProfileStats;
+  viewerContext?: ProfileViewerContext;
 }
 
 export interface ActivityYearsResponse {
@@ -282,6 +347,7 @@ export interface EducationInput {
   grade?: string;
   activities?: string;
   description?: string;
+  logo?: string;
 }
 
 export interface ProjectInput {
@@ -318,4 +384,3 @@ export interface AchievementInput {
   certificateUrl?: string;
   color?: string;
 }
-

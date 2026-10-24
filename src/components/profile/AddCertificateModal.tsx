@@ -1,103 +1,50 @@
 'use client';
+import type { AddCertificateModalProps } from './AddCertificateModal.types';
+import { createAddCertificateModalInitialState } from './createAddCertificateModalInitialState';
+export type { AddCertificateModalProps } from './AddCertificateModal.types';
 
-import { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import * as Dialog from '@radix-ui/react-dialog';
-import {
-  X,
-  Award,
-  Loader2,
-  Calendar,
-  Building,
-  Link as LinkIcon,
-  Hash,
-  Upload,
-  Trash2,
-  Check,
-} from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { createCertificate, updateCertificate } from '@/lib/api/profile';
 import { uploadCertificate } from '@/lib/api/posts';
-import type { Certificate, CertificateInput } from '@/types/profile';
+import { createCertificate, updateCertificate } from '@/lib/api/profile';
+import type { CertificateInput } from '@/types/profile';
+import * as Dialog from '@radix-ui/react-dialog';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Award, Building, Check, Hash, Link as LinkIcon, Upload, X } from 'lucide-react';
+import { useRef, useState } from 'react';
 
-const CARD_COLORS = [
-  { name: 'Neutral', value: '#525252' },
-  { name: 'Red', value: '#ef4444' },
-  { name: 'Orange', value: '#f97316' },
-  { name: 'Amber', value: '#f59e0b' },
-  { name: 'Green', value: '#10b981' },
-  { name: 'Blue', value: '#3b82f6' },
-  { name: 'Indigo', value: '#6366f1' },
-  { name: 'Purple', value: '#8b5cf6' },
-  { name: 'Pink', value: '#ec4899' },
-];
-
-interface AddCertificateModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onCertificateAdded: (certificate: Certificate) => void;
-  certificateToEdit?: Certificate | null;
-  onCertificateUpdated?: (certificate: Certificate) => void;
-}
-
-export function AddCertificateModal({
+function AddCertificateModalSession({
   isOpen,
   onClose,
   onCertificateAdded,
   certificateToEdit,
   onCertificateUpdated,
 }: AddCertificateModalProps) {
-  const [loading, setLoading] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [initialValues] = useState(() =>
+    createAddCertificateModalInitialState({ certificateToEdit })
+  );
+  const [loading, setLoading] = useState(initialValues.loading);
+  const [uploading, setUploading] = useState(initialValues.uploading);
+  const [error, setError] = useState<string | null>(initialValues.error);
 
   // Form state
-  const [name, setName] = useState('');
-  const [issuingOrg, setIssuingOrg] = useState('');
-  const [issueDate, setIssueDate] = useState('');
-  const [expiryDate, setExpiryDate] = useState('');
-  const [doesNotExpire, setDoesNotExpire] = useState(false);
-  const [credentialId, setCredentialId] = useState('');
-  const [credentialUrl, setCredentialUrl] = useState('');
-  const [certificateFile, setCertificateFile] = useState<File | null>(null);
-  const [certificatePreview, setCertificatePreview] = useState<string | null>(null);
-  const [uploadMethod, setUploadMethod] = useState<'url' | 'file'>('file');
-  const [selectedColor, setSelectedColor] = useState(CARD_COLORS[0].value);
+  const [name, setName] = useState(initialValues.name);
+  const [issuingOrg, setIssuingOrg] = useState(initialValues.issuingOrg);
+  const [issueDate, setIssueDate] = useState(initialValues.issueDate);
+  const [expiryDate, setExpiryDate] = useState(initialValues.expiryDate);
+  const [doesNotExpire, setDoesNotExpire] = useState(initialValues.doesNotExpire);
+  const [credentialId, setCredentialId] = useState(initialValues.credentialId);
+  const [credentialUrl, setCredentialUrl] = useState(initialValues.credentialUrl);
+  const [certificateFile, setCertificateFile] = useState<File | null>(
+    initialValues.certificateFile
+  );
+  const [certificatePreview, setCertificatePreview] = useState<string | null>(
+    initialValues.certificatePreview
+  );
+  const [uploadMethod, setUploadMethod] = useState<'url' | 'file'>(initialValues.uploadMethod);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    if (isOpen) {
-      if (certificateToEdit) {
-        setName(certificateToEdit.name);
-        setIssuingOrg(certificateToEdit.issuingOrg);
-        setIssueDate(certificateToEdit.issueDate.split('T')[0]);
-        setExpiryDate(certificateToEdit.expiryDate ? certificateToEdit.expiryDate.split('T')[0] : '');
-        setDoesNotExpire(certificateToEdit.doesNotExpire);
-        setCredentialId(certificateToEdit.credentialId || '');
-        setCredentialUrl(certificateToEdit.credentialUrl || '');
-        setSelectedColor(certificateToEdit.color || CARD_COLORS[0].value);
-
-        // Preview setup
-        if (certificateToEdit.credentialUrl) {
-          if (certificateToEdit.credentialUrl.match(/\.(jpeg|jpg|png|webp)/i) ||
-            certificateToEdit.credentialUrl.includes('bunnycdn')) {
-            setCertificatePreview(certificateToEdit.credentialUrl);
-            setUploadMethod('file');
-          } else {
-            setUploadMethod('url');
-          }
-        } else {
-          setUploadMethod('file');
-        }
-      } else {
-        resetForm();
-      }
-      setError(null);
-    }
-  }, [isOpen, certificateToEdit]);
-
-  const resetForm = () => {
+  function resetForm() {
     setName('');
     setIssuingOrg('');
     setIssueDate('');
@@ -108,9 +55,8 @@ export function AddCertificateModal({
     setCertificateFile(null);
     setCertificatePreview(null);
     setUploadMethod('file');
-    setSelectedColor(CARD_COLORS[0].value);
     setError(null);
-  };
+  }
 
   const handleClose = () => {
     resetForm();
@@ -181,7 +127,7 @@ export function AddCertificateModal({
         try {
           const result = await uploadCertificate(certificateFile);
           finalCredentialUrl = result.certificateUrl;
-        } catch (uploadErr: any) {
+        } catch (uploadErr: unknown) {
           console.error('Failed to upload certificate:', uploadErr);
           setError('Failed to upload certificate image. Please try again.');
           setLoading(false);
@@ -202,7 +148,6 @@ export function AddCertificateModal({
         doesNotExpire,
         credentialId: credentialId.trim() || undefined,
         credentialUrl: finalCredentialUrl || undefined,
-        color: selectedColor,
       };
 
       if (certificateToEdit && onCertificateUpdated) {
@@ -213,9 +158,9 @@ export function AddCertificateModal({
         onCertificateAdded(certificate);
       }
       handleClose();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to save certificate:', err);
-      setError(err.response?.data?.error || err.message || 'Failed to save certificate');
+      setError(err instanceof Error ? err.message : 'Failed to save certificate');
     } finally {
       setLoading(false);
       setUploading(false);
@@ -249,7 +194,7 @@ export function AddCertificateModal({
                     {/* Header */}
                     <div className="p-6 border-b border-neutral-200 dark:border-neutral-800 flex items-center justify-between">
                       <Dialog.Title className="text-xl font-bold tracking-tight text-neutral-900 dark:text-white uppercase flex items-center gap-2">
-                        <div style={{ color: selectedColor }}>
+                        <div className="text-neutral-500">
                           <Award className="w-5 h-5" />
                         </div>
                         {certificateToEdit ? 'Edit Certification' : 'Add Certification'}
@@ -271,7 +216,9 @@ export function AddCertificateModal({
 
                       {/* Name */}
                       <div>
-                        <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider mb-1.5 block">Certificate Name</label>
+                        <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider mb-1.5 block">
+                          Certificate Name
+                        </label>
                         <input
                           type="text"
                           value={name}
@@ -283,7 +230,9 @@ export function AddCertificateModal({
 
                       {/* Organization */}
                       <div>
-                        <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider mb-1.5 block">Issuing Organization</label>
+                        <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider mb-1.5 block">
+                          Issuing Organization
+                        </label>
                         <div className="relative">
                           <Building className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
                           <input
@@ -299,7 +248,9 @@ export function AddCertificateModal({
                       {/* Dates */}
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider mb-1.5 block">Issue Date</label>
+                          <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider mb-1.5 block">
+                            Issue Date
+                          </label>
                           <input
                             type="date"
                             value={issueDate}
@@ -308,7 +259,9 @@ export function AddCertificateModal({
                           />
                         </div>
                         <div>
-                          <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider mb-1.5 block">Expiry Date</label>
+                          <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider mb-1.5 block">
+                            Expiry Date
+                          </label>
                           <input
                             type="date"
                             value={expiryDate}
@@ -324,35 +277,24 @@ export function AddCertificateModal({
                           onClick={() => setDoesNotExpire(!doesNotExpire)}
                           className={`w-4 h-4 border flex items-center justify-center cursor-pointer transition-colors ${doesNotExpire ? 'bg-black dark:bg-white border-black dark:border-white' : 'border-neutral-300 dark:border-neutral-700'}`}
                         >
-                          {doesNotExpire && <Check className="w-3 h-3 text-white dark:text-black" />}
+                          {doesNotExpire && (
+                            <Check className="w-3 h-3 text-white dark:text-black" />
+                          )}
                         </div>
-                        <span onClick={() => setDoesNotExpire(!doesNotExpire)} className="text-xs font-bold uppercase tracking-wide text-neutral-600 dark:text-neutral-400 cursor-pointer">This credential does not expire</span>
+                        <span
+                          onClick={() => setDoesNotExpire(!doesNotExpire)}
+                          className="text-xs font-bold uppercase tracking-wide text-neutral-600 dark:text-neutral-400 cursor-pointer"
+                        >
+                          This credential does not expire
+                        </span>
                       </div>
-
-                      {/* Color Picker */}
-                      <div>
-                        <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider mb-2 block">Card Color</label>
-                        <div className="flex flex-wrap gap-2">
-                          {CARD_COLORS.map((color) => (
-                            <button
-                              key={color.value}
-                              type="button"
-                              onClick={() => setSelectedColor(color.value)}
-                              className={`w-8 h-8 rounded-none border border-neutral-200 dark:border-neutral-800 flex items-center justify-center transition-transform hover:scale-105 ${selectedColor === color.value ? 'ring-2 ring-black dark:ring-white ring-offset-2 dark:ring-offset-black' : ''}`}
-                              style={{ backgroundColor: color.value }}
-                              title={color.name}
-                            >
-                              {selectedColor === color.value && <Check className="w-4 h-4 text-white drop-shadow-md" />}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
 
                       {/* Credential ID & URL */}
                       <div className="space-y-4">
                         <div>
-                          <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider mb-1.5 block">Credential ID (Optional)</label>
+                          <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider mb-1.5 block">
+                            Credential ID (Optional)
+                          </label>
                           <div className="relative">
                             <Hash className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
                             <input
@@ -365,7 +307,9 @@ export function AddCertificateModal({
                         </div>
 
                         <div>
-                          <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider mb-1.5 block">Credential URL / File</label>
+                          <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider mb-1.5 block">
+                            Credential URL / File
+                          </label>
 
                           <div className="flex gap-2 mb-3">
                             <button
@@ -391,9 +335,16 @@ export function AddCertificateModal({
                             >
                               {certificatePreview ? (
                                 <>
-                                  <img src={certificatePreview} alt="Preview" className="h-full object-contain p-2" />
+                                  <img
+                                    src={certificatePreview}
+                                    alt="Preview"
+                                    className="h-full object-contain p-2"
+                                  />
                                   <button
-                                    onClick={(e) => { e.stopPropagation(); handleRemoveFile(); }}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleRemoveFile();
+                                    }}
                                     className="absolute top-2 right-2 p-1 bg-black text-white"
                                   >
                                     <X className="w-3 h-3" />
@@ -402,10 +353,18 @@ export function AddCertificateModal({
                               ) : (
                                 <>
                                   <Upload className="w-6 h-6 text-neutral-400 group-hover:text-black dark:group-hover:text-white mb-2" />
-                                  <span className="text-xs font-bold uppercase text-neutral-500">Click to Upload</span>
+                                  <span className="text-xs font-bold uppercase text-neutral-500">
+                                    Click to Upload
+                                  </span>
                                 </>
                               )}
-                              <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileSelect} className="hidden" />
+                              <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept="image/*"
+                                onChange={handleFileSelect}
+                                className="hidden"
+                              />
                             </div>
                           ) : (
                             <div className="relative">
@@ -436,7 +395,13 @@ export function AddCertificateModal({
                           disabled={loading || uploading}
                           className="flex-[2] py-4 bg-black dark:bg-white text-white dark:text-black rounded-none text-xs font-bold uppercase tracking-wider hover:opacity-90 disabled:opacity-50"
                         >
-                          {uploading ? 'Uploading...' : loading ? 'Saving...' : certificateToEdit ? 'Save Changes' : 'Add Certificate'}
+                          {uploading
+                            ? 'Uploading...'
+                            : loading
+                              ? 'Saving...'
+                              : certificateToEdit
+                                ? 'Save Changes'
+                                : 'Add Certificate'}
                         </Button>
                       </div>
                     </form>
@@ -449,4 +414,11 @@ export function AddCertificateModal({
       </Dialog.Portal>
     </Dialog.Root>
   );
+}
+
+/** A fresh form session owns its draft; background prop updates cannot overwrite it. */
+export function AddCertificateModal(props: AddCertificateModalProps) {
+  return props.isOpen ? (
+    <AddCertificateModalSession key={props.certificateToEdit?.id ?? 'new'} {...props} />
+  ) : null;
 }

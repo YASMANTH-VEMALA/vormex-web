@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
-import Image from 'next/image';
-import { format, isToday, isYesterday } from 'date-fns';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Group, GroupMessage, GroupUser, getGroupMessages } from '@/lib/api/groups';
-import { getSocket, initializeSocket } from '@/lib/socket';
 import { useAuth } from '@/lib/auth/useAuth';
+import { getSocket, initializeSocket } from '@/lib/socket';
 import { cn } from '@/lib/utils';
+import { format, isToday, isYesterday } from 'date-fns';
+import { AnimatePresence, motion } from 'framer-motion';
+import Image from 'next/image';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface GroupChatProps {
   group: Group;
@@ -58,25 +58,28 @@ export default function GroupChat({ group }: GroupChatProps) {
 
     // Listen for new messages
     socket.on('group:new_message', (newMessage: GroupMessage) => {
-      setMessages(prev => [...prev, newMessage]);
+      setMessages((prev) => [...prev, newMessage]);
       scrollToBottom();
     });
 
     // Listen for typing indicators
-    socket.on('group:user_typing', (data: { groupId: string; user: GroupUser; isTyping: boolean }) => {
-      if (data.groupId !== group.id || data.user.id === user?.id) return;
-      
-      setTypingUsers(prev => {
-        if (data.isTyping) {
-          if (!prev.find(u => u.id === data.user.id)) {
-            return [...prev, data.user];
+    socket.on(
+      'group:user_typing',
+      (data: { groupId: string; user: GroupUser; isTyping: boolean }) => {
+        if (data.groupId !== group.id || data.user.id === user?.id) return;
+
+        setTypingUsers((prev) => {
+          if (data.isTyping) {
+            if (!prev.find((u) => u.id === data.user.id)) {
+              return [...prev, data.user];
+            }
+          } else {
+            return prev.filter((u) => u.id !== data.user.id);
           }
-        } else {
-          return prev.filter(u => u.id !== data.user.id);
-        }
-        return prev;
-      });
-    });
+          return prev;
+        });
+      }
+    );
 
     // Listen for online count
     socket.on('group:online_count', (data: { groupId: string; count: number }) => {
@@ -100,7 +103,7 @@ export default function GroupChat({ group }: GroupChatProps) {
     // Listen for message deletions
     socket.on('group:message_deleted', (data: { groupId: string; messageId: string }) => {
       if (data.groupId === group.id) {
-        setMessages(prev => prev.filter(m => m.id !== data.messageId));
+        setMessages((prev) => prev.filter((m) => m.id !== data.messageId));
       }
     });
 
@@ -150,7 +153,7 @@ export default function GroupChat({ group }: GroupChatProps) {
     });
 
     setMessage('');
-    
+
     // Stop typing indicator
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
@@ -166,16 +169,19 @@ export default function GroupChat({ group }: GroupChatProps) {
   };
 
   // Group messages by date
-  const groupedMessages = messages.reduce((acc, msg) => {
-    const date = new Date(msg.createdAt);
-    let dateLabel = format(date, 'MMMM d, yyyy');
-    if (isToday(date)) dateLabel = 'Today';
-    else if (isYesterday(date)) dateLabel = 'Yesterday';
-    
-    if (!acc[dateLabel]) acc[dateLabel] = [];
-    acc[dateLabel].push(msg);
-    return acc;
-  }, {} as Record<string, GroupMessage[]>);
+  const groupedMessages = messages.reduce(
+    (acc, msg) => {
+      const date = new Date(msg.createdAt);
+      let dateLabel = format(date, 'MMMM d, yyyy');
+      if (isToday(date)) dateLabel = 'Today';
+      else if (isYesterday(date)) dateLabel = 'Yesterday';
+
+      if (!acc[dateLabel]) acc[dateLabel] = [];
+      acc[dateLabel].push(msg);
+      return acc;
+    },
+    {} as Record<string, GroupMessage[]>
+  );
 
   if (loading) {
     return (
@@ -192,7 +198,13 @@ export default function GroupChat({ group }: GroupChatProps) {
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl overflow-hidden bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold">
             {group.iconImage ? (
-              <Image src={group.iconImage} alt={group.name} width={40} height={40} className="object-cover" />
+              <Image
+                src={group.iconImage}
+                alt={group.name}
+                width={40}
+                height={40}
+                className="object-cover"
+              />
             ) : (
               group.name.charAt(0).toUpperCase()
             )}
@@ -220,18 +232,19 @@ export default function GroupChat({ group }: GroupChatProps) {
             {/* Messages for this date */}
             {msgs.map((msg, index) => {
               const isOwn = msg.senderId === user?.id;
-              const showAvatar = !isOwn && (index === 0 || msgs[index - 1]?.senderId !== msg.senderId);
+              const showAvatar =
+                !isOwn && (index === 0 || msgs[index - 1]?.senderId !== msg.senderId);
 
               return (
                 <motion.div
                   key={msg.id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className={cn("flex gap-2 mb-2", isOwn ? "justify-end" : "justify-start")}
+                  className={cn('flex gap-2 mb-2', isOwn ? 'justify-end' : 'justify-start')}
                 >
                   {/* Avatar */}
                   {!isOwn && (
-                    <div className={cn("w-8 h-8 flex-shrink-0", !showAvatar && "invisible")}>
+                    <div className={cn('w-8 h-8 flex-shrink-0', !showAvatar && 'invisible')}>
                       {msg.sender.profileImage ? (
                         <Image
                           src={msg.sender.profileImage}
@@ -249,20 +262,20 @@ export default function GroupChat({ group }: GroupChatProps) {
                   )}
 
                   {/* Message */}
-                  <div className={cn("max-w-[70%]", isOwn ? "text-right" : "text-left")}>
+                  <div className={cn('max-w-[70%]', isOwn ? 'text-right' : 'text-left')}>
                     {/* Sender name */}
                     {!isOwn && showAvatar && (
                       <span className="text-xs text-gray-500 dark:text-gray-400 ml-1 mb-1 block">
                         {msg.sender.name}
                       </span>
                     )}
-                    
+
                     <div
                       className={cn(
-                        "inline-block px-4 py-2 rounded-2xl",
+                        'inline-block px-4 py-2 rounded-2xl',
                         isOwn
-                          ? "bg-blue-600 text-white rounded-br-md"
-                          : "bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-bl-md shadow-sm"
+                          ? 'bg-blue-600 text-white rounded-br-md'
+                          : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-bl-md shadow-sm'
                       )}
                     >
                       {/* Media */}
@@ -285,8 +298,18 @@ export default function GroupChat({ group }: GroupChatProps) {
                               rel="noopener noreferrer"
                               className="flex items-center gap-2 text-blue-400 hover:underline"
                             >
-                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                              <svg
+                                className="w-5 h-5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
+                                />
                               </svg>
                               {msg.fileName || 'Attachment'}
                             </a>
@@ -298,12 +321,14 @@ export default function GroupChat({ group }: GroupChatProps) {
                       {msg.content && (
                         <p className="whitespace-pre-wrap break-words">{msg.content}</p>
                       )}
-                      
+
                       {/* Time */}
-                      <span className={cn(
-                        "text-xs mt-1 block",
-                        isOwn ? "text-blue-200" : "text-gray-400"
-                      )}>
+                      <span
+                        className={cn(
+                          'text-xs mt-1 block',
+                          isOwn ? 'text-blue-200' : 'text-gray-400'
+                        )}
+                      >
                         {formatMessageTime(msg.createdAt)}
                       </span>
                     </div>
@@ -325,9 +350,18 @@ export default function GroupChat({ group }: GroupChatProps) {
             >
               <div className="flex -space-x-2">
                 {typingUsers.slice(0, 3).map((u) => (
-                  <div key={u.id} className="w-6 h-6 rounded-full bg-gray-300 dark:bg-gray-600 border-2 border-white dark:border-gray-900 overflow-hidden">
+                  <div
+                    key={u.id}
+                    className="w-6 h-6 rounded-full bg-gray-300 dark:bg-gray-600 border-2 border-white dark:border-gray-900 overflow-hidden"
+                  >
                     {u.profileImage ? (
-                      <Image src={u.profileImage} alt={u.name} width={24} height={24} className="object-cover" />
+                      <Image
+                        src={u.profileImage}
+                        alt={u.name}
+                        width={24}
+                        height={24}
+                        className="object-cover"
+                      />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-xs">
                         {u.name.charAt(0)}
@@ -353,10 +387,15 @@ export default function GroupChat({ group }: GroupChatProps) {
         <div className="flex items-center gap-3">
           <button className="p-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
+              />
             </svg>
           </button>
-          
+
           <input
             type="text"
             value={message}
@@ -373,14 +412,19 @@ export default function GroupChat({ group }: GroupChatProps) {
             placeholder="Type a message..."
             className="flex-1 px-4 py-2.5 bg-gray-100 dark:bg-gray-900 rounded-full border-0 focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white placeholder-gray-500"
           />
-          
+
           <button
             onClick={handleSend}
             disabled={!message.trim()}
             className="p-2.5 bg-blue-600 text-white rounded-full hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+              />
             </svg>
           </button>
         </div>

@@ -9,6 +9,8 @@ export interface User {
   bio?: string | null;
   graduationYear?: number | null;
   isVerified: boolean;
+  isPremium?: boolean;
+  profileBadgeStyle?: string | null;
   authProvider?: 'email' | 'google';
   profileRing?: string | null; // "original" | "hue" - animated ring from welcome gift
   hasClaimedWelcomeGift?: boolean;
@@ -20,7 +22,13 @@ export interface User {
 
 export interface AuthResponse {
   user: User;
-  token: string;
+  csrfToken?: string;
+  message?: string;
+  requiresVerification?: boolean;
+  session?: {
+    id: string;
+    expiresAt: string;
+  };
 }
 
 export interface LoginCredentials {
@@ -32,12 +40,15 @@ export interface RegisterData {
   email: string;
   password: string;
   name: string;
+  username?: string;
   college?: string;
   branch?: string;
 }
 
 export interface ApiError {
   error: string;
+  code?: string;
+  retryAfterSeconds?: number;
+  requestId?: string;
   requiresVerification?: boolean;
 }
-

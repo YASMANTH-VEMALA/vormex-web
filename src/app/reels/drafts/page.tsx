@@ -1,19 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { Reel, reelsApi } from '@/lib/api/reels';
+import { ArrowLeft, Edit, Film, Loader2, MoreVertical, Send, Trash2 } from 'lucide-react';
 import Image from 'next/image';
-import {
-  ArrowLeft,
-  Loader2,
-  Film,
-  MoreVertical,
-  Play,
-  Trash2,
-  Send,
-  Edit,
-} from 'lucide-react';
-import { reelsApi, Reel } from '@/lib/api/reels';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 export default function DraftsPage() {
   const router = useRouter();
@@ -98,10 +89,10 @@ export default function DraftsPage() {
               Save reels as drafts while creating to finish later
             </p>
             <button
-              onClick={() => router.push('/reels/create')}
+              onClick={() => router.push('/reels')}
               className="px-6 py-3 bg-white text-black rounded-full font-medium hover:bg-white/90"
             >
-              Create Reel
+              Back to Reels
             </button>
           </div>
         ) : (
@@ -112,12 +103,7 @@ export default function DraftsPage() {
                 className="relative aspect-[9/16] bg-neutral-800 rounded-xl overflow-hidden group"
               >
                 {reel.thumbnailUrl ? (
-                  <Image
-                    src={reel.thumbnailUrl}
-                    alt=""
-                    fill
-                    className="object-cover"
-                  />
+                  <Image src={reel.thumbnailUrl} alt="" fill className="object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
                     <Film className="w-12 h-12 text-neutral-600" />
@@ -147,10 +133,7 @@ export default function DraftsPage() {
 
                 {menuOpen === reel.id && (
                   <>
-                    <div
-                      className="fixed inset-0 z-40"
-                      onClick={() => setMenuOpen(null)}
-                    />
+                    <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(null)} />
                     <div className="absolute right-2 top-14 z-50 bg-neutral-800 rounded-xl shadow-xl py-2 min-w-[140px]">
                       <button
                         onClick={() => handleEdit(reel.id)}

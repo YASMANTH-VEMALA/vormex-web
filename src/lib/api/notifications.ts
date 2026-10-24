@@ -98,20 +98,17 @@ export const notificationsApi = {
   getAll: (params?: { cursor?: string; limit?: number; unreadOnly?: boolean }) =>
     apiClient.get<NotificationsResponse>('/notifications', { params }),
 
-  getUnreadCount: () =>
-    apiClient.get<{ count: number }>('/notifications/unread-count'),
+  getUnreadCount: () => apiClient.get<{ count: number }>('/notifications/unread-count'),
 
   markAsRead: (notificationIds: string[]) =>
     apiClient.post<{ success: boolean }>('/notifications/read', { notificationIds }),
 
-  markAllAsRead: () =>
-    apiClient.post<{ success: boolean }>('/notifications/read-all'),
+  markAllAsRead: () => apiClient.post<{ success: boolean }>('/notifications/read-all'),
 
   deleteNotification: (notificationId: string) =>
     apiClient.delete<{ success: boolean }>(`/notifications/${notificationId}`),
 
-  getSettings: () =>
-    apiClient.get<{ settings: NotificationSettings }>('/notifications/settings'),
+  getSettings: () => apiClient.get<{ settings: NotificationSettings }>('/notifications/settings'),
 };
 
 // Transform backend notification to component format
@@ -137,7 +134,8 @@ function transformNotification(n: Notification): Notification {
     ...n,
     type: mappedType,
     content: n.body,
-    postPreview: (data?.commentPreview as string) || (typeof n.body === 'string' ? n.body.slice(0, 50) : ''),
+    postPreview:
+      (data?.commentPreview as string) || (typeof n.body === 'string' ? n.body.slice(0, 50) : ''),
     postId: n.post?.id ?? (data?.postId as string),
     commentId: data?.commentId as string,
     reelId: n.reel?.id ?? (data?.reelId as string),
@@ -146,8 +144,14 @@ function transformNotification(n: Notification): Notification {
 }
 
 /** Get notifications - for Notifications component */
-export async function getNotifications(params?: { cursor?: string; limit?: number; unreadOnly?: boolean }) {
-  const data = (await apiClient.get('/notifications', { params })) as unknown as NotificationsResponse;
+export async function getNotifications(params?: {
+  cursor?: string;
+  limit?: number;
+  unreadOnly?: boolean;
+}) {
+  const data = (await apiClient.get('/notifications', {
+    params,
+  })) as unknown as NotificationsResponse;
   return {
     notifications: data.notifications.map(transformNotification),
     nextCursor: data.nextCursor,

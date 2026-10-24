@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useCallback, useContext, useState } from 'react';
 
 interface AgentContextType {
   isOpen: boolean;
@@ -18,9 +18,7 @@ export function AgentProvider({ children }: { children: React.ReactNode }) {
   const toggleAgent = useCallback(() => setIsOpen((prev) => !prev), []);
 
   return (
-    <AgentContext.Provider
-      value={{ isOpen, openAgent, closeAgent, toggleAgent }}
-    >
+    <AgentContext.Provider value={{ isOpen, openAgent, closeAgent, toggleAgent }}>
       {children}
     </AgentContext.Provider>
   );

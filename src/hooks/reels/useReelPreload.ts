@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useRef, useCallback } from 'react';
-import { reelsApi, Reel } from '@/lib/api/reels';
+import { Reel, reelsApi } from '@/lib/api/reels';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface UseReelPreloadOptions {
   reels: Reel[];
@@ -9,28 +9,26 @@ interface UseReelPreloadOptions {
   preloadCount?: number;
 }
 
-export function useReelPreload({
-  reels,
-  activeIndex,
-  preloadCount = 3,
-}: UseReelPreloadOptions) {
+export function useReelPreload({ reels, activeIndex, preloadCount = 3 }: UseReelPreloadOptions) {
+  const [preloadedCount, setPreloadedCount] = useState(0);
   const preloadedUrls = useRef<Set<string>>(new Set());
   const preloadedImages = useRef<Set<string>>(new Set());
 
   const preloadHls = useCallback(async (url: string) => {
     if (preloadedUrls.current.has(url)) return;
-    
+
     try {
       await fetch(url, { method: 'HEAD' });
       preloadedUrls.current.add(url);
-    } catch (error) {
+      setPreloadedCount(preloadedUrls.current.size);
+    } catch {
       // Ignore errors
     }
   }, []);
 
   const preloadThumbnail = useCallback((url: string) => {
     if (preloadedImages.current.has(url)) return;
-    
+
     const img = new Image();
     img.src = url;
     img.onload = () => {
@@ -51,29 +49,33 @@ export function useReelPreload({
     });
   }, [activeIndex, reels, preloadCount, preloadHls, preloadThumbnail]);
 
-  const preloadReel = useCallback(async (reelId: string) => {
-    try {
-      const data = await reelsApi.getPreloadData(reelId);
-      const preloadData = data as unknown as { hlsUrl: string; thumbnailUrl: string };
-      if (preloadData.hlsUrl) {
-        preloadHls(preloadData.hlsUrl);
+  const preloadReel = useCallback(
+    async (reelId: string) => {
+      try {
+        const data = await reelsApi.getPreloadData(reelId);
+        const preloadData = data as unknown as { hlsUrl: string; thumbnailUrl: string };
+        if (preloadData.hlsUrl) {
+          preloadHls(preloadData.hlsUrl);
+        }
+        if (preloadData.thumbnailUrl) {
+          preloadThumbnail(preloadData.thumbnailUrl);
+        }
+      } catch {
+        // Ignore errors
       }
-      if (preloadData.thumbnailUrl) {
-        preloadThumbnail(preloadData.thumbnailUrl);
-      }
-    } catch (error) {
-      // Ignore errors
-    }
-  }, [preloadHls, preloadThumbnail]);
+    },
+    [preloadHls, preloadThumbnail]
+  );
 
   const clearCache = useCallback(() => {
     preloadedUrls.current.clear();
     preloadedImages.current.clear();
+    setPreloadedCount(0);
   }, []);
 
   return {
     preloadReel,
     clearCache,
-    preloadedCount: preloadedUrls.current.size,
+    preloadedCount,
   };
 }

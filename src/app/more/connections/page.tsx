@@ -1,75 +1,83 @@
 'use client';
+import { useSyncedState } from '@/hooks/useSyncedState';
+import { useAuth as useResourceAuth } from '@/lib/auth/useAuth';
+import { useQuery } from '@tanstack/react-query';
 
-import { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { motion, AnimatePresence } from 'framer-motion';
-import {
-  ChevronLeft,
-  Users,
-  UserPlus,
-  UserCheck,
-  UserX,
-  Clock,
-  Send,
-  Check,
-  X,
-  Loader2,
-  Search,
-  MessageSquare,
-} from 'lucide-react';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import {
+  acceptConnectionRequest,
+  cancelConnectionRequest,
   getConnections,
   getPendingRequests,
   getSentRequests,
-  acceptConnectionRequest,
   rejectConnectionRequest,
-  cancelConnectionRequest,
   removeConnection,
   type Connection,
-  type ConnectionsResponse,
 } from '@/lib/api/connections';
 import { cn } from '@/lib/utils';
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  Check,
+  ChevronLeft,
+  Clock,
+  Loader2,
+  Search,
+  Send,
+  UserPlus,
+  Users,
+  UserX,
+  X,
+} from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 type Tab = 'connections' | 'pending' | 'sent';
 
 export default function ConnectionsPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<Tab>('pending');
-  const [connections, setConnections] = useState<Connection[]>([]);
-  const [pendingRequests, setPendingRequests] = useState<Connection[]>([]);
-  const [sentRequests, setSentRequests] = useState<Connection[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [initialConnections] = useState<Connection[]>([]);
+  const [initialPendingRequests] = useState<Connection[]>([]);
+  const [initialSentRequests] = useState<Connection[]>([]);
+
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [pendingCount, setPendingCount] = useState(0);
+  const [initialPendingCount] = useState(0);
 
   // Fetch data based on active tab
-  const fetchData = useCallback(async () => {
-    setLoading(true);
-    try {
-      if (activeTab === 'connections') {
-        const data = await getConnections(1, 50);
-        setConnections(data.connections || []);
-      } else if (activeTab === 'pending') {
-        const data = await getPendingRequests(1, 50);
-        setPendingRequests(data.connections || []);
-        setPendingCount(data.total || 0);
-      } else if (activeTab === 'sent') {
-        const data = await getSentRequests(1, 50);
-        setSentRequests(data.connections || []);
-      }
-    } catch (error) {
-      console.error('Failed to fetch data:', error);
-      // Reset to empty arrays on error
-      if (activeTab === 'connections') setConnections([]);
-      else if (activeTab === 'pending') setPendingRequests([]);
-      else if (activeTab === 'sent') setSentRequests([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [activeTab]);
+  const resourceViewer = useResourceAuth().user;
+  const fetchDataResource = useQuery({
+    queryKey: ['web-resource', 'connection-lists', resourceViewer?.id ?? 'anonymous', activeTab],
+    queryFn: async () => {
+      const result =
+        activeTab === 'pending'
+          ? await getPendingRequests(1, 50)
+          : activeTab === 'sent'
+            ? await getSentRequests(1, 50)
+            : await getConnections(1, 50);
+      return {
+        connections: activeTab === 'connections' ? result.connections || [] : [],
+        pendingRequests: activeTab === 'pending' ? result.connections || [] : [],
+        sentRequests: activeTab === 'sent' ? result.connections || [] : [],
+        pendingCount: activeTab === 'pending' ? result.total || 0 : 0,
+      };
+    },
+    retry: false,
+  });
+  const [connections, setConnections] = useSyncedState(
+    fetchDataResource.data?.connections ?? initialConnections
+  );
+  const [pendingRequests, setPendingRequests] = useSyncedState(
+    fetchDataResource.data?.pendingRequests ?? initialPendingRequests
+  );
+  const [sentRequests, setSentRequests] = useSyncedState(
+    fetchDataResource.data?.sentRequests ?? initialSentRequests
+  );
+  const loading = fetchDataResource.isPending;
+  const [pendingCount, setPendingCount] = useSyncedState(
+    fetchDataResource.data?.pendingCount ?? initialPendingCount
+  );
 
   // Fetch pending count on mount
   useEffect(() => {
@@ -82,19 +90,15 @@ export default function ConnectionsPage() {
       }
     };
     fetchPendingCount();
-  }, []);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+  }, [setPendingCount]);
 
   // Handle accept connection request
   const handleAccept = async (connectionId: string) => {
     setActionLoading(connectionId);
     try {
       await acceptConnectionRequest(connectionId);
-      setPendingRequests(prev => prev.filter(c => c.id !== connectionId));
-      setPendingCount(prev => Math.max(0, prev - 1));
+      setPendingRequests((prev) => prev.filter((c) => c.id !== connectionId));
+      setPendingCount((prev) => Math.max(0, prev - 1));
     } catch (error) {
       console.error('Failed to accept request:', error);
     } finally {
@@ -107,8 +111,8 @@ export default function ConnectionsPage() {
     setActionLoading(connectionId);
     try {
       await rejectConnectionRequest(connectionId);
-      setPendingRequests(prev => prev.filter(c => c.id !== connectionId));
-      setPendingCount(prev => Math.max(0, prev - 1));
+      setPendingRequests((prev) => prev.filter((c) => c.id !== connectionId));
+      setPendingCount((prev) => Math.max(0, prev - 1));
     } catch (error) {
       console.error('Failed to reject request:', error);
     } finally {
@@ -121,7 +125,7 @@ export default function ConnectionsPage() {
     setActionLoading(connectionId);
     try {
       await cancelConnectionRequest(connectionId);
-      setSentRequests(prev => prev.filter(c => c.id !== connectionId));
+      setSentRequests((prev) => prev.filter((c) => c.id !== connectionId));
     } catch (error) {
       console.error('Failed to cancel request:', error);
     } finally {
@@ -135,7 +139,7 @@ export default function ConnectionsPage() {
     setActionLoading(connectionId);
     try {
       await removeConnection(connectionId);
-      setConnections(prev => prev.filter(c => c.id !== connectionId));
+      setConnections((prev) => prev.filter((c) => c.id !== connectionId));
     } catch (error) {
       console.error('Failed to remove connection:', error);
     } finally {
@@ -144,9 +148,10 @@ export default function ConnectionsPage() {
   };
 
   // Filter connections based on search
-  const filteredConnections = connections.filter(c =>
-    c.user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    c.user.username.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredConnections = connections.filter(
+    (c) =>
+      c.user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      c.user.username.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const tabs = [
@@ -168,10 +173,13 @@ export default function ConnectionsPage() {
     },
   ];
 
-  const renderConnectionCard = (connection: Connection, type: 'connection' | 'pending' | 'sent') => {
+  const renderConnectionCard = (
+    connection: Connection,
+    type: 'connection' | 'pending' | 'sent'
+  ) => {
     const isLoading = actionLoading === connection.id;
     const profileUrl = `/profile/${connection.user.id}`;
-    
+
     return (
       <motion.div
         key={connection.id}
@@ -215,7 +223,7 @@ export default function ConnectionsPage() {
             )}
             {connection.message && type === 'pending' && (
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-2 italic bg-gray-50 dark:bg-neutral-800 p-2 rounded-lg">
-                "{connection.message}"
+                &quot;{connection.message}&quot;
               </p>
             )}
             <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
@@ -257,23 +265,12 @@ export default function ConnectionsPage() {
                 disabled={isLoading}
                 className="px-3 py-1.5 text-sm text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 border border-gray-300 dark:border-neutral-600 rounded-lg transition-colors disabled:opacity-50"
               >
-                {isLoading ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  'Cancel'
-                )}
+                {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Cancel'}
               </button>
             )}
 
             {type === 'connection' && (
               <>
-                <Link
-                  href={`/messages?userId=${connection.user.id}`}
-                  className="p-2 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400 rounded-full transition-colors"
-                  title="Message"
-                >
-                  <MessageSquare className="w-5 h-5" />
-                </Link>
                 <button
                   onClick={() => handleRemove(connection.id)}
                   disabled={isLoading}
@@ -321,12 +318,8 @@ export default function ConnectionsPage() {
         <div className="w-16 h-16 rounded-full bg-gray-100 dark:bg-neutral-800 flex items-center justify-center mb-4">
           <Icon className="w-8 h-8 text-gray-400 dark:text-gray-500" />
         </div>
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-          {state.title}
-        </h3>
-        <p className="text-sm text-gray-500 dark:text-gray-400 max-w-xs">
-          {state.description}
-        </p>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{state.title}</h3>
+        <p className="text-sm text-gray-500 dark:text-gray-400 max-w-xs">{state.description}</p>
         {type === 'connections' && (
           <Link
             href="/find-people"
@@ -356,9 +349,7 @@ export default function ConnectionsPage() {
                 <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-full">
                   <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                 </div>
-                <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-                  Connections
-                </h1>
+                <h1 className="text-xl font-bold text-gray-900 dark:text-white">Connections</h1>
               </div>
             </div>
           </div>
@@ -427,33 +418,26 @@ export default function ConnectionsPage() {
                 exit={{ opacity: 0, x: -20 }}
                 className="space-y-3"
               >
-                {activeTab === 'pending' && (
-                  (pendingRequests?.length || 0) > 0 ? (
-                    pendingRequests.map(c => renderConnectionCard(c, 'pending'))
-                  ) : (
-                    renderEmptyState('pending')
-                  )
-                )}
+                {activeTab === 'pending' &&
+                  ((pendingRequests?.length || 0) > 0
+                    ? pendingRequests.map((c) => renderConnectionCard(c, 'pending'))
+                    : renderEmptyState('pending'))}
 
-                {activeTab === 'connections' && (
-                  (filteredConnections?.length || 0) > 0 ? (
-                    filteredConnections.map(c => renderConnectionCard(c, 'connection'))
+                {activeTab === 'connections' &&
+                  ((filteredConnections?.length || 0) > 0 ? (
+                    filteredConnections.map((c) => renderConnectionCard(c, 'connection'))
                   ) : searchQuery ? (
                     <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                       No connections match your search
                     </div>
                   ) : (
                     renderEmptyState('connections')
-                  )
-                )}
+                  ))}
 
-                {activeTab === 'sent' && (
-                  (sentRequests?.length || 0) > 0 ? (
-                    sentRequests.map(c => renderConnectionCard(c, 'sent'))
-                  ) : (
-                    renderEmptyState('sent')
-                  )
-                )}
+                {activeTab === 'sent' &&
+                  ((sentRequests?.length || 0) > 0
+                    ? sentRequests.map((c) => renderConnectionCard(c, 'sent'))
+                    : renderEmptyState('sent'))}
               </motion.div>
             </AnimatePresence>
           )}

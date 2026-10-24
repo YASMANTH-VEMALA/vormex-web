@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
-import { X, Trophy, Check } from 'lucide-react';
 import type { MilestoneData } from '@/lib/api/variable-rewards';
+import { motion } from 'framer-motion';
+import { Check, Trophy, X } from 'lucide-react';
+import 'react';
 
 interface MilestoneCardProps {
   milestones: MilestoneData[];
@@ -51,7 +51,10 @@ export function MilestoneCard({ milestones, onDismiss }: MilestoneCardProps) {
             </p>
           </div>
         </div>
-        <button onClick={onDismiss} className="p-1 rounded-full hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors">
+        <button
+          onClick={onDismiss}
+          className="p-1 rounded-full hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors"
+        >
           <X className="w-4 h-4 text-emerald-400" />
         </button>
       </div>
@@ -88,8 +91,7 @@ export function MilestoneCard({ milestones, onDismiss }: MilestoneCardProps) {
           transition={{ delay: 0.5 }}
           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-emerald-500 to-green-500 text-white text-xs font-bold"
         >
-          <Trophy className="w-3 h-3" />
-          +{milestone.value * 10} XP earned
+          <Trophy className="w-3 h-3" />+{milestone.value * 10} XP earned
         </motion.div>
       </div>
     </motion.div>

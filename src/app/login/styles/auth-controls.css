@@ -1,0 +1,309 @@
+/* Swipe Button Styles */
+.swipe-button-container {
+  position: relative;
+  width: 250px;
+  height: 50px;
+  background-color: #ecf0f3;
+  border-radius: 25px;
+  box-shadow:
+    inset 8px 8px 16px #d1d9e6,
+    inset -8px -8px 16px #f9f9f9;
+  margin-top: 50px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.swipe-button-text {
+  position: absolute;
+  width: 100%;
+  text-align: center;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #a0a5a8;
+  pointer-events: none;
+  z-index: 1;
+  transition: opacity 0.3s ease;
+}
+
+.swipe-button-slider {
+  position: absolute;
+  left: 2px;
+  top: 2px;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background-color: #4b70e2;
+  box-shadow:
+    4px 4px 8px #d1d9e6,
+    -4px -4px 8px #f9f9f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  cursor: grab;
+  z-index: 2;
+  transition: transform 0.1s ease-out;
+}
+
+.swipe-button-slider:active {
+  cursor: grabbing;
+}
+
+.swipe-button-container.active .swipe-button-slider {
+  transition: none;
+}
+
+.swipe-button-container.submitted .swipe-button-slider {
+  left: calc(100% - 48px) !important;
+  background-color: #4caf50;
+  cursor: default;
+}
+
+.swipe-button-container.submitted .swipe-button-text {
+  opacity: 0;
+}
+
+/* Play Store Button Styles */
+.page-footer {
+  position: fixed;
+  bottom: 20px;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+@media (max-width: 900px) {
+  .auth-page-wrapper {
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    gap: 16px;
+    padding: 72px 16px calc(24px + env(safe-area-inset-bottom));
+  }
+
+  .main {
+    width: 100%;
+    max-width: 440px;
+    min-width: 0;
+    min-height: 0;
+    height: auto;
+    padding: 0;
+    margin: 0 auto;
+    background-color: transparent;
+    box-shadow: none;
+    border-radius: 0;
+    overflow: visible;
+    transform: none !important;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .mobile-auth-toggle {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    width: 100%;
+    padding: 8px;
+    background-color: #ecf0f3;
+    border-radius: 22px;
+    box-shadow:
+      8px 8px 18px #d1d9e6,
+      -8px -8px 18px #f9f9f9;
+  }
+
+  .container {
+    position: relative;
+    top: auto;
+    left: auto;
+    width: 100%;
+    height: auto;
+    padding: 24px 20px;
+    border-radius: 28px;
+    box-shadow:
+      10px 10px 24px #d1d9e6,
+      -10px -10px 24px #f9f9f9;
+    display: none;
+    transition: none;
+  }
+
+  .auth-page-wrapper--signin .b-container,
+  .auth-page-wrapper--signup .a-container {
+    display: flex;
+  }
+
+  .form {
+    height: auto;
+    gap: 12px;
+  }
+
+  .title {
+    font-size: clamp(28px, 7vw, 34px);
+    line-height: 1.2;
+    text-align: center;
+  }
+
+  .description {
+    font-size: 13px;
+  }
+
+  .google-btn,
+  .form__field,
+  .form__input,
+  .swipe-button-container {
+    width: 100%;
+    max-width: none;
+  }
+
+  .google-btn {
+    margin: 0;
+  }
+
+  .form__input {
+    height: 48px;
+    margin: 0;
+    padding: 0 18px;
+    font-size: 14px;
+  }
+
+  .form__span,
+  .form__link,
+  .error-message,
+  .success-message,
+  .swipe-button-container {
+    margin-top: 0;
+  }
+
+  .swipe-button-container {
+    height: 54px;
+  }
+
+  .swipe-button-slider {
+    width: 50px;
+    height: 50px;
+  }
+
+  .swipe-button-container.submitted .swipe-button-slider {
+    left: calc(100% - 52px) !important;
+  }
+
+  .switch {
+    display: none;
+  }
+
+  .social-proof-stats {
+    flex-wrap: wrap;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .stat-pill {
+    flex: 1 1 110px;
+    justify-content: center;
+  }
+
+  .page-footer {
+    position: static;
+    width: 100%;
+    max-width: 440px;
+    margin: 0 auto;
+    flex-direction: column;
+    gap: 12px;
+    pointer-events: auto;
+    padding-bottom: calc(8px + env(safe-area-inset-bottom));
+  }
+
+  .play-store-btn {
+    width: 100%;
+    min-height: 54px;
+    height: auto;
+    padding: 10px 16px;
+    justify-content: center;
+  }
+}
+
+.play-store-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  padding: 0 16px;
+  background-color: #000;
+  color: #fff;
+  border-radius: 6px;
+  text-decoration: none;
+  gap: 8px;
+  transition: background-color 0.2s;
+  pointer-events: auto;
+  font-family: 'Montserrat', sans-serif;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.play-store-btn:hover {
+  background-color: #333;
+}
+
+/* Dark Mode: Play store buttons should be light in dark mode */
+.dark .play-store-btn {
+  background-color: #fff;
+  color: #000;
+  box-shadow: 0 4px 6px rgba(255, 255, 255, 0.1);
+}
+
+.dark .play-store-btn:hover {
+  background-color: #e5e5e5;
+}
+
+.play-store-icon {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+
+.play-store-btn-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  padding-right: 2px;
+}
+
+.play-store-btn-small {
+  font-size: 10px;
+  line-height: 1;
+  font-weight: 300;
+  letter-spacing: -0.5px;
+  text-transform: uppercase;
+}
+
+.play-store-btn-large {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* Error and Success Messages */
+.error-message {
+  color: #ff3d00;
+  font-size: 12px;
+  margin-top: 10px;
+  text-align: center;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.success-message {
+  color: #4caf50;
+  font-size: 12px;
+  margin-top: 10px;
+  text-align: center;
+  font-family: 'Montserrat', sans-serif;
+}

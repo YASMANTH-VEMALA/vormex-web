@@ -1,8 +1,8 @@
 'use client';
 
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
-import { useAuth } from '@/lib/auth/useAuth';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
+import { useAuth } from '@/lib/auth/useAuth';
 
 export default function DashboardPage() {
   const { user, logout } = useAuth();
@@ -24,7 +24,7 @@ export default function DashboardPage() {
                 </button>
               </div>
             </div>
-            
+
             <div className="space-y-4">
               <div>
                 <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">
@@ -48,4 +48,3 @@ export default function DashboardPage() {
     </ProtectedRoute>
   );
 }
-

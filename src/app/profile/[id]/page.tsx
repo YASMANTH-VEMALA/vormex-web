@@ -1,8 +1,8 @@
 'use client';
 
-import { Suspense } from 'react';
-import { useParams } from 'next/navigation';
 import { ProfilePage, ProfileSkeleton } from '@/components/profile';
+import { useParams } from 'next/navigation';
+import { Suspense } from 'react';
 
 function ProfileContent() {
   const params = useParams();
@@ -18,4 +18,3 @@ export default function UserProfilePage() {
     </Suspense>
   );
 }
-

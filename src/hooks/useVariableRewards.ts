@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   getRewardData,
   markRewardShown,
-  type RewardDataResponse,
   type RewardCardType,
+  type RewardDataResponse,
 } from '@/lib/api/variable-rewards';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 export interface ActiveRewardCard {
   type: RewardCardType;
@@ -22,7 +22,6 @@ export interface ActiveRewardCard {
 export function useVariableRewards(userId: string | undefined) {
   const [rewardData, setRewardData] = useState<RewardDataResponse | null>(null);
   const [activeCards, setActiveCards] = useState<ActiveRewardCard[]>([]);
-  const [shownCardTypes, setShownCardTypes] = useState<Set<string>>(new Set());
   const fetchedRef = useRef(false);
 
   const fetchRewards = useCallback(async () => {
@@ -63,34 +62,35 @@ export function useVariableRewards(userId: string | undefined) {
       const cards: ActiveRewardCard[] = selected.map((s, i) => ({
         type: s.type,
         data,
-        position: positions[i] || positions[positions.length - 1] + (i * 4),
+        position: positions[i] || positions[positions.length - 1] + i * 4,
       }));
 
       // Check localStorage for already-shown deduplication
       const shownKey = `rewards_shown_${new Date().toISOString().slice(0, 10)}`;
-      const alreadyShown = new Set<string>(
-        JSON.parse(localStorage.getItem(shownKey) || '[]')
-      );
-      const filtered = cards.filter(c => !alreadyShown.has(c.type));
+      const alreadyShown = new Set<string>(JSON.parse(localStorage.getItem(shownKey) || '[]'));
+      const filtered = cards.filter((c) => !alreadyShown.has(c.type));
       setActiveCards(filtered);
-      setShownCardTypes(alreadyShown);
     } catch (err) {
       console.error('Failed to fetch reward data:', err);
     }
   }, [userId]);
 
   useEffect(() => {
-    fetchRewards();
+    const timeoutId = window.setTimeout(() => {
+      void fetchRewards();
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
   }, [fetchRewards]);
 
   const dismissCard = useCallback(async (type: RewardCardType, itemIds: string[] = []) => {
-    setActiveCards(prev => prev.filter(c => c.type !== type));
+    setActiveCards((prev) => prev.filter((c) => c.type !== type));
 
     // Persist to localStorage
     const shownKey = `rewards_shown_${new Date().toISOString().slice(0, 10)}`;
-    const current = new Set<string>(
-      JSON.parse(localStorage.getItem(shownKey) || '[]')
-    );
+    const current = new Set<string>(JSON.parse(localStorage.getItem(shownKey) || '[]'));
     current.add(type);
     localStorage.setItem(shownKey, JSON.stringify([...current]));
 

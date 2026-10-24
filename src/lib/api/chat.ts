@@ -11,10 +11,15 @@ export interface ChatUser {
   profileImage: string | null;
   isOnline: boolean;
   lastActiveAt: string | null;
+  verified?: boolean;
+  isVerified?: boolean;
+  profileBadgeStyle?: string | null;
+  isPremium?: boolean;
 }
 
 export interface Message {
   id: string;
+  clientMessageId?: string;
   conversationId: string;
   senderId: string;
   receiverId: string;
@@ -25,16 +30,27 @@ export interface Message {
   fileName?: string;
   fileSize?: number;
   status: 'SENT' | 'DELIVERED' | 'READ';
-  deliveredAt?: string;
+  deliveredAt?: string | null;
   readAt?: string;
+  editedAt?: string | null;
   isDeleted: boolean;
-  isEdited?: boolean; // Client-side flag to track if message was edited
+  isEdited?: boolean; // Server-provided; true only when the sender explicitly edited
   replyToId?: string;
   replyTo?: {
     id: string;
     content: string;
     contentType: string;
     senderId: string;
+  };
+  story?: {
+    id: string | null;
+    mediaUrl: string | null;
+    mediaType: string | null;
+    thumbnailUrl: string | null;
+    textContent: string | null;
+    backgroundColor: string | null;
+    expiresAt: string | null;
+    available: boolean;
   };
   sender: ChatUser;
   reactions: MessageReaction[];
@@ -76,6 +92,7 @@ export interface Conversation {
 
 export interface ConversationsResponse {
   conversations: Conversation[];
+  unavailableConversationIds?: string[];
   hasMore: boolean;
   nextCursor?: string;
 }
@@ -84,6 +101,15 @@ export interface MessagesResponse {
   messages: Message[];
   hasMore: boolean;
   nextCursor?: string;
+}
+
+export interface ChatSyncResponse {
+  messages: Message[];
+  statusChanges: Message[];
+  conversations: Conversation[];
+  unavailableConversationIds?: string[];
+  cursor: string;
+  hasMore: boolean;
 }
 
 // ============================================
@@ -100,8 +126,15 @@ export async function getConversations(
   const params = new URLSearchParams();
   if (limit) params.append('limit', String(limit));
   if (cursor) params.append('cursor', cursor);
-  
+
   return apiClient.get(`/chat/conversations?${params.toString()}`);
+}
+
+export async function syncChat(since?: string): Promise<ChatSyncResponse> {
+  const params = new URLSearchParams();
+  if (since) params.set('since', since);
+  const query = params.toString();
+  return apiClient.get(`/chat/sync${query ? `?${query}` : ''}`);
 }
 
 /**
@@ -129,7 +162,7 @@ export async function getMessages(
   const params = new URLSearchParams();
   if (limit) params.append('limit', String(limit));
   if (cursor) params.append('cursor', cursor);
-  
+
   return apiClient.get(`/chat/conversations/${conversationId}/messages?${params.toString()}`);
 }
 
@@ -146,6 +179,7 @@ export async function sendMessage(
     fileName?: string;
     fileSize?: number;
     replyToId?: string;
+    clientMessageId?: string;
   }
 ): Promise<Message> {
   return apiClient.post(`/chat/conversations/${conversationId}/messages`, data);
@@ -154,7 +188,9 @@ export async function sendMessage(
 /**
  * Mark messages as read
  */
-export async function markAsRead(conversationId: string): Promise<{ updatedCount: number; readAt: string }> {
+export async function markAsRead(
+  conversationId: string
+): Promise<{ updatedCount: number; readAt: string }> {
   return apiClient.post(`/chat/conversations/${conversationId}/read`);
 }
 
@@ -165,8 +201,8 @@ export async function deleteMessage(
   messageId: string,
   forEveryone?: boolean
 ): Promise<{ success: boolean }> {
-  return apiClient.delete(`/chat/messages/${messageId}`, { 
-    data: { forEveryone } 
+  return apiClient.delete(`/chat/messages/${messageId}`, {
+    data: { forEveryone },
   });
 }
 
@@ -204,7 +240,7 @@ export async function searchMessages(
   const params = new URLSearchParams();
   params.append('q', query);
   if (limit) params.append('limit', String(limit));
-  
+
   return apiClient.get(`/chat/search?${params.toString()}`);
 }
 
@@ -224,7 +260,7 @@ export async function uploadChatMedia(
   const formData = new FormData();
   formData.append('file', file);
   formData.append('mediaType', mediaType);
-  
+
   // Use axios with proper config for file uploads
   return apiClient.post('/chat/upload', formData, {
     timeout: 120000, // 2 minutes timeout for large files
@@ -285,7 +321,7 @@ export async function getMessageRequests(
   const params = new URLSearchParams();
   if (limit) params.append('limit', String(limit));
   if (cursor) params.append('cursor', cursor);
-  
+
   return apiClient.get(`/chat/requests?${params.toString()}`);
 }
 
@@ -308,8 +344,6 @@ export async function acceptMessageRequest(
 /**
  * Decline a message request
  */
-export async function declineMessageRequest(
-  conversationId: string
-): Promise<{ message: string }> {
+export async function declineMessageRequest(conversationId: string): Promise<{ message: string }> {
   return apiClient.delete(`/chat/requests/${conversationId}`);
 }

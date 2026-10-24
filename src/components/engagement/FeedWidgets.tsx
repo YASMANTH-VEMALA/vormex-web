@@ -1,13 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { useLiveStreaks } from '@/hooks/useLiveGamification';
 import {
-  Flame, Target, Users, FileText, MessageSquare,
-  ChevronRight, TrendingUp, Zap, AlertTriangle,
-} from 'lucide-react';
+  getNudges,
+  getWeeklyGoals,
+  hasAtRiskStreak,
+  selectBestCurrentStreak,
+} from '@/lib/api/engagement';
+import { useQuery } from '@tanstack/react-query';
+import { motion } from 'framer-motion';
+import { AlertTriangle, ChevronRight, FileText, Flame, Target, Users } from 'lucide-react';
 import Link from 'next/link';
-import { getStreaks, getWeeklyGoals, getNudges, type StreakData, type WeeklyGoals, type ProgressNudge } from '@/lib/api/engagement';
+import { useState } from 'react';
 import { WeeklyGoalsSkeleton } from './WeeklyGoalsSkeleton';
 
 /**
@@ -15,34 +19,54 @@ import { WeeklyGoalsSkeleton } from './WeeklyGoalsSkeleton';
  * Mirrors Android's GamificationWidgets.kt
  */
 
+const FEED_CACHE_OPTIONS = {
+  staleTime: 5 * 60 * 1000, // 5 min - cached when navigating back
+  gcTime: 10 * 60 * 1000,
+};
+
 // ─── StreakWidget ─────────────────────────────────────────────────
 // Compact fire-themed streak card inserted between posts
 
 export function StreakWidget() {
-  const [streak, setStreak] = useState<StreakData | null>(null);
-
-  useEffect(() => {
-    getStreaks().then(setStreak).catch(() => {});
-  }, []);
+  const { data: streak } = useLiveStreaks();
 
   if (!streak) return null;
 
-  const best = Math.max(
-    streak.connectionStreak,
-    streak.loginStreak,
-    streak.postingStreak,
-    streak.messagingStreak
-  );
+  const best = selectBestCurrentStreak(streak);
   if (best === 0) return null;
 
-  const anyAtRisk = streak.isAtRisk ? Object.values(streak.isAtRisk).some(Boolean) : false;
+  const anyAtRisk = hasAtRiskStreak(streak);
 
   const rows = [
-    { label: 'Networking', value: streak.connectionStreak, longest: streak.longestConnectionStreak, color: 'bg-orange-500', riskKey: 'connection' },
-    { label: 'Login', value: streak.loginStreak, longest: streak.longestLoginStreak, color: 'bg-blue-500', riskKey: 'login' },
-    { label: 'Posting', value: streak.postingStreak, longest: streak.longestPostingStreak, color: 'bg-green-500', riskKey: 'posting' },
-    { label: 'Messaging', value: streak.messagingStreak, longest: streak.longestMessagingStreak, color: 'bg-purple-500', riskKey: 'messaging' },
-  ].filter(r => r.value > 0);
+    {
+      label: 'Networking',
+      value: streak.connectionStreak,
+      longest: streak.longestConnectionStreak,
+      color: 'bg-orange-500',
+      riskKey: 'connection',
+    },
+    {
+      label: 'Login',
+      value: streak.loginStreak,
+      longest: streak.longestLoginStreak,
+      color: 'bg-blue-500',
+      riskKey: 'login',
+    },
+    {
+      label: 'Posting',
+      value: streak.postingStreak,
+      longest: streak.longestPostingStreak,
+      color: 'bg-green-500',
+      riskKey: 'posting',
+    },
+    {
+      label: 'Messaging',
+      value: streak.messagingStreak,
+      longest: streak.longestMessagingStreak,
+      color: 'bg-purple-500',
+      riskKey: 'messaging',
+    },
+  ].filter((r) => r.value > 0);
 
   return (
     <motion.div
@@ -67,7 +91,10 @@ export function StreakWidget() {
             )}
           </div>
         </div>
-        <Link href="/streaks" className="text-xs text-blue-600 dark:text-blue-400 font-medium flex items-center gap-0.5 hover:underline">
+        <Link
+          href="/streaks"
+          className="text-xs text-blue-600 dark:text-blue-400 font-medium flex items-center gap-0.5 hover:underline"
+        >
           Details <ChevronRight className="w-3 h-3" />
         </Link>
       </div>
@@ -108,31 +135,39 @@ export function StreakWidget() {
   );
 }
 
-
 // ─── WeeklyGoalsWidget ────────────────────────────────────────────
 // Inline goals card with animated progress bars
 
 export function WeeklyGoalsWidget() {
-  const [goals, setGoals] = useState<WeeklyGoals | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { data: goals, isLoading } = useQuery({
+    queryKey: ['weekly-goals'],
+    queryFn: getWeeklyGoals,
+    ...FEED_CACHE_OPTIONS,
+  });
 
-  useEffect(() => {
-    getWeeklyGoals()
-      .then(setGoals)
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
-
-  if (loading) return <WeeklyGoalsSkeleton />;
+  if (isLoading && !goals) return <WeeklyGoalsSkeleton />;
   if (!goals || goals.isCompleted) return null;
 
   const items = [
-    { label: 'Connections', current: goals.connectionsMade, target: goals.connectionsTarget, progress: goals.connectionsProgress, icon: Users, color: 'bg-blue-500' },
-    { label: 'Posts', current: goals.postsMade, target: goals.postsTarget, progress: goals.postsProgress, icon: FileText, color: 'bg-green-500' },
-    { label: 'Messages', current: goals.messagesSent, target: goals.messagesTarget, progress: goals.messagesProgress, icon: MessageSquare, color: 'bg-purple-500' },
+    {
+      label: 'Connections',
+      current: goals.connectionsMade,
+      target: goals.connectionsTarget,
+      progress: goals.connectionsProgress,
+      icon: Users,
+      color: 'bg-blue-500',
+    },
+    {
+      label: 'Posts',
+      current: goals.postsMade,
+      target: goals.postsTarget,
+      progress: goals.postsProgress,
+      icon: FileText,
+      color: 'bg-green-500',
+    },
   ];
 
-  const totalProgress = Math.round((items.reduce((sum, i) => sum + i.progress, 0) / items.length));
+  const totalProgress = Math.round(items.reduce((sum, i) => sum + i.progress, 0) / items.length);
 
   return (
     <motion.div
@@ -147,7 +182,9 @@ export function WeeklyGoalsWidget() {
           </div>
           <div>
             <p className="text-sm font-semibold text-gray-900 dark:text-white">Weekly Goals</p>
-            <p className="text-[11px] text-gray-400 dark:text-neutral-500">{totalProgress}% complete</p>
+            <p className="text-[11px] text-gray-400 dark:text-neutral-500">
+              {totalProgress}% complete
+            </p>
           </div>
         </div>
       </div>
@@ -182,17 +219,17 @@ export function WeeklyGoalsWidget() {
   );
 }
 
-
 // ─── NudgeCard ────────────────────────────────────────────────────
 // Zeigarnik-effect progress nudge inserted later in feed
 
 export function NudgeCard() {
-  const [nudges, setNudges] = useState<ProgressNudge[]>([]);
   const [dismissed, setDismissed] = useState(false);
 
-  useEffect(() => {
-    getNudges().then(setNudges).catch(() => {});
-  }, []);
+  const { data: nudges = [] } = useQuery({
+    queryKey: ['nudges'],
+    queryFn: getNudges,
+    ...FEED_CACHE_OPTIONS,
+  });
 
   if (dismissed || nudges.length === 0) return null;
 

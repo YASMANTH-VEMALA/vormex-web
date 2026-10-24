@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { getStreaks, getWeeklyGoals, type StreakData, type WeeklyGoals } from '@/lib/api/engagement';
 import { type RewardData } from '@/components/engagement/RewardPopup';
+import { getStreaks, getWeeklyGoals } from '@/lib/api/engagement';
+import { useCallback, useEffect, useState } from 'react';
 
 /**
  * useRewards - Hook that checks for milestone achievements and queues reward popups
@@ -107,7 +107,7 @@ export function useRewards(userId?: string) {
 
   const dismissReward = useCallback((id: string) => {
     markRewardShown(id);
-    setRewards(prev => prev.filter(r => r.id !== id));
+    setRewards((prev) => prev.filter((r) => r.id !== id));
   }, []);
 
   return { rewards, dismissReward };

@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { getProfileViewStats, type ProfileViewStats } from '@/lib/api/social-proof';
-import { TrendingUp, TrendingDown, Eye } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Eye, TrendingDown, TrendingUp } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 /**
  * ProfileViewsCard — Profile view analytics with trend indicator
@@ -69,11 +69,16 @@ export default function ProfileViewsCard({ userId, onViewDetails }: ProfileViews
           <span className="text-xs font-medium">Profile Views</span>
         </div>
         {stats.trendPercent !== 0 && (
-          <div className={`flex items-center gap-0.5 text-xs font-semibold ${
-            isUp ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'
-          }`}>
+          <div
+            className={`flex items-center gap-0.5 text-xs font-semibold ${
+              isUp ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'
+            }`}
+          >
             {isUp ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-            <span>{isUp ? '+' : ''}{stats.trendPercent}%</span>
+            <span>
+              {isUp ? '+' : ''}
+              {stats.trendPercent}%
+            </span>
           </div>
         )}
       </div>
@@ -84,9 +89,7 @@ export default function ProfileViewsCard({ userId, onViewDetails }: ProfileViews
           <p className="text-2xl font-bold text-gray-900 dark:text-white tabular-nums">
             {stats.viewsThisWeek.toLocaleString()}
           </p>
-          <p className="text-xs text-gray-400 dark:text-neutral-500 mt-0.5">
-            views this week
-          </p>
+          <p className="text-xs text-gray-400 dark:text-neutral-500 mt-0.5">views this week</p>
         </div>
 
         {/* Secondary stats */}
@@ -122,7 +125,7 @@ export default function ProfileViewsCard({ userId, onViewDetails }: ProfileViews
       {stats.recentViewers.length > 0 && (
         <div className="mt-3 flex items-center gap-2">
           <div className="flex -space-x-2">
-            {stats.recentViewers.slice(0, 4).map(v => (
+            {stats.recentViewers.slice(0, 4).map((v) => (
               <div
                 key={v.id}
                 className="w-6 h-6 rounded-full border-2 border-white dark:border-neutral-900 overflow-hidden"

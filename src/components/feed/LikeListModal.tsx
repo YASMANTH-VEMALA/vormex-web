@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, Loader2 } from 'lucide-react';
+import { getJson } from '@/lib/api/request';
+import type { ReactionType } from '@/types/post';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Loader2, X } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import { getReactionConfig, REACTIONS } from './ReactionPicker';
-import type { ReactionType } from '@/types/post';
-import apiClient from '@/lib/api/client';
 
 interface LikeUser {
   id: string;
@@ -44,10 +44,10 @@ export function LikeListModal({ isOpen, onClose, postId, totalCount }: LikeListM
     const fetchLikes = async () => {
       setLoading(true);
       try {
-        // apiClient already extracts response.data, so response IS the data
-        const data = await apiClient.get(`/posts/${postId}/likes`) as any;
+        // The shared client already extracts response.data, so response IS the data
+        const data = await getJson<{ likes: LikeUser[] }>(`/posts/${postId}/likes`);
         setLikes(data.likes || []);
-        
+
         // Calculate reaction counts
         const counts: Record<ReactionType, number> = {
           LIKE: 0,
@@ -72,12 +72,11 @@ export function LikeListModal({ isOpen, onClose, postId, totalCount }: LikeListM
     fetchLikes();
   }, [isOpen, postId]);
 
-  const filteredLikes = selectedFilter === 'ALL' 
-    ? likes 
-    : likes.filter(like => like.reactionType === selectedFilter);
+  const filteredLikes =
+    selectedFilter === 'ALL' ? likes : likes.filter((like) => like.reactionType === selectedFilter);
 
   // Get reactions with counts > 0
-  const activeReactions = REACTIONS.filter(r => reactionCounts[r.type] > 0);
+  const activeReactions = REACTIONS.filter((r) => reactionCounts[r.type] > 0);
 
   return (
     <AnimatePresence>
@@ -102,9 +101,7 @@ export function LikeListModal({ isOpen, onClose, postId, totalCount }: LikeListM
           >
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-neutral-800">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Reactions
-              </h2>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Reactions</h2>
               <button
                 onClick={onClose}
                 className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors"
@@ -132,7 +129,7 @@ export function LikeListModal({ isOpen, onClose, postId, totalCount }: LikeListM
               {activeReactions.map((reaction) => {
                 const Icon = reaction.icon;
                 const count = reactionCounts[reaction.type];
-                
+
                 return (
                   <button
                     key={reaction.type}
@@ -167,7 +164,7 @@ export function LikeListModal({ isOpen, onClose, postId, totalCount }: LikeListM
                   {filteredLikes.map((like) => {
                     const reactionConfig = getReactionConfig(like.reactionType);
                     const Icon = reactionConfig.icon;
-                    
+
                     return (
                       <Link
                         key={like.id}
@@ -193,7 +190,9 @@ export function LikeListModal({ isOpen, onClose, postId, totalCount }: LikeListM
                             )}
                           </div>
                           {/* Reaction Badge */}
-                          <div className={`absolute -bottom-1 -right-1 p-1 rounded-full ${reactionConfig.bgColor} border-2 border-white dark:border-neutral-900`}>
+                          <div
+                            className={`absolute -bottom-1 -right-1 p-1 rounded-full ${reactionConfig.bgColor} border-2 border-white dark:border-neutral-900`}
+                          >
                             <Icon className={`w-3 h-3 ${reactionConfig.color}`} />
                           </div>
                         </div>

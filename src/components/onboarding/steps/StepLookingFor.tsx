@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useState } from 'react';
 
 interface Props {
   initialData?: Record<string, unknown>;
@@ -58,9 +58,7 @@ export default function StepLookingFor({ initialData, onComplete, saving }: Prop
   const [selected, setSelected] = useState<string[]>((initialData?.lookingFor as string[]) || []);
 
   const toggle = (id: string) => {
-    setSelected(prev =>
-      prev.includes(id) ? prev.filter(s => s !== id) : [...prev, id]
-    );
+    setSelected((prev) => (prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]));
   };
 
   const canContinue = selected.length >= 1;
@@ -89,21 +87,32 @@ export default function StepLookingFor({ initialData, onComplete, saving }: Prop
             >
               <span className="text-3xl flex-shrink-0 mt-0.5">{option.emoji}</span>
               <div className="flex-1 min-w-0">
-                <span className={`font-semibold block ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-neutral-800 dark:text-neutral-200'}`}>
+                <span
+                  className={`font-semibold block ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-neutral-800 dark:text-neutral-200'}`}
+                >
                   {option.label}
                 </span>
                 <span className="text-xs text-neutral-500 dark:text-neutral-400 leading-relaxed block mt-0.5">
                   {option.description}
                 </span>
               </div>
-              <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-1 transition-all ${
-                isActive ? 'border-blue-500 bg-blue-500' : 'border-neutral-300 dark:border-neutral-600'
-              }`}>
+              <div
+                className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-1 transition-all ${
+                  isActive
+                    ? 'border-blue-500 bg-blue-500'
+                    : 'border-neutral-300 dark:border-neutral-600'
+                }`}
+              >
                 {isActive && (
                   <motion.svg
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
-                    width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="white"
+                    strokeWidth="3"
                   >
                     <path d="M5 13l4 4L19 7" />
                   </motion.svg>

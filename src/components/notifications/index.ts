@@ -1,2 +1,2 @@
-export { Notifications, NotificationBell } from './Notifications';
 export { NotificationPrompt } from './NotificationPrompt';
+export { NotificationBell, Notifications } from './Notifications';

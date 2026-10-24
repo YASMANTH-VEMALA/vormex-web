@@ -8,6 +8,13 @@ Create your env file first:
 cp .env.example .env.local
 ```
 
+The checked-in example uses the production routing shape:
+
+- `NEXT_PUBLIC_API_URL=/api` keeps REST and its HttpOnly auth cookies same-origin through the Next.js proxy.
+- `NEXT_PUBLIC_SOCKET_URL=https://vormex-backend.onrender.com` connects Socket.IO directly to Render with a short-lived ticket obtained from the REST API.
+
+For local development, uncomment the local override values at the bottom of `.env.example` after copying it to `.env.local`.
+
 First, run the development server:
 
 ```bash
@@ -25,10 +32,12 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 Required variables:
 
 - `NEXT_PUBLIC_API_URL` (preferred): full backend API base including `/api`
+- `NEXT_PUBLIC_SOCKET_URL`: backend origin used for Socket.IO; do not include `/api`
 - `NEXT_PUBLIC_BACKEND_URL` (optional fallback): backend origin without `/api`
 - `NEXT_PUBLIC_BASE_URL`: frontend origin for OAuth callback fallback
 - `NEXT_PUBLIC_GOOGLE_CLIENT_ID`
-- `GOOGLE_CLIENT_SECRET`
+
+Do not put `GOOGLE_CLIENT_SECRET` in this web app. Google code exchange is handled by `vormex-backend`.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
@@ -45,6 +54,21 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 
 ## Deploy on Vercel
 
+Deploy `vormex-backend` first because the web socket client requires the backend `/api/auth/socket-ticket` endpoint. Then deploy this project with the production values from `.env.example`. The web client exchanges its same-origin session for a short-lived socket ticket.
+
+The checked-in `vercel.json` pins dynamic Next.js compute to Singapore (`sin1`).
+Keep the production API, Postgres, and Redis in Singapore too. Static assets remain
+globally cached by Vercel; the region setting only prevents SSR and same-origin API
+proxy work from defaulting to a US function region.
+
+The Render service region cannot be changed after creation. If an existing API was
+created outside Singapore, create a replacement service from the backend
+`render.yaml`, copy its secret environment variables, validate `/api/health/ready`,
+then update the Vercel backend/socket variables and redeploy this project.
+
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+
+.

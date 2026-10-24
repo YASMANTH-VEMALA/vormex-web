@@ -1,4 +1,10 @@
 import apiClient from './client';
+import { getJson, type QueryParams } from './request';
+
+async function readSocialProof<T>(path: string, params?: QueryParams): Promise<T> {
+  const response = await getJson<{ data: T }>(path, params);
+  return response.data;
+}
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // SOCIAL PROOF & FOMO TYPES
@@ -128,26 +134,15 @@ export const getSocialProofLiveStats = async (
   city?: string,
   college?: string
 ): Promise<LiveStats> => {
-  const res = await apiClient.get('/social-proof/live-stats', {
-    params: { ...(city && { city }), ...(college && { college }) },
+  return readSocialProof<LiveStats>('/social-proof/live-stats', {
+    ...(city && { city }),
+    ...(college && { college }),
   });
-  return res.data.data;
-};
-
-/** Track a profile view */
-export const trackProfileView = async (
-  viewedId: string,
-  source?: string
-): Promise<void> => {
-  await apiClient.post('/social-proof/track-view', { viewedId, source });
 };
 
 /** Get profile view analytics ("47 views this week +32%") */
-export const getProfileViewStats = async (
-  userId: string
-): Promise<ProfileViewStats> => {
-  const res = await apiClient.get(`/social-proof/profile-views/${userId}`);
-  return res.data.data;
+export const getProfileViewStats = async (userId: string): Promise<ProfileViewStats> => {
+  return readSocialProof<ProfileViewStats>(`/social-proof/profile-views/${userId}`);
 };
 
 /** Get leaderboard ("Top 10 Most Connected Students") */
@@ -156,26 +151,21 @@ export const getSocialProofLeaderboard = async (
   scope: string = 'global',
   limit: number = 10
 ): Promise<LeaderboardResponse> => {
-  const res = await apiClient.get('/social-proof/leaderboard', {
-    params: { period, scope, limit },
+  return readSocialProof<LeaderboardResponse>('/social-proof/leaderboard', {
+    period,
+    scope,
+    limit,
   });
-  return res.data.data;
 };
 
 /** Get group/circle stats ("48 joined in last 24 hours") */
-export const getGroupSocialStats = async (
-  groupId: string
-): Promise<GroupStats> => {
-  const res = await apiClient.get(`/social-proof/group-stats/${groupId}`);
-  return res.data.data;
+export const getGroupSocialStats = async (groupId: string): Promise<GroupStats> => {
+  return readSocialProof<GroupStats>(`/social-proof/group-stats/${groupId}`);
 };
 
 /** Get event stats ("89 going • 23 RSVPed in last hour") */
-export const getEventSocialStats = async (
-  eventId: string
-): Promise<EventStats> => {
-  const res = await apiClient.get(`/social-proof/event-stats/${eventId}`);
-  return res.data.data;
+export const getEventSocialStats = async (eventId: string): Promise<EventStats> => {
+  return readSocialProof<EventStats>(`/social-proof/event-stats/${eventId}`);
 };
 
 /** Track an event page view */
@@ -188,10 +178,7 @@ export const getActivityFeed = async (
   limit: number = 20,
   minutes: number = 10
 ): Promise<ActivityFeedItem[]> => {
-  const res = await apiClient.get('/social-proof/activity-feed', {
-    params: { limit, minutes },
-  });
-  return res.data.data;
+  return readSocialProof<ActivityFeedItem[]>('/social-proof/activity-feed', { limit, minutes });
 };
 
 /** Get trending items */
@@ -200,20 +187,18 @@ export const getTrendingItems = async (
   city?: string,
   limit: number = 10
 ): Promise<TrendingItem[]> => {
-  const res = await apiClient.get('/social-proof/trending', {
-    params: { ...(type && { type }), ...(city && { city }), limit },
+  return readSocialProof<TrendingItem[]>('/social-proof/trending', {
+    ...(type && { type }),
+    ...(city && { city }),
+    limit,
   });
-  return res.data.data;
 };
 
 /** Get onboarding social proof stats ("12,453 students networking") */
-export const getOnboardingStats = async (
-  college?: string
-): Promise<OnboardingStats> => {
-  const res = await apiClient.get('/social-proof/onboarding-stats', {
-    params: { ...(college && { college }) },
+export const getOnboardingStats = async (college?: string): Promise<OnboardingStats> => {
+  return readSocialProof<OnboardingStats>('/social-proof/onboarding-stats', {
+    ...(college && { college }),
   });
-  return res.data.data;
 };
 
 /** Send heartbeat to update online presence */
@@ -224,7 +209,7 @@ export const sendHeartbeat = async (currentPage?: string): Promise<void> => {
 /** Record a social activity event */
 export const recordSocialActivity = async (
   activityType: string,
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 ): Promise<void> => {
   await apiClient.post('/social-proof/record-activity', { activityType, metadata });
 };

@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { getConnectionLimit, type ConnectionLimit } from '@/lib/api/engagement';
 import { motion } from 'framer-motion';
 import { Clock, Info } from 'lucide-react';
-import { getConnectionLimit, type ConnectionLimit } from '@/lib/api/engagement';
+import { useEffect, useState } from 'react';
 
 /**
  * ConnectionLimitBanner - Subtle info bar for daily connection limits
@@ -34,7 +34,10 @@ export default function ConnectionLimitBanner() {
 
   const resetTime = new Date(limit.resetsAt);
   const now = new Date();
-  const hoursUntilReset = Math.max(1, Math.ceil((resetTime.getTime() - now.getTime()) / (1000 * 60 * 60)));
+  const hoursUntilReset = Math.max(
+    1,
+    Math.ceil((resetTime.getTime() - now.getTime()) / (1000 * 60 * 60))
+  );
 
   return (
     <motion.div

@@ -1,32 +1,28 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { getLeaderboard, type LeaderboardEntry } from '@/lib/api/engagement';
+import { getLeaderboard } from '@/lib/api/engagement';
+import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
+import { useState } from 'react';
 
 /**
  * Leaderboard - Clean top networkers list
  * Professional design with week/month toggle
  */
 export default function Leaderboard() {
-  const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [period, setPeriod] = useState<'weekly' | 'monthly'>('weekly');
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchLeaderboard = async () => {
-      setLoading(true);
-      try {
-        const data = await getLeaderboard(period, 10);
-        setEntries(data?.leaderboard ?? []);
-      } catch (error) {
-        console.error('Failed to fetch leaderboard:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchLeaderboard();
-  }, [period]);
+  const { data, isLoading } = useQuery({
+    queryKey: ['leaderboard', period],
+    queryFn: async () => {
+      const res = await getLeaderboard(period, 10);
+      return res?.leaderboard ?? [];
+    },
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+  });
+
+  const entries = data ?? [];
 
   return (
     <div className="bg-white dark:bg-neutral-900 rounded-xl border border-gray-200 dark:border-neutral-800 overflow-hidden">
@@ -58,7 +54,7 @@ export default function Leaderboard() {
       </div>
 
       {/* Content */}
-      {loading ? (
+      {isLoading && entries.length === 0 ? (
         <div className="flex items-center justify-center py-10">
           <div className="animate-spin rounded-full h-5 w-5 border-2 border-gray-300 border-t-gray-600 dark:border-neutral-600 dark:border-t-neutral-300" />
         </div>
@@ -75,9 +71,17 @@ export default function Leaderboard() {
               className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-neutral-800/50 transition-colors"
             >
               {/* Rank */}
-              <span className={`w-5 text-xs font-semibold text-center tabular-nums ${
-                index === 0 ? 'text-amber-500' : index === 1 ? 'text-gray-400' : index === 2 ? 'text-amber-600' : 'text-gray-400 dark:text-neutral-500'
-              }`}>
+              <span
+                className={`w-5 text-xs font-semibold text-center tabular-nums ${
+                  index === 0
+                    ? 'text-amber-500'
+                    : index === 1
+                      ? 'text-gray-400'
+                      : index === 2
+                        ? 'text-amber-600'
+                        : 'text-gray-400 dark:text-neutral-500'
+                }`}
+              >
                 {index + 1}
               </span>
 
@@ -96,9 +100,13 @@ export default function Leaderboard() {
 
               {/* Info */}
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{entry.name}</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                  {entry.name}
+                </p>
                 {entry.college && (
-                  <p className="text-xs text-gray-400 dark:text-neutral-500 truncate">{entry.college}</p>
+                  <p className="text-xs text-gray-400 dark:text-neutral-500 truncate">
+                    {entry.college}
+                  </p>
                 )}
               </div>
 

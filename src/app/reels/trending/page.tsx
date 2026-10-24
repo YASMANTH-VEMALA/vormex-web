@@ -1,28 +1,31 @@
 'use client';
 
-import { useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import { ArrowLeft, Loader2 } from 'lucide-react';
-import { useTrendingReels } from '@/hooks/reels';
 import { ReelCard } from '@/components/reels';
+import { useTrendingReels } from '@/hooks/reels';
+import { ArrowLeft, Loader2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useCallback, useState } from 'react';
 
 export default function TrendingReelsPage() {
   const router = useRouter();
   const [activeIndex, setActiveIndex] = useState(0);
   const [isMuted, setIsMuted] = useState(true);
-  
+
   const { reels, isLoading, isError } = useTrendingReels(24);
 
-  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
-    const container = e.currentTarget;
-    const scrollTop = container.scrollTop;
-    const itemHeight = container.clientHeight;
-    const newIndex = Math.round(scrollTop / itemHeight);
+  const handleScroll = useCallback(
+    (e: React.UIEvent<HTMLDivElement>) => {
+      const container = e.currentTarget;
+      const scrollTop = container.scrollTop;
+      const itemHeight = container.clientHeight;
+      const newIndex = Math.round(scrollTop / itemHeight);
 
-    if (newIndex !== activeIndex) {
-      setActiveIndex(newIndex);
-    }
-  }, [activeIndex]);
+      if (newIndex !== activeIndex) {
+        setActiveIndex(newIndex);
+      }
+    },
+    [activeIndex]
+  );
 
   if (isLoading) {
     return (
@@ -79,10 +82,7 @@ export default function TrendingReelsPage() {
         onScroll={handleScroll}
       >
         {reels.map((reel, index) => (
-          <div
-            key={reel.id}
-            className="h-screen w-full snap-start snap-always"
-          >
+          <div key={reel.id} className="h-screen w-full snap-start snap-always">
             <ReelCard
               reel={reel}
               isActive={index === activeIndex}

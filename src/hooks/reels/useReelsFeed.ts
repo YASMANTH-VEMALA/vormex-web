@@ -1,7 +1,7 @@
 'use client';
 
+import { Reel, reelsApi, ReelsFeedResponse } from '@/lib/api/reels';
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { reelsApi, Reel, ReelsFeedResponse } from '@/lib/api/reels';
 
 interface UseReelsFeedOptions {
   mode?: 'foryou' | 'following';

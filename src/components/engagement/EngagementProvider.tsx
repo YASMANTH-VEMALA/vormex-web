@@ -1,28 +1,38 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
-import { useAuth } from '@/lib/auth/useAuth';
+import {
+  invalidateGamificationQueries,
+  useGamificationRealtimeSync,
+} from '@/hooks/useLiveGamification';
 import { recordLogin } from '@/lib/api/engagement';
+import { useAuth } from '@/lib/auth/useAuth';
+import { useQueryClient } from '@tanstack/react-query';
+import { useEffect, useRef } from 'react';
 import ExitMessage from './ExitMessage';
 
 /**
  * EngagementProvider - Wraps the app to handle:
  * 1. Login streak tracking (Habit Loop cue)
  * 2. Exit message display (Peak-End Rule)
- * 
+ *
  * Place inside AuthProvider in layout.tsx
  */
 export default function EngagementProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const loginRecorded = useRef(false);
+
+  useGamificationRealtimeSync();
 
   // Record login for streak tracking
   useEffect(() => {
     if (user && !loginRecorded.current) {
       loginRecorded.current = true;
-      recordLogin().catch(console.error);
+      recordLogin()
+        .then(() => invalidateGamificationQueries(queryClient))
+        .catch(console.error);
     }
-  }, [user]);
+  }, [queryClient, user]);
 
   return (
     <>

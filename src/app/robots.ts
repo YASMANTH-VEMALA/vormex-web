@@ -1,23 +1,56 @@
-import { MetadataRoute } from 'next';
+import { PUBLIC_SEO_ENABLED, SITE_URL } from '@/lib/seo';
+import type { MetadataRoute } from 'next';
 
-const baseUrl =
-  process.env.NEXT_PUBLIC_BASE_URL ||
-  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://vormex.vercel.app');
+const privatePaths = [
+  '/api/',
+  '/feed',
+  '/messages/',
+  '/notifications/',
+  '/settings/',
+  '/dashboard/',
+  '/profile/',
+  '/onboarding/',
+  '/upload/',
+  '/more/',
+  '/reels/drafts',
+  '/reels/analytics',
+  '/login',
+  '/register',
+  '/forgot-password',
+  '/reset-password',
+  '/verify-email',
+  '/vormex-delete-account',
+];
 
 export default function robots(): MetadataRoute.Robots {
+  if (!PUBLIC_SEO_ENABLED) {
+    return { rules: [{ userAgent: '*', disallow: '/' }], host: SITE_URL };
+  }
   return {
     rules: [
       {
         userAgent: '*',
-        allow: '/',
-        disallow: ['/api/', '/messages/', '/profile/', '/more/', '/dashboard/'],
+        allow: ['/', '/people/', '/skills/', '/interests/'],
+        disallow: privatePaths,
       },
       {
         userAgent: 'Googlebot',
-        allow: ['/', '/login', '/find-people', '/reels', '/groups', '/jobs', '/learning', '/challenges'],
-        disallow: ['/api/', '/messages/', '/profile/', '/more/', '/dashboard/'],
+        allow: ['/', '/people/', '/skills/', '/interests/'],
+        disallow: privatePaths,
       },
+      {
+        userAgent: 'Bingbot',
+        allow: ['/', '/people/', '/skills/', '/interests/'],
+        disallow: privatePaths,
+      },
+      {
+        userAgent: 'OAI-SearchBot',
+        allow: ['/', '/people/', '/skills/', '/interests/'],
+        disallow: privatePaths,
+      },
+      { userAgent: 'GPTBot', disallow: '/' },
     ],
-    sitemap: `${baseUrl}/sitemap.xml`,
+    sitemap: `${SITE_URL}/sitemap.xml`,
+    host: SITE_URL,
   };
 }

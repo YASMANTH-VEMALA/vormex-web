@@ -88,10 +88,13 @@ export const getChallengeCategories = async (): Promise<string[]> => {
 };
 
 // Submit solution
-export const submitSolution = async (challengeId: string, data: {
-  code: string;
-  language: string;
-}): Promise<ChallengeSubmission> => {
+export const submitSolution = async (
+  challengeId: string,
+  data: {
+    code: string;
+    language: string;
+  }
+): Promise<ChallengeSubmission> => {
   const response = await apiClient.post(`/challenges/${challengeId}/submit`, data);
   return response.data;
 };
@@ -119,10 +122,13 @@ export const getMyChallengeStats = async (): Promise<ChallengeStats> => {
 };
 
 // Run code (test without submitting)
-export const runCode = async (challengeId: string, data: {
-  code: string;
-  language: string;
-}) => {
+export const runCode = async (
+  challengeId: string,
+  data: {
+    code: string;
+    language: string;
+  }
+) => {
   const response = await apiClient.post(`/challenges/${challengeId}/run`, data);
   return response.data;
 };

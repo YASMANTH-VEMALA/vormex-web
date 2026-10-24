@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
 import { getSocialProofLiveStats, type LiveStats } from '@/lib/api/social-proof';
+import { AnimatePresence, motion } from 'framer-motion';
+import { useCallback, useEffect, useState } from 'react';
 
 /**
  * LiveActivityIndicator — Pulsing live activity counter
@@ -43,16 +43,25 @@ export default function LiveActivityIndicator({
 
   // Fetch every 30 seconds — creates feeling of real-time updates
   useEffect(() => {
-    fetchStats();
-    const interval = setInterval(fetchStats, 30000);
-    return () => clearInterval(interval);
+    const initialFetch = setTimeout(() => {
+      void fetchStats();
+    }, 0);
+    const interval = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        void fetchStats();
+      }
+    }, 30000);
+    return () => {
+      clearTimeout(initialFetch);
+      clearInterval(interval);
+    };
   }, [fetchStats]);
 
   // Rotate through different stats every 5 seconds — maintains attention
   useEffect(() => {
     if (!stats) return;
     const interval = setInterval(() => {
-      setCurrentStatIndex(prev => (prev + 1) % getStatMessages(stats).length);
+      setCurrentStatIndex((prev) => (prev + 1) % getStatMessages(stats).length);
     }, 5000);
     return () => clearInterval(interval);
   }, [stats]);
@@ -116,13 +125,12 @@ function getStatMessages(stats: LiveStats): string[] {
   const msgs: string[] = [];
 
   if (stats.activeNow > 0) {
-    msgs.push(`🔴 ${stats.activeNow} ${stats.activeNow === 1 ? 'student' : 'students'} networking ${stats.locationLabel}`);
+    msgs.push(
+      `🔴 ${stats.activeNow} ${stats.activeNow === 1 ? 'student' : 'students'} networking ${stats.locationLabel}`
+    );
   }
   if (stats.activeLastHour > 0) {
     msgs.push(`⚡ ${stats.activeLastHour} active in the last hour`);
-  }
-  if (stats.connectionsToday > 0) {
-    msgs.push(`🤝 ${stats.connectionsToday} connections made today`);
   }
   if (stats.newUsersToday > 0) {
     msgs.push(`🆕 ${stats.newUsersToday} new members joined today`);
@@ -139,7 +147,9 @@ function PulsingDot({ size = 'sm' }: { size?: 'sm' | 'md' }) {
   const dim = size === 'md' ? 'h-2 w-2' : 'h-1.5 w-1.5';
   return (
     <span className={`relative flex ${dim} flex-shrink-0`}>
-      <span className={`animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-60`} />
+      <span
+        className={`animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-60`}
+      />
       <span className={`relative inline-flex rounded-full ${dim} bg-red-500`} />
     </span>
   );

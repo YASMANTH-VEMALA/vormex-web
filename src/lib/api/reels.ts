@@ -1,4 +1,6 @@
 import apiClient from './client';
+import type { ManagedAdCreative } from './managed-ads';
+import { getJson } from './request';
 
 export interface ReelAuthor {
   id: string;
@@ -76,6 +78,7 @@ export interface ReelsFeedResponse {
   reels: Reel[];
   nextCursor: string | null;
   hasMore: boolean;
+  adPlacements?: ManagedAdCreative[];
 }
 
 export interface ReelComment {
@@ -114,8 +117,13 @@ export interface PreloadDataResponse {
 }
 
 export const reelsApi = {
-  getFeed: (params?: { cursor?: string; limit?: number; mode?: 'foryou' | 'following' }) =>
-    apiClient.get<ReelsFeedResponse>('/reels/feed', { params }),
+  getFeed: (params?: {
+    cursor?: string;
+    limit?: number;
+    mode?: 'foryou' | 'following';
+    adSessionId?: string;
+    adItemOffset?: number;
+  }) => apiClient.get<ReelsFeedResponse>('/reels/feed', { params }),
 
   getFollowingFeed: (params?: { cursor?: string; limit?: number }) =>
     apiClient.get<ReelsFeedResponse>('/reels/feed/following', { params }),
@@ -123,8 +131,7 @@ export const reelsApi = {
   getTrending: (params?: { hours?: number; limit?: number }) =>
     apiClient.get<ReelsFeedResponse>('/reels/trending', { params }),
 
-  getReel: (reelId: string) =>
-    apiClient.get<Reel>(`/reels/${reelId}`),
+  getReel: (reelId: string) => apiClient.get<Reel>(`/reels/${reelId}`),
 
   getDrafts: (params?: { cursor?: string; limit?: number }) =>
     apiClient.get<ReelsFeedResponse>('/reels/drafts', { params }),
@@ -153,11 +160,9 @@ export const reelsApi = {
   getPreloadData: (reelId: string) =>
     apiClient.get<PreloadDataResponse>(`/reels/${reelId}/preload`),
 
-  getUploadUrl: () =>
-    apiClient.post<UploadUrlResponse>('/reels/upload-url'),
+  getUploadUrl: () => apiClient.post<UploadUrlResponse>('/reels/upload-url'),
 
-  createReel: (data: FormData) =>
-    apiClient.post<Reel>('/reels', data),
+  createReel: (data: FormData) => apiClient.post<Reel>('/reels', data),
 
   onUploadComplete: (videoId: string, metadata: Record<string, unknown>) =>
     apiClient.post<Reel>('/reels/upload-complete', { videoId, ...metadata }),
@@ -165,8 +170,7 @@ export const reelsApi = {
   updateReel: (reelId: string, data: Partial<Reel>) =>
     apiClient.put<Reel>(`/reels/${reelId}`, data),
 
-  deleteReel: (reelId: string) =>
-    apiClient.delete(`/reels/${reelId}`),
+  deleteReel: (reelId: string) => apiClient.delete(`/reels/${reelId}`),
 
   toggleLike: (reelId: string) =>
     apiClient.post<{ liked: boolean; likesCount: number }>(`/reels/${reelId}/like`),
@@ -178,22 +182,27 @@ export const reelsApi = {
     apiClient.post<{ success: boolean; sharesCount: number }>(`/reels/${reelId}/share`, data),
 
   shareInChat: (reelId: string, data: { recipientId: string; message?: string }) =>
-    apiClient.post<{ success: boolean; message: { id: string; conversationId: string }; sharesCount: number }>(
-      `/reels/${reelId}/share/chat`,
-      data
-    ),
+    apiClient.post<{
+      success: boolean;
+      message: { id: string; conversationId: string };
+      sharesCount: number;
+    }>(`/reels/${reelId}/share/chat`, data),
 
   trackView: (reelId: string, data: { watchTimeMs: number; completed: boolean; source: string }) =>
     apiClient.post(`/reels/${reelId}/view`, data),
 
   getComments: (reelId: string, params?: { cursor?: string; limit?: number; parentId?: string }) =>
-    apiClient.get<CommentsResponse>(`/reels/${reelId}/comments`, { params }),
+    getJson<CommentsResponse>(`/reels/${reelId}/comments`, params),
 
-  createComment: (reelId: string, data: { content: string; parentId?: string; mentions?: string[] }) =>
-    apiClient.post<ReelComment>(`/reels/${reelId}/comments`, data),
+  createComment: (
+    reelId: string,
+    data: { content: string; parentId?: string; mentions?: string[] }
+  ) => apiClient.post<ReelComment>(`/reels/${reelId}/comments`, data),
 
   toggleCommentLike: (reelId: string, commentId: string) =>
-    apiClient.post<{ liked: boolean; likesCount: number }>(`/reels/${reelId}/comments/${commentId}/like`),
+    apiClient.post<{ liked: boolean; likesCount: number }>(
+      `/reels/${reelId}/comments/${commentId}/like`
+    ),
 
   deleteComment: (reelId: string, commentId: string) =>
     apiClient.delete(`/reels/${reelId}/comments/${commentId}`),
@@ -202,13 +211,16 @@ export const reelsApi = {
     apiClient.post<{ isAuthorHeart: boolean }>(`/reels/${reelId}/comments/${commentId}/heart`),
 
   votePoll: (reelId: string, optionId: number) =>
-    apiClient.post<{ success: boolean; pollOptions: { id: number; text: string; votes: number }[]; userVotedOption: number }>(
-      `/reels/${reelId}/poll/vote`,
-      { optionId }
-    ),
+    apiClient.post<{
+      success: boolean;
+      pollOptions: { id: number; text: string; votes: number }[];
+      userVotedOption: number;
+    }>(`/reels/${reelId}/poll/vote`, { optionId }),
 
   answerQuiz: (reelId: string, optionId: number) =>
-    apiClient.post<{ correct: boolean; correctAnswer: number }>(`/reels/${reelId}/quiz/answer`, { optionId }),
+    apiClient.post<{ correct: boolean; correctAnswer: number }>(`/reels/${reelId}/quiz/answer`, {
+      optionId,
+    }),
 
   getByHashtag: (hashtag: string, params?: { cursor?: string; limit?: number }) =>
     apiClient.get<ReelsFeedResponse & { hashtag: string }>(`/reels/hashtag/${hashtag}`, { params }),
@@ -231,8 +243,7 @@ export const reelsApi = {
   getCreatorAnalytics: (params?: { days?: number }) =>
     apiClient.get('/reels/analytics/creator', { params }),
 
-  getReelAnalytics: (reelId: string) =>
-    apiClient.get(`/reels/analytics/reel/${reelId}`),
+  getReelAnalytics: (reelId: string) => apiClient.get(`/reels/analytics/reel/${reelId}`),
 
   report: (reelId: string, data: { reason: string; description?: string }) =>
     apiClient.post(`/reels/${reelId}/report`, data),
@@ -273,14 +284,12 @@ export const audioApi = {
   getCategories: () =>
     apiClient.get<{ categories: { name: string; count: number }[] }>('/audio/categories'),
 
-  getMoods: () =>
-    apiClient.get<{ moods: { name: string; count: number }[] }>('/audio/moods'),
+  getMoods: () => apiClient.get<{ moods: { name: string; count: number }[] }>('/audio/moods'),
 
   getByGenre: (genre: string, params?: { limit?: number; cursor?: string }) =>
     apiClient.get<AudioResponse & { genre: string }>(`/audio/genre/${genre}`, { params }),
 
-  getAudio: (audioId: string) =>
-    apiClient.get<Audio>(`/audio/${audioId}`),
+  getAudio: (audioId: string) => apiClient.get<Audio>(`/audio/${audioId}`),
 
   getAudioReels: (audioId: string, params?: { limit?: number; cursor?: string }) =>
     apiClient.get(`/audio/${audioId}/reels`, { params }),

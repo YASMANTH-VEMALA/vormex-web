@@ -1,13 +1,14 @@
 'use client';
 
-import { useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
 import { onboardingAPI } from '@/lib/api/onboarding';
 import { useAuthContext } from '@/lib/auth/authContext';
-import StepProfile from './steps/StepProfile';
+import { handleApiError } from '@/lib/utils/errorHandler';
+import { AnimatePresence, motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
+import { useCallback, useState } from 'react';
 import StepInterests from './steps/StepInterests';
 import StepMatches from './steps/StepMatches';
+import StepProfile from './steps/StepProfile';
 
 const STEPS = [
   { id: 'profile', title: 'About You', subtitle: 'Help us find your people' },
@@ -23,10 +24,13 @@ export default function OnboardingWizard() {
   const [saving, setSaving] = useState(false);
   const [stepData, setStepData] = useState<Record<number, Record<string, unknown>>>({});
 
+  const [error, setError] = useState<string | null>(null);
+
   const handleStepComplete = useCallback(async (step: number, data: Record<string, unknown>) => {
     setSaving(true);
+    setError(null);
     try {
-      setStepData(prev => ({ ...prev, [step]: data }));
+      setStepData((prev) => ({ ...prev, [step]: data }));
       await onboardingAPI.updateStep(step, data);
 
       if (step < STEPS.length - 2) {
@@ -37,8 +41,9 @@ export default function OnboardingWizard() {
         setDirection(1);
         setCurrentStep(step + 1);
       }
-    } catch (error) {
-      console.error('Failed to save step:', error);
+    } catch (err: unknown) {
+      console.error('Failed to save step:', err);
+      setError(handleApiError(err));
     } finally {
       setSaving(false);
     }
@@ -53,7 +58,7 @@ export default function OnboardingWizard() {
 
   const handleFinish = useCallback(() => {
     if (user) {
-      updateUser({ ...user, onboardingCompleted: true } as any);
+      updateUser({ ...user, onboardingCompleted: true });
     }
     router.replace('/');
   }, [router, user, updateUser]);
@@ -67,7 +72,7 @@ export default function OnboardingWizard() {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-neutral-950 flex flex-col">
+    <div className="onboarding-shell min-h-screen bg-white dark:bg-neutral-950 flex flex-col">
       {/* Header */}
       <header className="px-5 pt-5 pb-2 flex items-center justify-between max-w-lg mx-auto w-full">
         <div className="flex items-center gap-3">
@@ -79,7 +84,10 @@ export default function OnboardingWizard() {
           </span>
         </div>
         {currentStep > 0 && currentStep < STEPS.length - 1 && (
-          <button onClick={handleBack} className="text-sm text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200 transition-colors">
+          <button
+            onClick={handleBack}
+            className="text-sm text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200 transition-colors"
+          >
             Back
           </button>
         )}
@@ -119,12 +127,16 @@ export default function OnboardingWizard() {
               </p>
             </div>
 
+            {error && (
+              <div className="mb-4 p-3 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 text-red-700 dark:text-red-300 text-sm">
+                {error}
+              </div>
+            )}
             {currentStep === 0 && (
               <StepProfile
                 initialData={stepData[0]}
                 onComplete={(data) => handleStepComplete(0, data)}
                 saving={saving}
-                userName={user?.name || ''}
                 userCollege={user?.college || ''}
               />
             )}
@@ -135,9 +147,7 @@ export default function OnboardingWizard() {
                 saving={saving}
               />
             )}
-            {currentStep === 2 && (
-              <StepMatches onFinish={handleFinish} />
-            )}
+            {currentStep === 2 && <StepMatches onFinish={handleFinish} />}
           </motion.div>
         </AnimatePresence>
       </div>

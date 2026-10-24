@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useCallback } from 'react';
-import { reelsApi, Reel } from '@/lib/api/reels';
+import { Reel, reelsApi } from '@/lib/api/reels';
+import { useCallback, useState } from 'react';
 
 interface UseReelEngagementReturn {
   isLiked: boolean;
@@ -36,7 +36,10 @@ export function useReelEngagement(reel: Reel): UseReelEngagementReturn {
     setIsLiking(true);
 
     try {
-      const response = (await reelsApi.toggleLike(reel.id)) as unknown as { liked: boolean; likesCount: number };
+      const response = (await reelsApi.toggleLike(reel.id)) as unknown as {
+        liked: boolean;
+        likesCount: number;
+      };
       setIsLiked(response.liked);
       setLikesCount(response.likesCount);
     } catch (error) {
@@ -59,7 +62,10 @@ export function useReelEngagement(reel: Reel): UseReelEngagementReturn {
     setIsSaving(true);
 
     try {
-      const response = (await reelsApi.toggleSave(reel.id)) as unknown as { saved: boolean; savesCount: number };
+      const response = (await reelsApi.toggleSave(reel.id)) as unknown as {
+        saved: boolean;
+        savesCount: number;
+      };
       setIsSaved(response.saved);
       setSavesCount(response.savesCount);
     } catch (error) {
@@ -71,33 +77,36 @@ export function useReelEngagement(reel: Reel): UseReelEngagementReturn {
     }
   }, [reel.id, isSaved, savesCount, isSaving]);
 
-  const share = useCallback(async (type: string = 'copy_link') => {
-    if (isSharing) return;
+  const share = useCallback(
+    async (type: string = 'copy_link') => {
+      if (isSharing) return;
 
-    setIsSharing(true);
+      setIsSharing(true);
 
-    try {
-      const url = `${window.location.origin}/reels/${reel.id}`;
+      try {
+        const url = `${window.location.origin}/reels/${reel.id}`;
 
-      if (type === 'native' && navigator.share) {
-        await navigator.share({
-          title: reel.title || 'Check out this reel',
-          text: reel.caption || '',
-          url,
-        });
-        await reelsApi.share(reel.id, { shareType: 'external' });
-      } else {
-        await navigator.clipboard.writeText(url);
-        await reelsApi.share(reel.id, { shareType: 'copy_link' });
+        if (type === 'native' && navigator.share) {
+          await navigator.share({
+            title: reel.title || 'Check out this reel',
+            text: reel.caption || '',
+            url,
+          });
+          await reelsApi.share(reel.id, { shareType: 'external' });
+        } else {
+          await navigator.clipboard.writeText(url);
+          await reelsApi.share(reel.id, { shareType: 'copy_link' });
+        }
+      } catch (error) {
+        if ((error as Error).name !== 'AbortError') {
+          console.error('Failed to share:', error);
+        }
+      } finally {
+        setIsSharing(false);
       }
-    } catch (error) {
-      if ((error as Error).name !== 'AbortError') {
-        console.error('Failed to share:', error);
-      }
-    } finally {
-      setIsSharing(false);
-    }
-  }, [reel.id, reel.title, reel.caption, isSharing]);
+    },
+    [reel.id, reel.title, reel.caption, isSharing]
+  );
 
   return {
     isLiked,

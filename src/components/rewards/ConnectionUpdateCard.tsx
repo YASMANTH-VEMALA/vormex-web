@@ -1,9 +1,9 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import { X, UserCheck, UserPlus, Users } from 'lucide-react';
-import Link from 'next/link';
 import type { ConnectionUpdateData } from '@/lib/api/variable-rewards';
+import { motion } from 'framer-motion';
+import { UserCheck, UserPlus, Users, X } from 'lucide-react';
+import Link from 'next/link';
 
 interface ConnectionUpdateCardProps {
   data: ConnectionUpdateData;
@@ -40,7 +40,10 @@ export function ConnectionUpdateCard({ data, onDismiss }: ConnectionUpdateCardPr
             </p>
           </div>
         </div>
-        <button onClick={onDismiss} className="p-1 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors">
+        <button
+          onClick={onDismiss}
+          className="p-1 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
+        >
           <X className="w-4 h-4 text-blue-400" />
         </button>
       </div>

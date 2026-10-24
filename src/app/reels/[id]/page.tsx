@@ -1,16 +1,16 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, Loader2 } from 'lucide-react';
 import { ReelCard } from '@/components/reels';
-import { reelsApi, Reel } from '@/lib/api/reels';
+import { Reel, reelsApi } from '@/lib/api/reels';
+import { ArrowLeft, Loader2 } from 'lucide-react';
+import { useParams, useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 export default function SingleReelPage() {
   const params = useParams();
   const router = useRouter();
   const reelId = params.id as string;
-  
+
   const [reel, setReel] = useState<Reel | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

@@ -13,6 +13,10 @@ export interface MentionUser {
   avatar?: string | null;
   profileImage?: string | null;
   headline: string | null;
+  verified?: boolean;
+  isVerified?: boolean;
+  profileBadgeStyle?: string | null;
+  isPremium?: boolean;
 }
 
 export interface MentionPost {
@@ -102,13 +106,11 @@ export async function getPendingMentions(
 /**
  * Get all mentions for current user
  */
-export async function getMyMentions(
-  options?: {
-    status?: 'pending' | 'accepted' | 'rejected';
-    limit?: number;
-    cursor?: string;
-  }
-): Promise<MentionsResponse> {
+export async function getMyMentions(options?: {
+  status?: 'pending' | 'accepted' | 'rejected';
+  limit?: number;
+  cursor?: string;
+}): Promise<MentionsResponse> {
   return apiClient.get('/mentions', {
     params: {
       ...(options?.status && { status: options.status }),
@@ -187,13 +189,4 @@ export async function getUnreadMentions(): Promise<Mention[]> {
  */
 export async function getUnreadMentionCount(): Promise<{ count: number }> {
   return getMentionCount();
-}
-
-/**
- * @deprecated Mentions are now marked as read by responding (accept/reject)
- */
-export async function markMentionsAsRead(
-  _mentionIds: string[]
-): Promise<{ message: string }> {
-  return { message: 'ok' };
 }

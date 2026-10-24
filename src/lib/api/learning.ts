@@ -141,7 +141,10 @@ export const completeLesson = async (lessonId: string, timeSpent?: number) => {
 };
 
 // Submit quiz
-export const submitQuiz = async (quizId: string, answers: Record<string, string>): Promise<QuizAttempt> => {
+export const submitQuiz = async (
+  quizId: string,
+  answers: Record<string, string>
+): Promise<QuizAttempt> => {
   const response = await apiClient.post('/learning/quiz/submit', { quizId, answers });
   return response.data;
 };

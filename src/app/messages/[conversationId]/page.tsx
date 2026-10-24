@@ -1,74 +1,303 @@
 'use client';
 
-import { useEffect, useState, use, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/lib/auth/useAuth';
-import { ChatMessages, ChatInput, ChatHeader, type UploadingMessage, type OptimisticMessage } from '@/components/chat';
+import {
+  ChatHeader,
+  ChatInput,
+  ChatMessages,
+  type OptimisticMessage,
+  type UploadingMessage,
+} from '@/components/chat';
 import ChatSettingsPanel from '@/components/chat/ChatSettingsPanel';
-import { getConversation, Conversation } from '@/lib/api/chat';
-import { initializeSocket } from '@/lib/socket';
+import { BlockUserModal } from '@/components/ui/BlockUserModal';
+import {
+  getConversation,
+  type Conversation,
+  type ConversationsResponse,
+  type Message,
+} from '@/lib/api/chat';
+import { isTerminalSafetyError } from '@/lib/api/errors';
 import * as storeAPI from '@/lib/api/store';
+import { useAuth } from '@/lib/auth/useAuth';
+import {
+  readCachedConversation,
+  readCachedConversations,
+  writeCachedConversation,
+} from '@/lib/chat/browserCache';
 import {
   buildChatCustomizationEntitlements,
   DEFAULT_CHAT_CUSTOMIZATION_ENTITLEMENTS,
   isWallpaperUnlocked,
 } from '@/lib/chat/customization';
+import {
+  CHAT_MESSAGE_CONFIRMED_EVENT,
+  CHAT_OUTBOX_REMOVED_EVENT,
+  CHAT_OUTBOX_UPDATED_EVENT,
+  drainChatOutbox,
+  listChatOutboxEntries,
+  retryChatOutboxEntry,
+  type ChatOutboxEntry,
+} from '@/lib/chat/outbox';
+import { CHAT_STALE_TIME, queryKeys } from '@/lib/queryKeys';
+import { removeUnavailableConversations } from '@/lib/safety/clientCleanup';
+import { initializeSocket, SAFETY_STATE_CHANGED_EVENT } from '@/lib/socket';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
+import { use, useCallback, useEffect, useMemo, useState } from 'react';
 
 interface ConversationPageProps {
   params: Promise<{ conversationId: string }>;
+}
+
+type ReplyTarget = {
+  conversationId: string;
+  id: string;
+  content: string;
+  senderName: string;
+};
+
+function getStoredWallpaper(conversationId: string): string {
+  if (typeof window === 'undefined') return 'default';
+
+  try {
+    return sessionStorage.getItem(`chat_wallpaper_${conversationId}`) || 'default';
+  } catch {
+    return 'default';
+  }
 }
 
 // This page only renders the chat area - the layout.tsx handles the sidebar with ChatList
 export default function ConversationPage({ params }: ConversationPageProps) {
   const resolvedParams = use(params);
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { user } = useAuth();
-  const [conversation, setConversation] = useState<Conversation | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [replyTo, setReplyTo] = useState<{ id: string; content: string; senderName: string } | null>(null);
+  const conversationId = resolvedParams.conversationId;
+  const [replyTo, setReplyTo] = useState<ReplyTarget | null>(null);
   const [showSettings, setShowSettings] = useState(false);
-  const [wallpaper, setWallpaper] = useState('default');
-  const [uploadingMessages, setUploadingMessages] = useState<UploadingMessage[]>([]);
-  const [optimisticMessages, setOptimisticMessages] = useState<OptimisticMessage[]>([]);
-  const [lastReceivedMessage, setLastReceivedMessage] = useState<string>('');
-  const [chatCustomization, setChatCustomization] = useState(DEFAULT_CHAT_CUSTOMIZATION_ENTITLEMENTS);
+  const [showBlockModal, setShowBlockModal] = useState(false);
+  const [wallpapersByConversation, setWallpapersByConversation] = useState<Record<string, string>>(
+    {}
+  );
+  const [uploadingMessagesByConversation, setUploadingMessagesByConversation] = useState<
+    Record<string, UploadingMessage[]>
+  >({});
+  const [optimisticMessagesByConversation, setOptimisticMessagesByConversation] = useState<
+    Record<string, OptimisticMessage[]>
+  >({});
+  const [confirmedMessagesByConversation, setConfirmedMessagesByConversation] = useState<
+    Record<string, Message[]>
+  >({});
+  const [lastReceivedMessagesByConversation, setLastReceivedMessagesByConversation] = useState<
+    Record<string, string>
+  >({});
+  const [chatCustomization, setChatCustomization] = useState(
+    DEFAULT_CHAT_CUSTOMIZATION_ENTITLEMENTS
+  );
+  const conversationQueryKey = useMemo(
+    () => queryKeys.chatConversation(user?.id, conversationId),
+    [conversationId, user?.id]
+  );
+  const conversationsQueryKey = useMemo(() => queryKeys.chatConversations(user?.id), [user?.id]);
+  const queryCachedConversation = queryClient.getQueryData<Conversation>(conversationQueryKey);
+  const browserConversationCache = readCachedConversation(user?.id, conversationId);
+  const queryCachedConversations = user?.id
+    ? queryClient.getQueryData<ConversationsResponse>(conversationsQueryKey)
+    : undefined;
+  const browserConversationsCache =
+    user?.id && !queryCachedConversations ? readCachedConversations(user.id) : undefined;
+  const cachedConversationFromList = (
+    queryCachedConversations ?? browserConversationsCache?.value
+  )?.conversations.find((cachedConversation) => cachedConversation.id === conversationId);
+  const initialConversation =
+    queryCachedConversation ?? browserConversationCache?.value ?? cachedConversationFromList;
+  const initialConversationUpdatedAt =
+    (queryCachedConversation
+      ? queryClient.getQueryState(conversationQueryKey)?.dataUpdatedAt
+      : undefined) ??
+    browserConversationCache?.savedAt ??
+    (cachedConversationFromList
+      ? (queryClient.getQueryState(conversationsQueryKey)?.dataUpdatedAt ??
+        browserConversationsCache?.savedAt)
+      : undefined);
+
+  const {
+    data: conversation,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery<Conversation>({
+    queryKey: conversationQueryKey,
+    queryFn: async () => {
+      const fetchedConversation = await getConversation(conversationId);
+      writeCachedConversation(user?.id, fetchedConversation);
+      return fetchedConversation;
+    },
+    enabled: Boolean(conversationId && user?.id),
+    staleTime: CHAT_STALE_TIME,
+    refetchOnMount: false,
+    initialData: initialConversation,
+    initialDataUpdatedAt: initialConversationUpdatedAt,
+  });
+
+  const wallpaper = wallpapersByConversation[conversationId] ?? getStoredWallpaper(conversationId);
+  const effectiveWallpaper = isWallpaperUnlocked(wallpaper, chatCustomization.ownedThemePacks)
+    ? wallpaper
+    : 'default';
+  const visibleReplyTo = replyTo?.conversationId === conversationId ? replyTo : null;
+  const uploadingMessages = uploadingMessagesByConversation[conversationId] ?? [];
+  const optimisticMessages = optimisticMessagesByConversation[conversationId] ?? [];
+  const confirmedMessages = confirmedMessagesByConversation[conversationId] ?? [];
+  const lastReceivedMessage = lastReceivedMessagesByConversation[conversationId] ?? '';
+
+  useEffect(() => {
+    if (!user?.id) return;
+    if (queryClient.getQueryData<Conversation>(conversationQueryKey)) return;
+
+    const browserCache = readCachedConversation(user.id, conversationId);
+    if (browserCache) {
+      queryClient.setQueryData(conversationQueryKey, browserCache.value, {
+        updatedAt: browserCache.savedAt,
+      });
+      return;
+    }
+
+    const conversationFromList = readCachedConversations(user.id)?.value.conversations.find(
+      (cachedConversation) => cachedConversation.id === conversationId
+    );
+    if (conversationFromList) {
+      queryClient.setQueryData(conversationQueryKey, conversationFromList);
+    }
+  }, [conversationId, conversationQueryKey, queryClient, user?.id]);
 
   // Callback to track the last message received from other user
-  const handleLastMessageUpdate = useCallback((message: string) => {
-    setLastReceivedMessage(message);
-  }, []);
+  const handleLastMessageUpdate = useCallback(
+    (message: string) => {
+      setLastReceivedMessagesByConversation((previousMessages) => ({
+        ...previousMessages,
+        [conversationId]: message,
+      }));
+    },
+    [conversationId]
+  );
 
   // Handle optimistic message - add to list for immediate display
-  const handleOptimisticMessage = useCallback((message: OptimisticMessage) => {
-    setOptimisticMessages(prev => [...prev, message]);
-  }, []);
+  const handleOptimisticMessage = useCallback(
+    (message: OptimisticMessage) => {
+      setOptimisticMessagesByConversation((previousMessages) => ({
+        ...previousMessages,
+        [conversationId]: (previousMessages[conversationId] ?? []).some(
+          (existingMessage) => existingMessage.id === message.id
+        )
+          ? (previousMessages[conversationId] ?? []).map((existingMessage) =>
+              existingMessage.id === message.id
+                ? { ...existingMessage, ...message }
+                : existingMessage
+            )
+          : [...(previousMessages[conversationId] ?? []), message],
+      }));
+    },
+    [conversationId]
+  );
 
-  // Remove optimistic messages when real messages arrive
-  const handleMessageConfirmed = useCallback((confirmedContent: string) => {
-    // Remove the first optimistic message with matching content
-    setOptimisticMessages(prev => {
-      const idx = prev.findIndex(m => m.content === confirmedContent);
-      if (idx >= 0) {
-        const updated = [...prev];
-        updated.splice(idx, 1);
-        return updated;
+  const handleOptimisticMessageResolved = useCallback(
+    (optimisticId: string) => {
+      setOptimisticMessagesByConversation((previousMessages) => ({
+        ...previousMessages,
+        [conversationId]: (previousMessages[conversationId] ?? []).filter(
+          (message) => message.id !== optimisticId
+        ),
+      }));
+    },
+    [conversationId]
+  );
+
+  const handleConfirmedMessage = useCallback(
+    (message: Message) => {
+      setConfirmedMessagesByConversation((previousMessages) => {
+        const conversationMessages = previousMessages[conversationId] ?? [];
+        return {
+          ...previousMessages,
+          [conversationId]: conversationMessages.some(
+            (existingMessage) => existingMessage.id === message.id
+          )
+            ? conversationMessages
+            : [...conversationMessages, message],
+        };
+      });
+    },
+    [conversationId]
+  );
+
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const applyOutboxEntry = (entry: ChatOutboxEntry) => {
+      if (entry.ownerId !== user.id || entry.conversationId !== conversationId) return;
+      handleOptimisticMessage({
+        id: entry.clientMessageId,
+        conversationId: entry.conversationId,
+        senderId: user.id,
+        content: entry.content,
+        contentType: entry.contentType,
+        mediaUrl: entry.mediaUrl,
+        fileName: entry.fileName,
+        fileSize: entry.fileSize,
+        replyToId: entry.replyToId,
+        status: entry.status === 'failed' ? 'FAILED' : 'SENDING',
+        createdAt: entry.createdAt,
+      });
+    };
+
+    const handleOutboxUpdated = (event: Event) => {
+      applyOutboxEntry((event as CustomEvent<ChatOutboxEntry>).detail);
+    };
+    const handleMessageConfirmed = (event: Event) => {
+      const detail = (event as CustomEvent<{ conversationId: string; message: Message }>).detail;
+      if (detail?.conversationId !== conversationId || !detail.message) return;
+      handleConfirmedMessage(detail.message);
+      if (detail.message.clientMessageId) {
+        handleOptimisticMessageResolved(detail.message.clientMessageId);
       }
-      return prev;
+    };
+    const handleOutboxRemoved = (event: Event) => {
+      const detail = (
+        event as CustomEvent<{
+          conversationId: string;
+          clientMessageId: string;
+        }>
+      ).detail;
+      if (detail?.conversationId === conversationId && detail.clientMessageId) {
+        handleOptimisticMessageResolved(detail.clientMessageId);
+      }
+    };
+
+    void listChatOutboxEntries(user.id)
+      .then((entries) => entries.forEach(applyOutboxEntry))
+      .then(() => drainChatOutbox(user.id))
+      .catch((error) => console.error('Could not restore chat outbox:', error));
+
+    window.addEventListener(CHAT_OUTBOX_UPDATED_EVENT, handleOutboxUpdated);
+    window.addEventListener(CHAT_MESSAGE_CONFIRMED_EVENT, handleMessageConfirmed);
+    window.addEventListener(CHAT_OUTBOX_REMOVED_EVENT, handleOutboxRemoved);
+    return () => {
+      window.removeEventListener(CHAT_OUTBOX_UPDATED_EVENT, handleOutboxUpdated);
+      window.removeEventListener(CHAT_MESSAGE_CONFIRMED_EVENT, handleMessageConfirmed);
+      window.removeEventListener(CHAT_OUTBOX_REMOVED_EVENT, handleOutboxRemoved);
+    };
+  }, [
+    conversationId,
+    handleConfirmedMessage,
+    handleOptimisticMessage,
+    handleOptimisticMessageResolved,
+    user?.id,
+  ]);
+
+  const handleRetryMessage = useCallback((clientMessageId: string) => {
+    void retryChatOutboxEntry(clientMessageId).catch((error) => {
+      console.error('Could not retry chat message:', error);
     });
   }, []);
-
-  // Load wallpaper preference from localStorage
-  useEffect(() => {
-    if (resolvedParams.conversationId) {
-      const savedWallpaper = localStorage.getItem(`chat_wallpaper_${resolvedParams.conversationId}`);
-      if (savedWallpaper) {
-        setWallpaper(savedWallpaper);
-      } else {
-        setWallpaper('default');
-      }
-    }
-  }, [resolvedParams.conversationId]);
 
   // Load purchased chat customization packs from inventory
   useEffect(() => {
@@ -89,19 +318,30 @@ export default function ConversationPage({ params }: ConversationPageProps) {
     loadChatCustomization();
   }, [user?.id]);
 
-  // If current wallpaper is locked and user no longer owns required pack, fallback to default
   useEffect(() => {
-    if (!isWallpaperUnlocked(wallpaper, chatCustomization.ownedThemePacks)) {
-      setWallpaper('default');
-      localStorage.setItem(`chat_wallpaper_${resolvedParams.conversationId}`, 'default');
+    if (wallpaper !== 'default' && effectiveWallpaper === 'default') {
+      sessionStorage.setItem(`chat_wallpaper_${conversationId}`, 'default');
     }
-  }, [wallpaper, chatCustomization.ownedThemePacks, resolvedParams.conversationId]);
+  }, [conversationId, effectiveWallpaper, wallpaper]);
 
   // Save wallpaper preference
   const handleWallpaperChange = (newWallpaper: string) => {
-    setWallpaper(newWallpaper);
-    localStorage.setItem(`chat_wallpaper_${resolvedParams.conversationId}`, newWallpaper);
+    setWallpapersByConversation((previousWallpapers) => ({
+      ...previousWallpapers,
+      [conversationId]: newWallpaper,
+    }));
+    sessionStorage.setItem(`chat_wallpaper_${conversationId}`, newWallpaper);
   };
+
+  const handleUploadingMessagesChange = useCallback(
+    (messages: UploadingMessage[]) => {
+      setUploadingMessagesByConversation((previousMessages) => ({
+        ...previousMessages,
+        [conversationId]: messages,
+      }));
+    },
+    [conversationId]
+  );
 
   // Initialize socket
   useEffect(() => {
@@ -110,29 +350,38 @@ export default function ConversationPage({ params }: ConversationPageProps) {
     }
   }, [user?.id]);
 
-  // Fetch conversation
   useEffect(() => {
-    const fetchConversation = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const conv = await getConversation(resolvedParams.conversationId);
-        setConversation(conv);
-        // Clear reply, uploading and optimistic messages when switching conversations
-        setReplyTo(null);
-        setUploadingMessages([]);
-        setOptimisticMessages([]);
-      } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : 'Failed to load conversation');
-      } finally {
-        setLoading(false);
-      }
+    if (!user?.id) return;
+    const closeUnavailableConversation = async () => {
+      await removeUnavailableConversations({
+        queryClient,
+        ownerId: user.id,
+        conversationIds: [conversationId],
+      });
+      router.replace('/messages?notice=conversation_unavailable');
     };
+    const handleSafetyStateChanged = (event: Event) => {
+      const detail = (event as CustomEvent<{ affectedConversationIds?: string[] }>).detail;
+      if (detail?.affectedConversationIds?.includes(conversationId)) {
+        void closeUnavailableConversation();
+        return;
+      }
+      void refetch().then((result) => {
+        if (result.error && isTerminalSafetyError(result.error)) {
+          void closeUnavailableConversation();
+        }
+      });
+    };
+    window.addEventListener(SAFETY_STATE_CHANGED_EVENT, handleSafetyStateChanged);
+    return () => window.removeEventListener(SAFETY_STATE_CHANGED_EVENT, handleSafetyStateChanged);
+  }, [conversationId, queryClient, refetch, router, user?.id]);
 
-    if (resolvedParams.conversationId && user?.id) {
-      fetchConversation();
-    }
-  }, [resolvedParams.conversationId, user?.id]);
+  useEffect(() => {
+    if (!conversation || !user?.id) return;
+
+    queryClient.setQueryData(conversationQueryKey, conversation);
+    writeCachedConversation(user.id, conversation);
+  }, [conversation, conversationQueryKey, queryClient, user?.id]);
 
   const handleBack = () => {
     router.push('/messages');
@@ -141,7 +390,7 @@ export default function ConversationPage({ params }: ConversationPageProps) {
   const otherUser = conversation?.otherParticipant;
 
   // Loading state
-  if (loading) {
+  if (!conversation && (!user?.id || isLoading)) {
     return (
       <div className="flex-1 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -150,15 +399,14 @@ export default function ConversationPage({ params }: ConversationPageProps) {
   }
 
   // Error state
-  if (error || !conversation || !otherUser) {
+  if ((isError && !conversation) || !conversation || !otherUser) {
+    const errorMessage = error instanceof Error ? error.message : 'Failed to load conversation';
+
     return (
       <div className="flex-1 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-red-500 mb-4">{error || 'Conversation not found'}</p>
-          <button
-            onClick={handleBack}
-            className="text-blue-600 hover:underline"
-          >
+          <p className="text-red-500 mb-4">{errorMessage || 'Conversation not found'}</p>
+          <button onClick={handleBack} className="text-blue-600 hover:underline">
             Go back to messages
           </button>
         </div>
@@ -168,9 +416,9 @@ export default function ConversationPage({ params }: ConversationPageProps) {
 
   return (
     <>
-      <div className="flex-1 flex flex-col h-full overflow-hidden">
+      <div className="flex-1 min-h-0 min-w-0 w-full max-w-full flex flex-col overflow-hidden">
         {/* Chat Header */}
-        <ChatHeader 
+        <ChatHeader
           user={otherUser}
           conversationId={resolvedParams.conversationId}
           onBack={handleBack}
@@ -183,14 +431,15 @@ export default function ConversationPage({ params }: ConversationPageProps) {
           conversationId={resolvedParams.conversationId}
           currentUserId={user!.id}
           otherUser={otherUser}
-          wallpaper={wallpaper}
+          wallpaper={effectiveWallpaper}
           availableReactions={chatCustomization.availableReactions}
           animatedBubbles={chatCustomization.animatedBubbles}
-          onReply={(msg) => setReplyTo(msg)}
+          onReply={(msg) => setReplyTo({ ...msg, conversationId })}
           uploadingMessages={uploadingMessages}
           optimisticMessages={optimisticMessages}
+          confirmedMessages={confirmedMessages}
           onLastMessageUpdate={handleLastMessageUpdate}
-          onMessageConfirmed={handleMessageConfirmed}
+          onRetryMessage={handleRetryMessage}
         />
 
         {/* Input */}
@@ -198,10 +447,16 @@ export default function ConversationPage({ params }: ConversationPageProps) {
           key={`input-${resolvedParams.conversationId}`}
           conversationId={resolvedParams.conversationId}
           currentUserId={user!.id}
-          replyTo={replyTo || undefined}
-          onCancelReply={() => setReplyTo(null)}
-          onUploadingMessagesChange={setUploadingMessages}
+          replyTo={visibleReplyTo || undefined}
+          onCancelReply={() => {
+            setReplyTo((previousReply) =>
+              previousReply?.conversationId === conversationId ? null : previousReply
+            );
+          }}
+          onUploadingMessagesChange={handleUploadingMessagesChange}
           onOptimisticMessage={handleOptimisticMessage}
+          onOptimisticMessageResolved={handleOptimisticMessageResolved}
+          onConfirmedMessage={handleConfirmedMessage}
           otherUserId={otherUser.id}
           otherUserName={otherUser.name}
           lastReceivedMessage={lastReceivedMessage}
@@ -216,10 +471,25 @@ export default function ConversationPage({ params }: ConversationPageProps) {
         onClose={() => setShowSettings(false)}
         conversationId={resolvedParams.conversationId}
         otherUser={otherUser}
-        currentWallpaper={wallpaper}
+        currentWallpaper={effectiveWallpaper}
         onWallpaperChange={handleWallpaperChange}
         ownedThemePacks={chatCustomization.ownedThemePacks}
         onOpenStore={() => router.push('/store')}
+        onBlockUser={() => {
+          setShowSettings(false);
+          setShowBlockModal(true);
+        }}
+      />
+      <BlockUserModal
+        isOpen={showBlockModal}
+        onClose={() => setShowBlockModal(false)}
+        userId={otherUser.id}
+        userName={otherUser.name}
+        userImage={otherUser.profileImage}
+        onBlocked={() => {
+          setShowBlockModal(false);
+          router.replace('/messages?notice=conversation_unavailable');
+        }}
       />
     </>
   );

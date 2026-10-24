@@ -1,0 +1,32 @@
+/* Scope the community palette to the feed, including its dialogs. */
+.community-feed {
+  --color-blue-50: #f0f0ff;
+  --color-blue-100: #e3e3ff;
+  --color-blue-200: #ccccff;
+  --color-blue-300: #b4b5ff;
+  --color-blue-400: #9698ff;
+  --color-blue-500: #7074f5;
+  --color-blue-600: #5b5fef;
+  --color-blue-700: #4949cc;
+  --color-blue-800: #3b3b9f;
+  --color-blue-900: #303078;
+  --color-blue-950: #222246;
+  --color-neutral-700: #414552;
+  --color-neutral-800: #2a2d37;
+  --color-neutral-900: #1c1f27;
+  --color-neutral-950: #12141b;
+  --primary: #5b5fef;
+  --ring: #5b5fef;
+}
+
+/* Restore comfortable reading size on this page without changing other routes. */
+@media (min-width: 1024px) {
+  html:has(.community-feed) {
+    font-size: 100%;
+  }
+}
+
+.community-feed :where(button, a, input, textarea):focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 3px;
+}

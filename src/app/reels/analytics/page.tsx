@@ -1,20 +1,20 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import apiClient from '@/lib/api/client';
 import {
   ArrowLeft,
+  BarChart3,
+  Bookmark,
   Eye,
+  Film,
   Heart,
+  Loader2,
   MessageCircle,
   Share2,
-  Bookmark,
-  BarChart3,
   TrendingUp,
-  Loader2,
-  Film,
 } from 'lucide-react';
-import apiClient from '@/lib/api/client';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 interface CreatorAnalytics {
   totalReels: number;
@@ -26,7 +26,13 @@ interface CreatorAnalytics {
   avgWatchTimeMs: number;
   avgCompletionRate: number;
   recentViews: number;
-  topReels: { id: string; viewsCount: number; likesCount: number; commentsCount: number; createdAt: string }[];
+  topReels: {
+    id: string;
+    viewsCount: number;
+    likesCount: number;
+    commentsCount: number;
+    createdAt: string;
+  }[];
 }
 
 export default function ReelAnalyticsPage() {
@@ -163,7 +169,9 @@ export default function ReelAnalyticsPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-white/60">Avg. Watch Time</p>
-                  <p className="text-lg font-semibold">{formatDuration(analytics.avgWatchTimeMs)}</p>
+                  <p className="text-lg font-semibold">
+                    {formatDuration(analytics.avgWatchTimeMs)}
+                  </p>
                 </div>
                 <div>
                   <p className="text-sm text-white/60">Completion Rate</p>
@@ -196,7 +204,8 @@ export default function ReelAnalyticsPage() {
                           {formatNumber(reel.viewsCount)} views
                         </p>
                         <p className="text-sm text-white/60">
-                          {formatNumber(reel.likesCount)} likes · {formatNumber(reel.commentsCount)} comments
+                          {formatNumber(reel.likesCount)} likes · {formatNumber(reel.commentsCount)}{' '}
+                          comments
                         </p>
                       </div>
                       <span className="text-white/60 text-sm">

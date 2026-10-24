@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { Check } from 'lucide-react';
+import { useEffect } from 'react';
 
 interface ConnectionSentToastProps {
   show: boolean;
@@ -14,7 +14,11 @@ interface ConnectionSentToastProps {
  * ConnectionSentToast - Animated toast that appears when a connection request is sent
  * Provides satisfying visual feedback (the "Reward" in the Habit Loop)
  */
-export default function ConnectionSentToast({ show, recipientName, onClose }: ConnectionSentToastProps) {
+export default function ConnectionSentToast({
+  show,
+  recipientName,
+  onClose,
+}: ConnectionSentToastProps) {
   useEffect(() => {
     if (show) {
       const timer = setTimeout(() => onClose(), 2500);

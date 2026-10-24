@@ -36,6 +36,7 @@ export interface MyReport {
 export interface ReportRequest {
   reason: string;
   description?: string;
+  blockUser?: boolean;
 }
 
 export interface ChatReportRequest extends ReportRequest {
@@ -59,7 +60,10 @@ export const reportAPI = {
   },
 
   // Report a user in chat
-  reportChatUser: async (conversationId: string, data: ChatReportRequest): Promise<ReportResponse> => {
+  reportChatUser: async (
+    conversationId: string,
+    data: ChatReportRequest
+  ): Promise<ReportResponse> => {
     return apiClient.post(`/reports/chat/${conversationId}`, data);
   },
 
@@ -74,7 +78,10 @@ export const reportAPI = {
   },
 
   // Get user's own reports
-  getMyReports: async (page = 1, limit = 10): Promise<{
+  getMyReports: async (
+    page = 1,
+    limit = 10
+  ): Promise<{
     reports: MyReport[];
     pagination: {
       page: number;

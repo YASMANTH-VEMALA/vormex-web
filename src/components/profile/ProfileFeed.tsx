@@ -1,29 +1,35 @@
 'use client';
+import { useSyncedState } from '@/hooks/useSyncedState';
+import { useAuth as useResourceAuth } from '@/lib/auth/useAuth';
+import { useQuery } from '@tanstack/react-query';
 
-import { useState, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { EditPostModal } from '@/components/feed/EditPostModal';
+import { FormattedContent } from '@/components/feed/FormattedContent';
+import Link from 'next/link';
+import { isTerminalSafetyError } from '@/lib/api/errors';
+import { deletePost, getPost } from '@/lib/api/posts';
+import { getUserFeed } from '@/lib/api/profile';
+import { reelsApi } from '@/lib/api/reels';
+import { useAuth } from '@/lib/auth/useAuth';
+import { SAFETY_STATE_CHANGED_EVENT } from '@/lib/socket';
+import { handleApiError } from '@/lib/utils/errorHandler';
+import type { Post } from '@/types/post'; // Added Post type
+import type { FeedItem, RecentActivity } from '@/types/profile';
 import * as Tabs from '@radix-ui/react-tabs';
 import {
-  FileText,
-  Newspaper,
-  Video,
-  MessageSquare,
-  Heart,
   Eye,
-  Clock,
+  ArrowUpRight,
+  FileText,
+  Heart,
   Loader2,
+  MessageSquare,
   MoreHorizontal,
+  Newspaper,
   Pencil,
   Trash2,
+  Video,
 } from 'lucide-react';
-import { Card } from '@/components/ui/Card';
-import { getUserFeed } from '@/lib/api/profile';
-import { getPost, deletePost } from '@/lib/api/posts';
-import { reelsApi } from '@/lib/api/reels';
-import type { FeedItem, RecentActivity } from '@/types/profile';
-import type { Post } from '@/types/post'; // Added Post type
-import { useAuth } from '@/lib/auth/useAuth';
-import { EditPostModal } from '@/components/feed/EditPostModal';
+import { useCallback, useState } from 'react';
 
 interface ProfileFeedProps {
   userId: string;
@@ -42,11 +48,11 @@ const TABS: { value: FilterType; label: string; icon: React.ReactNode }[] = [
 export function ProfileFeed({ userId, initialFeed }: ProfileFeedProps) {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<FilterType>('all');
-  const [items, setItems] = useState<FeedItem[]>(initialFeed?.items || []);
-  const [hasMore, setHasMore] = useState(initialFeed?.hasMore || false);
-  const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(false);
+  const [initialItems] = useState<FeedItem[]>(initialFeed?.items || []);
+  const [initialHasMore] = useState(initialFeed?.hasMore || false);
+
   const [loadingMore, setLoadingMore] = useState(false);
+  const [actionError, setError] = useState<string | null>(null);
 
   // Edit/Delete State
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
@@ -57,45 +63,77 @@ export function ProfileFeed({ userId, initialFeed }: ProfileFeedProps) {
   // Check ownership
   const isOwner = user?.id === userId;
 
-  // Fetch feed when tab changes
-  useEffect(() => {
-    const fetchFeed = async () => {
-      setLoading(true);
-      try {
-        const response = await getUserFeed(userId, 1, 20, activeTab);
-        setItems(response.items);
-        setHasMore(response.hasMore);
-        setPage(1);
-      } catch (error) {
-        console.error('Failed to fetch feed:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const resourceViewer = useResourceAuth().user;
+  const fetchFeedResource = useQuery({
+    queryKey: [
+      'web-resource',
+      'profile-feed',
+      resourceViewer?.id ?? 'anonymous',
+      userId,
+      activeTab,
+    ],
+    queryFn: async () => {
+      return getUserFeed(userId, 1, 20, activeTab);
+    },
+    retry: false,
+  });
+  const [items, setItems] = useSyncedState(fetchFeedResource.data?.items ?? initialItems);
+  const [hasMore, setHasMore] = useSyncedState(fetchFeedResource.data?.hasMore ?? initialHasMore);
+  const [page, setPage] = useSyncedState(1, fetchFeedResource.data);
+  const loading = fetchFeedResource.isPending;
+  const error = fetchFeedResource.isError
+    ? isTerminalSafetyError(fetchFeedResource.error)
+      ? 'This profile is unavailable.'
+      : handleApiError(fetchFeedResource.error)
+    : actionError;
+  const fetchFeed = () => fetchFeedResource.refetch();
 
-    // Only fetch if we don't have initial data or tab changed
-    if (!initialFeed || activeTab !== 'all') {
-      fetchFeed();
-    }
-  }, [userId, activeTab, initialFeed]);
+  const handleFeedError = useCallback(
+    (requestError: unknown) => {
+      const terminal = isTerminalSafetyError(requestError);
+      if (terminal) {
+        setItems([]);
+        window.dispatchEvent(
+          new CustomEvent(SAFETY_STATE_CHANGED_EVENT, {
+            detail: { reason: 'interaction_policy_changed' },
+          })
+        );
+      }
+      setHasMore(false);
+      setError(terminal ? 'This profile is unavailable.' : handleApiError(requestError));
+    },
+    [setHasMore, setItems]
+  );
 
   // Load more
   const loadMore = useCallback(async () => {
     if (loadingMore || !hasMore) return;
 
     setLoadingMore(true);
+    setError(null);
     try {
       const nextPage = page + 1;
       const response = await getUserFeed(userId, nextPage, 20, activeTab);
       setItems((prev) => [...prev, ...response.items]);
       setHasMore(response.hasMore);
       setPage(nextPage);
-    } catch (error) {
-      console.error('Failed to load more:', error);
+    } catch (requestError) {
+      // A failed page remains user-retryable without re-triggering on scroll.
+      handleFeedError(requestError);
     } finally {
       setLoadingMore(false);
     }
-  }, [userId, page, activeTab, hasMore, loadingMore]);
+  }, [
+    loadingMore,
+    hasMore,
+    page,
+    userId,
+    activeTab,
+    setItems,
+    setHasMore,
+    setPage,
+    handleFeedError,
+  ]);
 
   const handleDelete = async (itemId: string, contentType: string) => {
     if (!window.confirm('Are you sure you want to delete this?')) return;
@@ -107,7 +145,7 @@ export function ProfileFeed({ userId, initialFeed }: ProfileFeedProps) {
       } else {
         await deletePost(itemId);
       }
-      setItems(items.filter(item => item.id !== itemId));
+      setItems(items.filter((item) => item.id !== itemId));
     } catch (err) {
       console.error('Failed to delete:', err);
       alert('Failed to delete');
@@ -120,7 +158,7 @@ export function ProfileFeed({ userId, initialFeed }: ProfileFeedProps) {
   const handleEditClick = async (itemId: string, contentType: string) => {
     setMenuOpenId(null);
     if (contentType === 'short_video') {
-      window.location.href = `/reels/${itemId}/edit`;
+      window.location.assign(`/reels/${itemId}/edit`);
       return;
     }
     try {
@@ -136,16 +174,18 @@ export function ProfileFeed({ userId, initialFeed }: ProfileFeedProps) {
   const handlePostUpdated = (updatedPost: Post) => {
     // Update the item in the list
     // Note: FeedItem is a subset/different shape, so we assume updatedPost content reflects there
-    setItems(items.map(item => {
-      if (item.id === updatedPost.id) {
-        return {
-          ...item,
-          content: updatedPost.content || '',
-          // Update other fields if available in FeedItem
-        };
-      }
-      return item;
-    }));
+    setItems(
+      items.map((item) => {
+        if (item.id === updatedPost.id) {
+          return {
+            ...item,
+            content: updatedPost.content || '',
+            // Update other fields if available in FeedItem
+          };
+        }
+        return item;
+      })
+    );
   };
 
   const formatDate = (dateString: string) => {
@@ -174,219 +214,251 @@ export function ProfileFeed({ userId, initialFeed }: ProfileFeedProps) {
     return labels[type] || type;
   };
 
-  // Simplified Brutalist Color Scheme (Black/White primarily)
-  // But keeping type badges distinct but cleaner
-  const getContentTypeStyle = (type: string) => {
-    switch (type) {
-      case 'article': return 'bg-emerald-500 text-white border-emerald-500';
-      case 'short_video': return 'bg-purple-500 text-white border-purple-500';
-      case 'forum_question': return 'bg-amber-500 text-black border-amber-500';
-      case 'forum_answer': return 'bg-rose-500 text-white border-rose-500';
-      default: return 'bg-black dark:bg-white text-white dark:text-black border-black dark:border-white';
-    }
-  };
-
   return (
-    <div className="space-y-6">
-      <Card className="bg-white dark:bg-black border border-neutral-200 dark:border-neutral-800 rounded-none overflow-hidden">
-        <Tabs.Root value={activeTab} onValueChange={(v) => setActiveTab(v as FilterType)}>
-          {/* Tabs */}
-          <div className="p-4 border-b border-neutral-200 dark:border-neutral-800">
-            <Tabs.List className="flex flex-wrap gap-2">
-              {TABS.map((tab) => (
-                <Tabs.Trigger
-                  key={tab.value}
-                  value={tab.value}
-                  className={`flex items-center gap-2 px-4 py-2 border text-xs font-bold uppercase tracking-wider transition-all ${activeTab === tab.value
-                      ? 'bg-black dark:bg-white text-white dark:text-black border-black dark:border-white'
-                      : 'bg-white dark:bg-black text-neutral-500 border-neutral-200 dark:border-neutral-800 hover:border-black dark:hover:border-white hover:text-black dark:hover:text-white'
-                    }`}
-                >
-                  {tab.icon}
-                  {tab.label}
-                </Tabs.Trigger>
-              ))}
-            </Tabs.List>
-          </div>
-
-          {/* Content */}
-          <Tabs.Content value={activeTab}>
-            {loading ? (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="w-8 h-8 text-neutral-400 animate-spin" />
-              </div>
-            ) : items.length === 0 ? (
-              <div className="text-center py-12 border-neutral-100 dark:border-neutral-900">
-                <div className="w-12 h-12 mx-auto mb-4 border border-dashed border-neutral-300 dark:border-neutral-700 flex items-center justify-center">
-                  <FileText className="w-6 h-6 text-neutral-400" />
-                </div>
-                <p className="text-sm font-medium text-neutral-500 uppercase tracking-wide">No content found</p>
-              </div>
-            ) : (
-              <div className="divide-y divide-neutral-200 dark:divide-neutral-800">
-                {items.map((item, index) => (
-                  <motion.div
+    <div className="min-w-0 text-[var(--foreground)]">
+      <Tabs.Root
+        value={activeTab}
+        onValueChange={(value) => {
+          setActiveTab(value as FilterType);
+          setMenuOpenId(null);
+        }}
+      >
+        <Tabs.List
+          aria-label="Filter profile activity"
+          className="mb-5 grid grid-cols-4 gap-1 rounded-xl bg-[var(--muted)] p-1"
+        >
+          {TABS.map((tab) => (
+            <Tabs.Trigger
+              key={tab.value}
+              value={tab.value}
+              className="flex min-w-0 items-center justify-center gap-1.5 rounded-lg px-2 py-2.5 text-xs sm:text-sm font-medium text-[var(--muted-foreground)] transition-colors hover:text-[var(--foreground)] data-[state=active]:bg-[var(--card)] data-[state=active]:text-[var(--foreground)] data-[state=active]:shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)]"
+            >
+              <span className="hidden sm:block">{tab.icon}</span>
+              {tab.label}
+            </Tabs.Trigger>
+          ))}
+        </Tabs.List>
+        <Tabs.Content value={activeTab} className="outline-none">
+          {error ? (
+            <div className="rounded-xl border border-[var(--border)] p-8 text-center">
+              <p role="alert" className="text-sm text-red-600 dark:text-red-400">
+                {error}
+              </p>
+              <button
+                type="button"
+                onClick={() => void fetchFeed()}
+                className="mt-4 rounded-lg border border-[var(--border)] px-4 py-2 text-sm font-medium hover:bg-[var(--accent)]"
+              >
+                Try again
+              </button>
+            </div>
+          ) : loading ? (
+            <div
+              role="status"
+              className="flex items-center justify-center gap-2 py-12 text-sm text-[var(--muted-foreground)]"
+            >
+              <Loader2 className="h-5 w-5 animate-spin" />
+              Loading activity...
+            </div>
+          ) : items.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-[var(--border)] px-4 py-12 text-center">
+              <FileText className="mx-auto mb-3 h-7 w-7 text-[var(--muted-foreground)]" />
+              <p className="font-medium">
+                No {activeTab === 'all' ? 'activity' : activeTab === 'videos' ? 'reels' : activeTab}{' '}
+                yet
+              </p>
+              <p className="mt-1 text-sm text-[var(--muted-foreground)]">
+                Shared updates will appear here.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {items.map((item) => {
+                const href =
+                  item.contentType === 'short_video'
+                    ? `/reels/${item.id}`
+                    : ['post', 'article'].includes(item.contentType)
+                      ? `/post/${item.id}`
+                      : null;
+                const images = item.images ?? [];
+                return (
+                  <article
                     key={item.id}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: index * 0.05 }}
-                    className={`p-6 bg-white dark:bg-black group hover:bg-neutral-50 dark:hover:bg-neutral-900/50 transition-colors relative ${item.contentType === 'short_video' ? 'cursor-pointer' : ''}`}
-                    {...(item.contentType === 'short_video' ? { onClick: () => window.location.href = `/reels/${item.id}` } : {})}
+                    aria-label={`${getContentTypeLabel(item.contentType)} activity`}
+                    className="relative min-w-0 rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 sm:p-5"
                   >
-                    {/* Header */}
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-center gap-3">
-                        <span
-                          className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider border ${getContentTypeStyle(
-                            item.contentType
-                          )}`}
-                        >
+                    <div className="mb-3 flex items-center justify-between gap-3">
+                      <div className="flex flex-wrap items-center gap-2 text-xs">
+                        <span className="rounded-md bg-[var(--muted)] px-2 py-1 font-medium">
                           {getContentTypeLabel(item.contentType)}
                         </span>
-                        <span className="flex items-center gap-1 text-[10px] font-bold text-neutral-400 uppercase tracking-wider">
-                          <Clock className="w-3 h-3" />
+                        <time dateTime={item.createdAt} className="text-[var(--muted-foreground)]">
                           {formatDate(item.createdAt)}
-                        </span>
+                        </time>
                       </div>
-
-                      {/* Menu for Owner */}
                       {isOwner && (
-                        <div className="relative" onClick={(e) => e.stopPropagation()}>
+                        <div className="relative">
                           <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setMenuOpenId(menuOpenId === item.id ? null : item.id);
-                            }}
-                            className="p-1 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors text-neutral-500"
+                            type="button"
+                            aria-label="Activity options"
+                            aria-expanded={menuOpenId === item.id}
+                            onClick={() => setMenuOpenId(menuOpenId === item.id ? null : item.id)}
+                            className="rounded-lg p-2 text-[var(--muted-foreground)] hover:bg-[var(--accent)]"
                           >
-                            <MoreHorizontal className="w-4 h-4" />
+                            <MoreHorizontal className="h-4 w-4" />
                           </button>
-
                           {menuOpenId === item.id && (
-                            <div className="absolute right-0 top-full mt-2 w-32 bg-white dark:bg-black border border-neutral-200 dark:border-neutral-800 shadow-xl z-10 flex flex-col py-1">
+                            <>
                               <button
-                                onClick={(e) => { e.stopPropagation(); handleEditClick(item.id, item.contentType); }}
-                                className="flex items-center gap-2 px-4 py-2 text-xs font-bold uppercase hover:bg-neutral-50 dark:hover:bg-neutral-900 text-left w-full text-neutral-900 dark:text-white"
-                              >
-                                <Pencil className="w-3 h-3" /> {item.contentType === 'short_video' ? 'Edit Reel' : 'Edit'}
-                              </button>
-                              <button
-                                onClick={(e) => { e.stopPropagation(); handleDelete(item.id, item.contentType); }}
-                                className="flex items-center gap-2 px-4 py-2 text-xs font-bold uppercase hover:bg-red-50 dark:hover:bg-red-900/20 text-left w-full text-red-600"
-                                disabled={isDeleting === item.id}
-                              >
-                                <Trash2 className="w-3 h-3" /> {isDeleting === item.id ? '...' : 'Delete'}
-                              </button>
-                            </div>
-                          )}
-
-                          {/* Click outside closer helper (transparent overlay) */}
-                          {menuOpenId === item.id && (
-                            <div className="fixed inset-0 z-0" onClick={() => setMenuOpenId(null)} />
+                                type="button"
+                                aria-label="Close activity options"
+                                className="fixed inset-0 z-10 cursor-default"
+                                onClick={() => setMenuOpenId(null)}
+                              />
+                              <div className="absolute right-0 top-full z-20 mt-1 w-36 rounded-xl border border-[var(--border)] bg-[var(--popover)] p-1 shadow-lg">
+                                <button
+                                  type="button"
+                                  onClick={() => void handleEditClick(item.id, item.contentType)}
+                                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-[var(--accent)]"
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                  Edit{item.contentType === 'short_video' ? ' reel' : ''}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => void handleDelete(item.id, item.contentType)}
+                                  disabled={isDeleting === item.id}
+                                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950 disabled:opacity-50"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                  {isDeleting === item.id ? 'Deleting...' : 'Delete'}
+                                </button>
+                              </div>
+                            </>
                           )}
                         </div>
                       )}
                     </div>
-
-                    {/* Title (for articles/questions) */}
                     {item.title && (
-                      <h4 className="text-base font-bold text-neutral-900 dark:text-white uppercase tracking-tight mb-2">{item.title}</h4>
+                      <h3 className="mb-2 break-words text-base font-semibold">{item.title}</h3>
                     )}
-
-                    {/* Content */}
-                    <div className="text-sm text-neutral-600 dark:text-neutral-300 leading-relaxed mb-4 whitespace-pre-wrap font-medium">
-                      {item.content.length > 300 ? `${item.content.substring(0, 300)}...` : item.content}
-                    </div>
-
-                    {/* Tags */}
+                    {item.content && (
+                      <FormattedContent
+                        content={
+                          item.content.length > 500
+                            ? `${item.content.slice(0, 500)}...`
+                            : item.content
+                        }
+                        className="mb-4 text-sm leading-relaxed [overflow-wrap:anywhere]"
+                      />
+                    )}
                     {item.tags && item.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mb-4">
+                      <div className="mb-4 flex flex-wrap gap-2">
                         {item.tags.map((tag) => (
-                          <span
-                            key={tag}
-                            className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider hover:text-black dark:hover:text-white cursor-pointer"
-                          >
+                          <span key={tag} className="text-xs text-[var(--muted-foreground)]">
                             #{tag}
                           </span>
                         ))}
                       </div>
                     )}
-
-                    {/* Images */}
-                    {item.images && item.images.length > 0 && (
-                      <div className="mb-4 flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                        {item.images.slice(0, 3).map((img, i) => (
-                          <div key={i} className="flex-shrink-0 w-32 h-32 border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900 p-1">
-                            <img
-                              src={img}
-                              alt=""
-                              className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-300"
-                            />
-                          </div>
-                        ))}
-                        {item.images.length > 3 && (
-                          <div className="flex-shrink-0 w-32 h-32 border border-neutral-200 dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-900 flex items-center justify-center">
-                            <span className="text-sm font-bold text-neutral-500">+{item.images.length - 3}</span>
-                          </div>
-                        )}
+                    {images.length > 0 && (
+                      <div
+                        className={`mb-4 grid w-full aspect-video max-h-80 overflow-hidden rounded-lg bg-[var(--muted)] ${images.length > 1 ? 'grid-cols-2 gap-1' : 'grid-cols-1'}`}
+                      >
+                        {images.slice(0, 4).map((image, index) => {
+                          const picture = (
+                            <>
+                              <img
+                                src={image}
+                                alt={`Shared image ${index + 1}`}
+                                loading="lazy"
+                                className="h-full w-full object-cover"
+                              />
+                              {index === 3 && images.length > 4 && (
+                                <span className="absolute inset-0 flex items-center justify-center bg-black/50 text-2xl font-semibold text-white">
+                                  +{images.length - 4}
+                                </span>
+                              )}
+                            </>
+                          );
+                          const classes = `relative min-h-0 overflow-hidden ${images.length === 3 && index === 0 ? 'row-span-2' : ''}`;
+                          return href ? (
+                            <Link
+                              key={index}
+                              href={href}
+                              aria-label={`Open ${getContentTypeLabel(item.contentType).toLowerCase()}, image ${index + 1} of ${images.length}`}
+                              className={classes}
+                            >
+                              {picture}
+                            </Link>
+                          ) : (
+                            <div key={index} className={classes}>
+                              {picture}
+                            </div>
+                          );
+                        })}
                       </div>
                     )}
-
-                    {/* Question reference for answers */}
                     {item.questionTitle && (
-                      <div className="mb-4 p-3 bg-neutral-50 dark:bg-neutral-900 border-l-2 border-neutral-300 dark:border-neutral-700">
-                        <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Answered:</p>
-                        <p className="text-sm font-bold text-neutral-900 dark:text-white uppercase">{item.questionTitle}</p>
+                      <div className="mb-4 rounded-lg bg-[var(--muted)] p-3 text-sm">
+                        <p className="mb-1 text-xs text-[var(--muted-foreground)]">Answered</p>
+                        {item.questionTitle}
                       </div>
                     )}
-
-                    {/* Engagement Stats - Interactive Look */}
-                    <div className="flex items-center gap-6 pt-4 border-t border-neutral-100 dark:border-neutral-800 mt-2">
-                      {/* Like - Even if disabled, style it */}
-                      <div className="flex items-center gap-2 group/stat cursor-default">
-                        <Heart className={`w-4 h-4 ${Number(item.likesCount) > 0 ? 'fill-neutral-900 dark:fill-white text-neutral-900 dark:text-white' : 'text-neutral-400'}`} />
-                        <span className="text-xs font-bold text-neutral-600 dark:text-neutral-400">{item.likesCount || 0}</span>
-                      </div>
-
-                      <div className="flex items-center gap-2 group/stat cursor-default">
-                        <MessageSquare className={`w-4 h-4 ${Number(item.commentsCount) > 0 ? 'fill-neutral-900 dark:fill-white text-neutral-900 dark:text-white' : 'text-neutral-400'}`} />
-                        <span className="text-xs font-bold text-neutral-600 dark:text-neutral-400">{item.commentsCount || 0}</span>
-                      </div>
-
-                      <div className="flex items-center gap-2 ml-auto">
-                        <Eye className="w-4 h-4 text-neutral-400" />
-                        <span className="text-xs font-bold text-neutral-400">{item.viewsCount || 0}</span>
-                      </div>
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-[var(--border)] pt-3 text-xs text-[var(--muted-foreground)]">
+                      <span
+                        aria-label={`${item.likesCount || 0} likes`}
+                        className="flex items-center gap-1.5"
+                      >
+                        <Heart className="h-4 w-4" />
+                        {item.likesCount || 0}
+                      </span>
+                      <span
+                        aria-label={`${item.commentsCount || 0} comments`}
+                        className="flex items-center gap-1.5"
+                      >
+                        <MessageSquare className="h-4 w-4" />
+                        {item.commentsCount || 0}
+                      </span>
+                      <span
+                        aria-label={`${item.viewsCount || 0} views`}
+                        className="flex items-center gap-1.5"
+                      >
+                        <Eye className="h-4 w-4" />
+                        {item.viewsCount || 0}
+                      </span>
+                      {href && (
+                        <Link
+                          href={href}
+                          className="ml-auto flex items-center gap-1 font-medium text-[var(--foreground)] hover:underline"
+                        >
+                          {item.contentType === 'short_video'
+                            ? 'Watch reel'
+                            : item.contentType === 'article'
+                              ? 'Read article'
+                              : 'View post'}
+                          <ArrowUpRight className="h-3.5 w-3.5" />
+                        </Link>
+                      )}
                     </div>
-                  </motion.div>
-                ))}
-              </div>
-            )}
-
-            {/* Load More */}
-            {hasMore && (
-              <div className="flex justify-center p-6 border-t border-neutral-200 dark:border-neutral-800">
-                <button
-                  onClick={loadMore}
-                  disabled={loadingMore}
-                  className="px-6 py-3 bg-white dark:bg-black border border-neutral-200 dark:border-neutral-800 text-neutral-900 dark:text-white text-xs font-bold uppercase tracking-wider hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-colors disabled:opacity-50 flex items-center gap-2"
-                >
-                  {loadingMore ? (
-                    <>
-                      <Loader2 className="w-3 h-3 animate-spin" />
-                      Loading...
-                    </>
-                  ) : (
-                    'Load More Activity'
-                  )}
-                </button>
-              </div>
-            )}
-          </Tabs.Content>
-        </Tabs.Root>
-      </Card>
-
-      {/* Edit Post Modal */}
+                  </article>
+                );
+              })}
+            </div>
+          )}
+          {hasMore && !loading && !error && (
+            <button
+              type="button"
+              onClick={() => void loadMore()}
+              disabled={loadingMore}
+              className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl border border-[var(--border)] py-3 text-sm font-medium hover:bg-[var(--accent)] disabled:opacity-50"
+            >
+              {loadingMore && <Loader2 className="h-4 w-4 animate-spin" />}
+              {loadingMore ? 'Loading...' : 'Show more activity'}
+            </button>
+          )}
+        </Tabs.Content>
+      </Tabs.Root>
       {postToEdit && (
         <EditPostModal
           isOpen={editModalOpen}

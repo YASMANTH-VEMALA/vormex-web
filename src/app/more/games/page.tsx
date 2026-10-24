@@ -1,28 +1,31 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import {
+  useLiveGameLeaderboard,
+  useLiveGameStats,
+  useLiveStreaks,
+  useLiveWalletXpBalance,
+} from '@/hooks/useLiveGamification';
 import { motion } from 'framer-motion';
 import {
   ArrowLeft,
-  Trophy,
-  Zap,
   Brain,
-  Keyboard,
   Code,
-  TrendingUp,
-  Star,
   Flame,
-  Gift,
-  Medal,
-  Target,
   Gamepad2,
-  Clock,
-  Users,
+  Gift,
+  Keyboard,
+  Medal,
   Sparkles,
+  Star,
+  Target,
+  TrendingUp,
+  Trophy,
+  Users,
+  Zap,
 } from 'lucide-react';
-import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
-import { getMyGameStats, getLeaderboard, LeaderboardEntry } from '@/lib/api/games';
+import Link from 'next/link';
 
 interface GameCard {
   id: string;
@@ -38,30 +41,27 @@ interface GameCard {
 }
 
 export default function GamesPage() {
-  const [totalXp, setTotalXp] = useState(0);
-  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [dailyStreak, setDailyStreak] = useState(0);
+  const { data: xpBalance = 0, isLoading: xpLoading } = useLiveWalletXpBalance();
+  const { data: streakData, isLoading: streakLoading } = useLiveStreaks();
+  const { data: gameStatsData, isLoading: statsLoading } = useLiveGameStats();
+  const { data: leaderboardData, isLoading: leaderboardLoading } = useLiveGameLeaderboard(
+    'all',
+    'alltime',
+    5
+  );
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [statsData, leaderboardData] = await Promise.all([
-          getMyGameStats(),
-          getLeaderboard('all', 'alltime', 5),
-        ]);
-        setTotalXp(statsData.stats?.currentXpBalance || 0);
-        setDailyStreak(statsData.stats?.currentStreak || 0);
-        setLeaderboard(leaderboardData.leaderboard || []);
-      } catch (error) {
-        console.error('Failed to fetch games data:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
+  const leaderboard = leaderboardData?.leaderboard ?? [];
+  const activeStreak = streakData
+    ? Math.max(
+        streakData.connectionStreak,
+        streakData.loginStreak,
+        streakData.postingStreak,
+        streakData.messagingStreak
+      )
+    : 0;
+  const totalGamesPlayed = gameStatsData?.stats.totalGamesPlayed ?? 0;
+  const totalGameXpEarned = gameStatsData?.stats.totalXpEarned ?? 0;
+  const isLoading = xpLoading || streakLoading || statsLoading || leaderboardLoading;
 
   const games: GameCard[] = [
     {
@@ -144,7 +144,7 @@ export default function GamesPage() {
                   Games & XP
                 </h1>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Play games, earn XP, climb leaderboards
+                  Play games, grow your XP balance, climb leaderboards
                 </p>
               </div>
             </div>
@@ -160,31 +160,31 @@ export default function GamesPage() {
           >
             <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
             <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2" />
-            
+
             <div className="relative z-10">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-purple-100 text-sm font-medium">Total XP</p>
+                  <p className="text-purple-100 text-sm font-medium">XP Balance</p>
                   <p className="text-4xl font-bold mt-1">
-                    {isLoading ? '...' : totalXp.toLocaleString()}
+                    {isLoading ? '...' : xpBalance.toLocaleString()}
                   </p>
                 </div>
                 <div className="p-4 bg-white/20 rounded-2xl backdrop-blur-sm">
                   <Zap className="w-8 h-8" />
                 </div>
               </div>
-              
+
               <div className="mt-4 flex items-center gap-6">
                 <div className="flex items-center gap-2">
                   <Flame className="w-5 h-5 text-orange-300" />
                   <span className="text-sm">
-                    <span className="font-semibold">{dailyStreak}</span> Day Streak
+                    <span className="font-semibold">{activeStreak}</span> Active Streak
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Medal className="w-5 h-5 text-yellow-300" />
                   <span className="text-sm">
-                    <span className="font-semibold">5</span> Games Available
+                    <span className="font-semibold">{games.length}</span> Games Available
                   </span>
                 </div>
               </div>
@@ -204,12 +204,12 @@ export default function GamesPage() {
                   <Star className="w-5 h-5 text-green-600 dark:text-green-400" />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Daily Bonus</p>
-                  <p className="font-semibold text-gray-900 dark:text-white">+50 XP</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Games Played</p>
+                  <p className="font-semibold text-gray-900 dark:text-white">{totalGamesPlayed}</p>
                 </div>
               </div>
             </motion.div>
-            
+
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -221,8 +221,10 @@ export default function GamesPage() {
                   <Gift className="w-5 h-5 text-amber-600 dark:text-amber-400" />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">XP Store</p>
-                  <p className="font-semibold text-gray-900 dark:text-white">Coming Soon</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Game XP Earned</p>
+                  <p className="font-semibold text-gray-900 dark:text-white">
+                    {totalGameXpEarned.toLocaleString()} XP
+                  </p>
                 </div>
               </div>
             </motion.div>
@@ -256,13 +258,15 @@ export default function GamesPage() {
                             {game.title}
                           </h3>
                           {game.badge && (
-                            <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${
-                              game.badge === 'New' 
-                                ? 'bg-rose-100 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400'
-                                : game.badge === 'Daily'
-                                ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'
-                                : 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'
-                            }`}>
+                            <span
+                              className={`px-2 py-0.5 text-xs font-medium rounded-full ${
+                                game.badge === 'New'
+                                  ? 'bg-rose-100 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400'
+                                  : game.badge === 'Daily'
+                                    ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'
+                                    : 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'
+                              }`}
+                            >
                               {game.badge}
                             </span>
                           )}
@@ -296,9 +300,7 @@ export default function GamesPage() {
               ) : leaderboard.length === 0 ? (
                 <div className="p-8 text-center">
                   <Users className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-                  <p className="text-gray-500 dark:text-gray-400">
-                    Be the first to earn XP!
-                  </p>
+                  <p className="text-gray-500 dark:text-gray-400">Be the first to earn XP!</p>
                 </div>
               ) : (
                 <div className="divide-y divide-gray-100 dark:divide-gray-700">
@@ -307,27 +309,29 @@ export default function GamesPage() {
                       key={entry.user.id}
                       className="flex items-center gap-4 p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                     >
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                        index === 0 
-                          ? 'bg-amber-100 text-amber-600 dark:bg-amber-900/30'
-                          : index === 1
-                          ? 'bg-gray-200 text-gray-600 dark:bg-gray-600 dark:text-gray-300'
-                          : index === 2
-                          ? 'bg-orange-100 text-orange-600 dark:bg-orange-900/30'
-                          : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400'
-                      }`}>
+                      <div
+                        className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                          index === 0
+                            ? 'bg-amber-100 text-amber-600 dark:bg-amber-900/30'
+                            : index === 1
+                              ? 'bg-gray-200 text-gray-600 dark:bg-gray-600 dark:text-gray-300'
+                              : index === 2
+                                ? 'bg-orange-100 text-orange-600 dark:bg-orange-900/30'
+                                : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400'
+                        }`}
+                      >
                         {index + 1}
                       </div>
                       <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-semibold">
-                        {entry.user.name?.charAt(0).toUpperCase() || entry.user.username?.charAt(0).toUpperCase() || '?'}
+                        {entry.user.name?.charAt(0).toUpperCase() ||
+                          entry.user.username?.charAt(0).toUpperCase() ||
+                          '?'}
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-gray-900 dark:text-white truncate">
                           {entry.user.name || entry.user.username || 'Anonymous'}
                         </p>
-                        <p className="text-xs text-gray-500">
-                          {entry.gamesPlayed} games played
-                        </p>
+                        <p className="text-xs text-gray-500">{entry.gamesPlayed} games played</p>
                       </div>
                       <div className="text-right">
                         <p className="font-semibold text-purple-600 dark:text-purple-400">
@@ -345,32 +349,35 @@ export default function GamesPage() {
           <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-800/50 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
             <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
               <Zap className="w-5 h-5 text-purple-500" />
-              How XP Works
+              How XP Balance Works
             </h3>
             <div className="space-y-3 text-sm text-gray-600 dark:text-gray-300">
               <div className="flex items-start gap-3">
                 <div className="w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center flex-shrink-0 mt-0.5">
                   <span className="text-xs font-bold text-purple-600 dark:text-purple-400">1</span>
                 </div>
-                <p>Play daily games to earn XP based on your performance</p>
+                <p>Play daily games to add spendable XP into your XP Balance.</p>
               </div>
               <div className="flex items-start gap-3">
                 <div className="w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center flex-shrink-0 mt-0.5">
                   <span className="text-xs font-bold text-purple-600 dark:text-purple-400">2</span>
                 </div>
-                <p>Maintain your daily streak for bonus XP multipliers</p>
+                <p>Your XP Balance is what the store and streak protection spend.</p>
               </div>
               <div className="flex items-start gap-3">
                 <div className="w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center flex-shrink-0 mt-0.5">
                   <span className="text-xs font-bold text-purple-600 dark:text-purple-400">3</span>
                 </div>
-                <p>Climb the leaderboard and compete with other users</p>
+                <p>Profile levels use separate Level XP tied to your overall activity.</p>
               </div>
               <div className="flex items-start gap-3">
                 <div className="w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center flex-shrink-0 mt-0.5">
                   <span className="text-xs font-bold text-purple-600 dark:text-purple-400">4</span>
                 </div>
-                <p>Redeem XP for rewards in the XP Store (coming soon!)</p>
+                <p>
+                  Leaderboards here rank game XP earned, so you can compete without affecting
+                  profile level pacing.
+                </p>
               </div>
             </div>
           </div>

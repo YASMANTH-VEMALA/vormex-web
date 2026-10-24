@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useState } from 'react';
 
 interface Props {
   initialData?: Record<string, unknown>;
@@ -10,38 +10,82 @@ interface Props {
 }
 
 const TOPICS = [
-  'Python', 'JavaScript', 'React', 'Next.js', 'Node.js', 'TypeScript',
-  'Java', 'C++', 'DSA', 'System Design', 'Machine Learning', 'Deep Learning',
-  'Web Development', 'Mobile Dev', 'Flutter', 'React Native', 'Android', 'iOS',
-  'Data Science', 'SQL', 'MongoDB', 'PostgreSQL', 'Docker', 'Kubernetes',
-  'AWS', 'DevOps', 'CI/CD', 'Git', 'Linux', 'Cybersecurity',
-  'UI/UX Design', 'Figma', 'Graphic Design', 'Video Editing',
-  'Business Strategy', 'Marketing', 'Sales', 'Finance', 'Product Management',
-  'Public Speaking', 'Communication', 'Leadership', 'Time Management',
-  'Blockchain', 'Web3', 'Game Development', 'Unity', 'AR/VR',
-  'Competitive Programming', 'LeetCode', 'Resume Building', 'Interview Prep',
+  'Python',
+  'JavaScript',
+  'React',
+  'Next.js',
+  'Node.js',
+  'TypeScript',
+  'Java',
+  'C++',
+  'DSA',
+  'System Design',
+  'Machine Learning',
+  'Deep Learning',
+  'Web Development',
+  'Mobile Dev',
+  'Flutter',
+  'React Native',
+  'Android',
+  'iOS',
+  'Data Science',
+  'SQL',
+  'MongoDB',
+  'PostgreSQL',
+  'Docker',
+  'Kubernetes',
+  'AWS',
+  'DevOps',
+  'CI/CD',
+  'Git',
+  'Linux',
+  'Cybersecurity',
+  'UI/UX Design',
+  'Figma',
+  'Graphic Design',
+  'Video Editing',
+  'Business Strategy',
+  'Marketing',
+  'Sales',
+  'Finance',
+  'Product Management',
+  'Public Speaking',
+  'Communication',
+  'Leadership',
+  'Time Management',
+  'Blockchain',
+  'Web3',
+  'Game Development',
+  'Unity',
+  'AR/VR',
+  'Competitive Programming',
+  'LeetCode',
+  'Resume Building',
+  'Interview Prep',
 ];
 
 export default function StepLearnTeach({ initialData, onComplete, saving }: Props) {
-  const [wantToLearn, setWantToLearn] = useState<string[]>((initialData?.wantToLearn as string[]) || []);
+  const [wantToLearn, setWantToLearn] = useState<string[]>(
+    (initialData?.wantToLearn as string[]) || []
+  );
   const [canTeach, setCanTeach] = useState<string[]>((initialData?.canTeach as string[]) || []);
   const [activeTab, setActiveTab] = useState<'learn' | 'teach'>('learn');
   const [search, setSearch] = useState('');
 
   const toggleItem = (topic: string, list: 'learn' | 'teach') => {
     if (list === 'learn') {
-      setWantToLearn(prev =>
-        prev.includes(topic) ? prev.filter(t => t !== topic) : [...prev, topic]
+      setWantToLearn((prev) =>
+        prev.includes(topic) ? prev.filter((t) => t !== topic) : [...prev, topic]
       );
     } else {
-      setCanTeach(prev =>
-        prev.includes(topic) ? prev.filter(t => t !== topic) : [...prev, topic]
+      setCanTeach((prev) =>
+        prev.includes(topic) ? prev.filter((t) => t !== topic) : [...prev, topic]
       );
     }
   };
 
   const filtered = search
-    ? TOPICS.filter(t => t.toLowerCase().includes(search.toLowerCase()))
+    ? TOPICS.filter((t) => t.toLowerCase().includes(search.toLowerCase()))
     : TOPICS;
 
   const canContinue = wantToLearn.length >= 1;
@@ -49,7 +93,8 @@ export default function StepLearnTeach({ initialData, onComplete, saving }: Prop
   return (
     <div className="space-y-5">
       <p className="text-center text-sm text-neutral-500 dark:text-neutral-400">
-        This powers our <span className="font-semibold text-blue-500">smart matching</span> — we&apos;ll connect you with people who can teach what you want to learn.
+        This powers our <span className="font-semibold text-blue-500">smart matching</span> —
+        we&apos;ll connect you with people who can teach what you want to learn.
       </p>
 
       {/* Tab switcher */}
@@ -88,7 +133,7 @@ export default function StepLearnTeach({ initialData, onComplete, saving }: Prop
       {/* Selected tags */}
       {(activeTab === 'learn' ? wantToLearn : canTeach).length > 0 && (
         <div className="flex flex-wrap gap-1.5">
-          {(activeTab === 'learn' ? wantToLearn : canTeach).map(t => (
+          {(activeTab === 'learn' ? wantToLearn : canTeach).map((t) => (
             <span
               key={t}
               className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${
@@ -98,10 +143,7 @@ export default function StepLearnTeach({ initialData, onComplete, saving }: Prop
               }`}
             >
               {t}
-              <button
-                onClick={() => toggleItem(t, activeTab)}
-                className="hover:opacity-70"
-              >
+              <button onClick={() => toggleItem(t, activeTab)} className="hover:opacity-70">
                 &times;
               </button>
             </span>
@@ -129,8 +171,8 @@ export default function StepLearnTeach({ initialData, onComplete, saving }: Prop
                     ? 'bg-blue-500 text-white shadow-md shadow-blue-500/20'
                     : 'bg-purple-500 text-white shadow-md shadow-purple-500/20'
                   : isInLearn || isInTeach
-                  ? 'bg-neutral-200 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-300 ring-1 ring-blue-300 dark:ring-blue-700'
-                  : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700'
+                    ? 'bg-neutral-200 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-300 ring-1 ring-blue-300 dark:ring-blue-700'
+                    : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700'
               }`}
             >
               {topic}

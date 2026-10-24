@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Bell, X, BellRing } from 'lucide-react';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Bell, BellRing, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface NotificationPromptProps {
   userId: string | undefined;
@@ -18,7 +18,6 @@ export function NotificationPrompt({ userId }: NotificationPromptProps) {
   const {
     isSupported,
     isPermissionGranted,
-    isTokenRegistered,
     isLoading,
     foregroundNotification,
     requestPermission,
@@ -74,7 +73,8 @@ export function NotificationPrompt({ userId }: NotificationPromptProps) {
                     Stay in the loop 🔔
                   </h3>
                   <p className="text-xs text-gray-500 dark:text-neutral-400 leading-relaxed">
-                    Get notified when someone views your profile, accepts your connection, or when your streak is at risk.
+                    Get notified when someone views your profile, accepts your connection, or when
+                    your streak is at risk.
                   </p>
                 </div>
                 <button

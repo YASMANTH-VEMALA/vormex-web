@@ -1,19 +1,12 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import * as Dialog from '@radix-ui/react-dialog';
-import {
-  X,
-  Upload,
-  Image as ImageIcon,
-  Loader2,
-  Trash2,
-  Crop,
-} from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { uploadAvatar, uploadBanner, uploadProjectImage } from '@/lib/api/posts';
 import { uploadCompanyLogo } from '@/lib/api/profile';
+import * as Dialog from '@radix-ui/react-dialog';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Crop, Image as ImageIcon, Loader2, Trash2, Upload, X } from 'lucide-react';
+import { useCallback, useRef, useState } from 'react';
 import ImageCropper from './ImageCropper';
 
 interface ImageUploadModalProps {
@@ -22,6 +15,17 @@ interface ImageUploadModalProps {
   type: 'avatar' | 'banner' | 'project' | 'logo';
   currentImageUrl?: string | null;
   onImageUpdated: (imageUrl: string) => void;
+}
+
+function getUploadErrorMessage(error: unknown): string {
+  if (typeof error === 'object' && error !== null && 'response' in error) {
+    const response = (error as { response?: { data?: { error?: unknown } } }).response;
+    if (typeof response?.data?.error === 'string') {
+      return response.data.error;
+    }
+  }
+
+  return error instanceof Error && error.message ? error.message : 'Failed to upload image';
 }
 
 export function ImageUploadModal({
@@ -52,51 +56,60 @@ export function ImageUploadModal({
   if (isProject) title = 'Add Project Image';
   if (isLogo) title = 'Upload Company Logo';
 
-  const aspectRatio = (isAvatar || isLogo) ? 'aspect-square' : 'aspect-[3/1]';
-  const cropAspectRatio = (isAvatar || isLogo) ? 1 : (isProject ? 16 / 9 : 4);
+  const aspectRatio = isAvatar || isLogo ? 'aspect-square' : 'aspect-[3/1]';
+  const cropAspectRatio = isAvatar || isLogo ? 1 : isProject ? 16 / 9 : 4;
   const maxSize = isAvatar || isLogo ? 5 : 10; // MB
 
-  const handleFileSelect = useCallback((file: File) => {
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      setError('Please select an image file');
-      return;
-    }
+  const handleFileSelect = useCallback(
+    (file: File) => {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        setError('Please select an image file');
+        return;
+      }
 
-    // Validate file size
-    const sizeMB = file.size / (1024 * 1024);
-    if (sizeMB > maxSize) {
-      setError(`Image must be less than ${maxSize}MB`);
-      return;
-    }
+      // Validate file size
+      const sizeMB = file.size / (1024 * 1024);
+      if (sizeMB > maxSize) {
+        setError(`Image must be less than ${maxSize}MB`);
+        return;
+      }
 
-    setError(null);
-    setSelectedFile(file);
+      setError(null);
+      setSelectedFile(file);
 
-    // Create preview for cropper
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      setRawImageUrl(e.target?.result as string);
-      setShowCropper(true);
-    };
-    reader.readAsDataURL(file);
-  }, [maxSize]);
+      // Create preview for cropper
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setRawImageUrl(e.target?.result as string);
+        setShowCropper(true);
+      };
+      reader.readAsDataURL(file);
+    },
+    [maxSize]
+  );
 
-  const handleCropComplete = useCallback((croppedBlob: Blob) => {
-    // Convert blob to file
-    const croppedFile = new File(
-      [croppedBlob],
-      selectedFile?.name || 'cropped-image.jpg',
-      { type: 'image/jpeg' }
-    );
+  const handleCropComplete = useCallback(
+    (croppedBlob: Blob) => {
+      // The cropper always encodes JPEG data, so the filename must also use a
+      // JPEG extension. Keeping the source extension (for example, .png) makes
+      // the upload's filename contradict its MIME type and fails server-side
+      // upload validation.
+      const sourceName = selectedFile?.name || 'cropped-image';
+      const nameWithoutExtension = sourceName.replace(/\.[^/.]+$/, '') || 'cropped-image';
+      const croppedFile = new File([croppedBlob], `${nameWithoutExtension}.jpg`, {
+        type: 'image/jpeg',
+      });
 
-    setCroppedFile(croppedFile);
+      setCroppedFile(croppedFile);
 
-    // Create preview URL from cropped blob
-    const url = URL.createObjectURL(croppedBlob);
-    setPreviewUrl(url);
-    setShowCropper(false);
-  }, [selectedFile]);
+      // Create preview URL from cropped blob
+      const url = URL.createObjectURL(croppedBlob);
+      setPreviewUrl(url);
+      setShowCropper(false);
+    },
+    [selectedFile]
+  );
 
   const handleCropCancel = useCallback(() => {
     setShowCropper(false);
@@ -110,15 +123,18 @@ export function ImageUploadModal({
     }
   }, [rawImageUrl]);
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setDragActive(false);
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      setDragActive(false);
 
-    const file = e.dataTransfer.files[0];
-    if (file) {
-      handleFileSelect(file);
-    }
-  }, [handleFileSelect]);
+      const file = e.dataTransfer.files[0];
+      if (file) {
+        handleFileSelect(file);
+      }
+    },
+    [handleFileSelect]
+  );
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -163,9 +179,9 @@ export function ImageUploadModal({
 
       onImageUpdated(imageUrl);
       handleClose();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Upload error:', err);
-      setError(err.response?.data?.error || err.message || 'Failed to upload image');
+      setError(getUploadErrorMessage(err));
     } finally {
       setUploading(false);
     }
@@ -196,7 +212,12 @@ export function ImageUploadModal({
   return (
     <>
       {/* Cropper Modal - Wrapped in Dialog to handle interaction/focus trap properly */}
-      <Dialog.Root open={showCropper && !!rawImageUrl} onOpenChange={(open) => { if (!open) handleCropCancel(); }}>
+      <Dialog.Root
+        open={showCropper && !!rawImageUrl}
+        onOpenChange={(open) => {
+          if (!open) handleCropCancel();
+        }}
+      >
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 bg-black/90 z-[60]" />
           <Dialog.Content asChild>
@@ -265,7 +286,9 @@ export function ImageUploadModal({
 
                         {previewUrl ? (
                           <div className="space-y-4">
-                            <div className={`relative ${aspectRatio} w-full overflow-hidden rounded-xl border-2 border-gray-200 dark:border-neutral-700 bg-gray-100 dark:bg-neutral-800`}>
+                            <div
+                              className={`relative ${aspectRatio} w-full overflow-hidden rounded-xl border-2 border-gray-200 dark:border-neutral-700 bg-gray-100 dark:bg-neutral-800`}
+                            >
                               <img
                                 src={previewUrl}
                                 alt="Preview"
@@ -304,17 +327,21 @@ export function ImageUploadModal({
                             className={`
                               relative ${aspectRatio} w-full rounded-xl border-2 border-dashed cursor-pointer
                               transition-all duration-200
-                              ${dragActive
-                                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                                : 'border-gray-300 dark:border-neutral-600 hover:border-gray-400 dark:hover:border-neutral-500 bg-gray-50 dark:bg-neutral-800/50'
+                              ${
+                                dragActive
+                                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                                  : 'border-gray-300 dark:border-neutral-600 hover:border-gray-400 dark:hover:border-neutral-500 bg-gray-50 dark:bg-neutral-800/50'
                               }
                             `}
                           >
                             <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
-                              <div className={`w-14 h-14 rounded-full flex items-center justify-center mb-4 ${dragActive
-                                ? 'bg-blue-100 dark:bg-blue-900/40'
-                                : 'bg-gray-100 dark:bg-neutral-700'
-                                }`}>
+                              <div
+                                className={`w-14 h-14 rounded-full flex items-center justify-center mb-4 ${
+                                  dragActive
+                                    ? 'bg-blue-100 dark:bg-blue-900/40'
+                                    : 'bg-gray-100 dark:bg-neutral-700'
+                                }`}
+                              >
                                 {dragActive ? (
                                   <Upload className="w-7 h-7 text-blue-500" />
                                 ) : (
@@ -322,7 +349,9 @@ export function ImageUploadModal({
                                 )}
                               </div>
                               <p className="text-sm font-medium text-gray-700 dark:text-neutral-300">
-                                {dragActive ? 'Drop image here' : 'Click to upload or drag and drop'}
+                                {dragActive
+                                  ? 'Drop image here'
+                                  : 'Click to upload or drag and drop'}
                               </p>
                               <p className="mt-1 text-xs text-gray-500 dark:text-neutral-400">
                                 PNG, JPG, GIF, WebP up to {maxSize}MB
@@ -358,7 +387,9 @@ export function ImageUploadModal({
                             <p className="text-sm text-gray-500 dark:text-neutral-400 mb-2">
                               Current {isAvatar ? 'photo' : 'cover'}:
                             </p>
-                            <div className={`relative ${aspectRatio} w-32 ${isAvatar ? '' : 'w-full'} overflow-hidden rounded-lg border border-gray-200 dark:border-neutral-700`}>
+                            <div
+                              className={`relative ${aspectRatio} w-32 ${isAvatar ? '' : 'w-full'} overflow-hidden rounded-lg border border-gray-200 dark:border-neutral-700`}
+                            >
                               <img
                                 src={currentImageUrl}
                                 alt="Current"

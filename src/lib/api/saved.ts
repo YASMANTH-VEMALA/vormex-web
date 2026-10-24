@@ -1,5 +1,5 @@
-import apiClient from './client';
 import type { Post } from '@/types/post';
+import apiClient from './client';
 
 export interface SavedPostsResponse {
   posts: (Post & { savedAt?: string })[];

@@ -1,23 +1,26 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import {
-  MessageCircle,
-  X,
-  Send,
-  Loader2,
-  Sparkles,
+  getAIErrorMessage,
+  sendCareerChatMessage,
+  type CareerChatHistoryItem,
+} from '@/lib/api/ai-chat';
+import { useAuth } from '@/lib/auth/useAuth';
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  Bot,
   Briefcase,
   FileText,
-  Users,
+  Loader2,
+  Send,
+  Sparkles,
   Target,
-  ChevronDown,
-  Bot,
   User,
+  Users,
+  X,
 } from 'lucide-react';
-import { useAuth } from '@/lib/auth/useAuth';
-import apiClient from '@/lib/api/client';
+import Image from 'next/image';
+import React, { useEffect, useRef, useState } from 'react';
 
 interface Message {
   id: string;
@@ -55,13 +58,15 @@ const suggestedPrompts: SuggestedPrompt[] = [
   },
 ];
 
-async function sendChatMessage(message: string, conversationHistory: { role: string; content: string }[]): Promise<string> {
-  const response = await apiClient.post('/ai/career-chat', {
+async function sendChatMessage(
+  message: string,
+  conversationHistory: { role: string; content: string }[]
+): Promise<string> {
+  const response = await sendCareerChatMessage(
     message,
-    conversationHistory,
-  });
-  const data = response as unknown as { reply?: string; message?: string };
-  return data.reply || data.message || 'I apologize, but I encountered an issue. Please try again.';
+    conversationHistory as CareerChatHistoryItem[]
+  );
+  return response.reply || 'I apologize, but I encountered an issue. Please try again.';
 }
 
 export function AIChatWidget() {
@@ -89,19 +94,19 @@ export function AIChatWidget() {
     if (!messageText || isLoading) return;
 
     const userMessage: Message = {
-      id: Date.now().toString(),
+      id: crypto.randomUUID(),
       role: 'user',
       content: messageText,
       timestamp: new Date(),
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    setMessages((prev) => [...prev, userMessage]);
     setInputValue('');
     setShowPrompts(false);
     setIsLoading(true);
 
     try {
-      const conversationHistory = messages.map(m => ({
+      const conversationHistory = messages.map((m) => ({
         role: m.role,
         content: m.content,
       }));
@@ -109,22 +114,22 @@ export function AIChatWidget() {
       const response = await sendChatMessage(messageText, conversationHistory);
 
       const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
+        id: crypto.randomUUID(),
         role: 'assistant',
         content: response,
         timestamp: new Date(),
       };
 
-      setMessages(prev => [...prev, assistantMessage]);
+      setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
       console.error('AI Chat error:', error);
       const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
+        id: crypto.randomUUID(),
         role: 'assistant',
-        content: 'I apologize, but I encountered an issue. Please try again later.',
+        content: getAIErrorMessage(error),
         timestamp: new Date(),
       };
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
     }
@@ -198,7 +203,9 @@ export function AIChatWidget() {
                     <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
                       <Sparkles className="w-6 h-6 text-purple-600 dark:text-purple-400" />
                     </div>
-                    <h4 className="font-medium text-gray-900 dark:text-white mb-1">How can I help you?</h4>
+                    <h4 className="font-medium text-gray-900 dark:text-white mb-1">
+                      How can I help you?
+                    </h4>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
                       I can assist with career advice, resume tips, and more.
                     </p>
@@ -228,14 +235,23 @@ export function AIChatWidget() {
                   key={message.id}
                   className={`flex gap-2 ${message.role === 'user' ? 'flex-row-reverse' : ''}`}
                 >
-                  <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${
-                    message.role === 'user'
-                      ? 'bg-blue-500'
-                      : 'bg-purple-100 dark:bg-purple-900/30'
-                  }`}>
+                  <div
+                    className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${
+                      message.role === 'user'
+                        ? 'bg-blue-500'
+                        : 'bg-purple-100 dark:bg-purple-900/30'
+                    }`}
+                  >
                     {message.role === 'user' ? (
                       user.profileImage ? (
-                        <img src={user.profileImage} alt="" className="w-full h-full rounded-full object-cover" />
+                        <Image
+                          src={user.profileImage}
+                          alt=""
+                          width={28}
+                          height={28}
+                          className="w-full h-full rounded-full object-cover"
+                          unoptimized
+                        />
                       ) : (
                         <User className="w-4 h-4 text-white" />
                       )
@@ -243,11 +259,13 @@ export function AIChatWidget() {
                       <Bot className="w-4 h-4 text-purple-600 dark:text-purple-400" />
                     )}
                   </div>
-                  <div className={`max-w-[80%] px-3 py-2 rounded-2xl ${
-                    message.role === 'user'
-                      ? 'bg-blue-500 text-white rounded-br-md'
-                      : 'bg-gray-100 dark:bg-neutral-800 text-gray-900 dark:text-white rounded-bl-md'
-                  }`}>
+                  <div
+                    className={`max-w-[80%] px-3 py-2 rounded-2xl ${
+                      message.role === 'user'
+                        ? 'bg-blue-500 text-white rounded-br-md'
+                        : 'bg-gray-100 dark:bg-neutral-800 text-gray-900 dark:text-white rounded-bl-md'
+                    }`}
+                  >
                     <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                   </div>
                 </div>
@@ -260,9 +278,18 @@ export function AIChatWidget() {
                   </div>
                   <div className="bg-gray-100 dark:bg-neutral-800 px-4 py-3 rounded-2xl rounded-bl-md">
                     <div className="flex gap-1">
-                      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                      <span
+                        className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                        style={{ animationDelay: '0ms' }}
+                      />
+                      <span
+                        className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                        style={{ animationDelay: '150ms' }}
+                      />
+                      <span
+                        className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                        style={{ animationDelay: '300ms' }}
+                      />
                     </div>
                   </div>
                 </div>

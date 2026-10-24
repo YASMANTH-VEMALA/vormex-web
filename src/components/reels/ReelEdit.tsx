@@ -1,61 +1,40 @@
 'use client';
+import { createReelEditInitialState } from './createReelEditInitialState';
+import type { ReelEditProps, Visibility } from './ReelEdit.types';
+export type { ReelEditProps, Visibility } from './ReelEdit.types';
 
-import { useState, useCallback, useEffect } from 'react';
-import Image from 'next/image';
-import { 
-  X, 
-  Loader2, 
-  Hash, 
-  Globe, 
-  Lock, 
-  Users,
-  MessageCircle,
-  Share2,
+import { reelsApi } from '@/lib/api/reels';
+import {
   Download,
-  Music
+  Globe,
+  Hash,
+  Loader2,
+  Lock,
+  MessageCircle,
+  Music,
+  Share2,
+  Users,
+  X,
 } from 'lucide-react';
-import { reelsApi, Reel } from '@/lib/api/reels';
+import Image from 'next/image';
+import { useCallback, useState } from 'react';
 import { MentionInput } from './MentionInput';
 
-interface ReelEditProps {
-  reel: Reel;
-  isOpen: boolean;
-  onClose: () => void;
-  onSave: (updatedReel: Reel) => void;
-}
-
-type Visibility = 'public' | 'followers' | 'private';
-
-export function ReelEdit({ reel, isOpen, onClose, onSave }: ReelEditProps) {
-  const [title, setTitle] = useState(reel.title || '');
-  const [caption, setCaption] = useState(reel.caption || '');
-  const [mentions, setMentions] = useState<string[]>(reel.mentions || []);
-  const [hashtags, setHashtags] = useState<string[]>(reel.hashtags || []);
-  const [hashtagInput, setHashtagInput] = useState('');
-  const [visibility, setVisibility] = useState<Visibility>(reel.visibility as Visibility || 'public');
-  const [allowComments, setAllowComments] = useState(reel.allowComments);
-  const [allowDuets, setAllowDuets] = useState(reel.allowDuets);
-  const [allowStitch, setAllowStitch] = useState(reel.allowStitch);
-  const [allowDownload, setAllowDownload] = useState(reel.allowDownload);
-  const [allowSharing, setAllowSharing] = useState(reel.allowSharing);
-  const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (isOpen) {
-      setTitle(reel.title || '');
-      setCaption(reel.caption || '');
-      setMentions(reel.mentions || []);
-      setHashtags(reel.hashtags || []);
-      setVisibility(reel.visibility as Visibility || 'public');
-      setAllowComments(reel.allowComments);
-      setAllowDuets(reel.allowDuets);
-      setAllowStitch(reel.allowStitch);
-      setAllowDownload(reel.allowDownload);
-      setAllowSharing(reel.allowSharing);
-      setError(null);
-    }
-  }, [isOpen, reel]);
+function ReelEditSession({ reel, isOpen, onClose, onSave }: ReelEditProps) {
+  const [initialValues] = useState(() => createReelEditInitialState({ reel }));
+  const [title, setTitle] = useState(initialValues.title);
+  const [caption, setCaption] = useState(initialValues.caption);
+  const [mentions, setMentions] = useState<string[]>(initialValues.mentions);
+  const [hashtags, setHashtags] = useState<string[]>(initialValues.hashtags);
+  const [hashtagInput, setHashtagInput] = useState(initialValues.hashtagInput);
+  const [visibility, setVisibility] = useState<Visibility>(initialValues.visibility);
+  const [allowComments, setAllowComments] = useState(initialValues.allowComments);
+  const [allowDuets, setAllowDuets] = useState(initialValues.allowDuets);
+  const [allowStitch] = useState(initialValues.allowStitch);
+  const [allowDownload, setAllowDownload] = useState(initialValues.allowDownload);
+  const [allowSharing, setAllowSharing] = useState(initialValues.allowSharing);
+  const [isSaving, setIsSaving] = useState(initialValues.isSaving);
+  const [error, setError] = useState<string | null>(initialValues.error);
 
   const handleCaptionChange = useCallback((value: string, extractedMentions: string[]) => {
     setCaption(value);
@@ -70,16 +49,22 @@ export function ReelEdit({ reel, isOpen, onClose, onSave }: ReelEditProps) {
     }
   }, [hashtagInput, hashtags]);
 
-  const removeHashtag = useCallback((tag: string) => {
-    setHashtags(hashtags.filter((h) => h !== tag));
-  }, [hashtags]);
+  const removeHashtag = useCallback(
+    (tag: string) => {
+      setHashtags(hashtags.filter((h) => h !== tag));
+    },
+    [hashtags]
+  );
 
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' || e.key === ',') {
-      e.preventDefault();
-      addHashtag();
-    }
-  }, [addHashtag]);
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter' || e.key === ',') {
+        e.preventDefault();
+        addHashtag();
+      }
+    },
+    [addHashtag]
+  );
 
   const handleSave = async () => {
     try {
@@ -113,17 +98,19 @@ export function ReelEdit({ reel, isOpen, onClose, onSave }: ReelEditProps) {
 
   const visibilityOptions = [
     { value: 'public', label: 'Public', icon: Globe, description: 'Anyone can see this reel' },
-    { value: 'followers', label: 'Followers', icon: Users, description: 'Only your followers can see' },
+    {
+      value: 'followers',
+      label: 'Followers',
+      icon: Users,
+      description: 'Only your followers can see',
+    },
     { value: 'private', label: 'Private', icon: Lock, description: 'Only you can see' },
   ];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div 
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-        onClick={onClose}
-      />
-      
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+
       <div className="relative w-full max-w-2xl max-h-[90vh] bg-white dark:bg-neutral-900 rounded-2xl overflow-hidden flex flex-col m-4">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-neutral-800">
@@ -260,13 +247,19 @@ export function ReelEdit({ reel, isOpen, onClose, onSave }: ReelEditProps) {
                       : 'border-gray-200 dark:border-neutral-700 hover:border-gray-300 dark:hover:border-neutral-600'
                   }`}
                 >
-                  <option.icon className={`w-5 h-5 ${
-                    visibility === option.value ? 'text-blue-500' : 'text-gray-500'
-                  }`} />
+                  <option.icon
+                    className={`w-5 h-5 ${
+                      visibility === option.value ? 'text-blue-500' : 'text-gray-500'
+                    }`}
+                  />
                   <div className="text-left">
-                    <p className={`font-medium ${
-                      visibility === option.value ? 'text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-white'
-                    }`}>
+                    <p
+                      className={`font-medium ${
+                        visibility === option.value
+                          ? 'text-blue-600 dark:text-blue-400'
+                          : 'text-gray-900 dark:text-white'
+                      }`}
+                    >
                       {option.label}
                     </p>
                     <p className="text-xs text-gray-500">{option.description}</p>
@@ -363,4 +356,9 @@ export function ReelEdit({ reel, isOpen, onClose, onSave }: ReelEditProps) {
       </div>
     </div>
   );
+}
+
+/** A fresh form session owns its draft; background prop updates cannot overwrite it. */
+export function ReelEdit(props: ReelEditProps) {
+  return props.isOpen ? <ReelEditSession key={props.reel?.id ?? 'new'} {...props} /> : null;
 }

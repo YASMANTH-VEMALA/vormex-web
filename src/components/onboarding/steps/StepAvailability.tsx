@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useState } from 'react';
 
 interface Props {
   initialData?: Record<string, unknown>;
@@ -32,9 +32,13 @@ const COMM_PREFS = [
 ];
 
 export default function StepAvailability({ initialData, onComplete, saving }: Props) {
-  const [availability, setAvailability] = useState<string>((initialData?.availability as string) || '');
+  const [availability, setAvailability] = useState<string>(
+    (initialData?.availability as string) || ''
+  );
   const [hours, setHours] = useState<number>((initialData?.hoursPerWeek as number) || 0);
-  const [commPref, setCommPref] = useState<string>((initialData?.communicationPref as string) || '');
+  const [commPref, setCommPref] = useState<string>(
+    (initialData?.communicationPref as string) || ''
+  );
 
   const canContinue = availability !== '';
 
@@ -60,9 +64,15 @@ export default function StepAvailability({ initialData, onComplete, saving }: Pr
               } ${slot.id === 'flexible' ? 'col-span-2' : ''}`}
             >
               <span className="text-xl">{slot.emoji}</span>
-              <span className={`block font-medium text-sm mt-1 ${
-                availability === slot.id ? 'text-blue-600 dark:text-blue-400' : 'text-neutral-800 dark:text-neutral-200'
-              }`}>{slot.label}</span>
+              <span
+                className={`block font-medium text-sm mt-1 ${
+                  availability === slot.id
+                    ? 'text-blue-600 dark:text-blue-400'
+                    : 'text-neutral-800 dark:text-neutral-200'
+                }`}
+              >
+                {slot.label}
+              </span>
               <span className="text-xs text-neutral-500">{slot.time}</span>
             </motion.button>
           ))}
@@ -75,7 +85,7 @@ export default function StepAvailability({ initialData, onComplete, saving }: Pr
           Time for networking & learning
         </h3>
         <div className="grid grid-cols-2 gap-2">
-          {HOURS.map(h => (
+          {HOURS.map((h) => (
             <button
               key={h.id}
               onClick={() => setHours(h.id)}
@@ -97,7 +107,7 @@ export default function StepAvailability({ initialData, onComplete, saving }: Pr
           Preferred way to connect
         </h3>
         <div className="flex gap-2">
-          {COMM_PREFS.map(p => (
+          {COMM_PREFS.map((p) => (
             <button
               key={p.id}
               onClick={() => setCommPref(p.id)}
@@ -108,16 +118,26 @@ export default function StepAvailability({ initialData, onComplete, saving }: Pr
               }`}
             >
               <span className="text-lg block">{p.emoji}</span>
-              <span className={`text-xs font-medium block mt-0.5 ${
-                commPref === p.id ? 'text-blue-600 dark:text-blue-400' : 'text-neutral-500'
-              }`}>{p.label}</span>
+              <span
+                className={`text-xs font-medium block mt-0.5 ${
+                  commPref === p.id ? 'text-blue-600 dark:text-blue-400' : 'text-neutral-500'
+                }`}
+              >
+                {p.label}
+              </span>
             </button>
           ))}
         </div>
       </div>
 
       <motion.button
-        onClick={() => onComplete({ availability, hoursPerWeek: hours || undefined, communicationPref: commPref || undefined })}
+        onClick={() =>
+          onComplete({
+            availability,
+            hoursPerWeek: hours || undefined,
+            communicationPref: commPref || undefined,
+          })
+        }
         disabled={!canContinue || saving}
         className={`w-full py-4 rounded-2xl font-semibold text-white transition-all ${
           canContinue && !saving

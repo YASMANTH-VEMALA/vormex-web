@@ -1,35 +1,39 @@
 'use client';
 
-import { useState, useCallback } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, Hash, Loader2 } from 'lucide-react';
-import { useHashtagReels } from '@/hooks/reels';
 import { ReelCard } from '@/components/reels';
+import { useHashtagReels } from '@/hooks/reels';
+import { ArrowLeft, Hash, Loader2 } from 'lucide-react';
+import { useParams, useRouter } from 'next/navigation';
+import { useCallback, useState } from 'react';
 
 export default function HashtagReelsPage() {
   const params = useParams();
   const router = useRouter();
   const hashtag = decodeURIComponent(params.tag as string);
-  
+
   const [activeIndex, setActiveIndex] = useState(0);
   const [isMuted, setIsMuted] = useState(true);
-  
-  const { reels, isLoading, isError, hasNextPage, isFetchingNextPage, fetchNextPage } = useHashtagReels(hashtag);
 
-  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
-    const container = e.currentTarget;
-    const scrollTop = container.scrollTop;
-    const itemHeight = container.clientHeight;
-    const newIndex = Math.round(scrollTop / itemHeight);
+  const { reels, isLoading, isError, hasNextPage, isFetchingNextPage, fetchNextPage } =
+    useHashtagReels(hashtag);
 
-    if (newIndex !== activeIndex) {
-      setActiveIndex(newIndex);
+  const handleScroll = useCallback(
+    (e: React.UIEvent<HTMLDivElement>) => {
+      const container = e.currentTarget;
+      const scrollTop = container.scrollTop;
+      const itemHeight = container.clientHeight;
+      const newIndex = Math.round(scrollTop / itemHeight);
 
-      if (newIndex >= reels.length - 3 && hasNextPage && !isFetchingNextPage) {
-        fetchNextPage();
+      if (newIndex !== activeIndex) {
+        setActiveIndex(newIndex);
+
+        if (newIndex >= reels.length - 3 && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage();
+        }
       }
-    }
-  }, [activeIndex, reels.length, hasNextPage, isFetchingNextPage, fetchNextPage]);
+    },
+    [activeIndex, reels.length, hasNextPage, isFetchingNextPage, fetchNextPage]
+  );
 
   if (isLoading) {
     return (
@@ -93,10 +97,7 @@ export default function HashtagReelsPage() {
         onScroll={handleScroll}
       >
         {reels.map((reel, index) => (
-          <div
-            key={reel.id}
-            className="h-screen w-full snap-start snap-always"
-          >
+          <div key={reel.id} className="h-screen w-full snap-start snap-always">
             <ReelCard
               reel={reel}
               isActive={index === activeIndex}

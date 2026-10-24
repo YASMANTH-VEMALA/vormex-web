@@ -1,13 +1,8 @@
 'use client';
 
-import { useEffect, useCallback, useRef } from 'react';
-import { 
-  getSocket, 
-  initializeSocket, 
-  joinReelRoom, 
-  leaveReelRoom 
-} from '@/lib/socket';
 import { Reel } from '@/lib/api/reels';
+import { getSocket, initializeSocket, joinReelRoom, leaveReelRoom } from '@/lib/socket';
+import { useEffect, useRef } from 'react';
 
 interface ReelEngagementUpdate {
   reelId: string;
@@ -44,7 +39,7 @@ export function useReelRealtime({
   enabled = true,
 }: UseReelRealtimeOptions) {
   const handlersRef = useRef({ onEngagementUpdate, onNewComment });
-  
+
   useEffect(() => {
     handlersRef.current = { onEngagementUpdate, onNewComment };
   }, [onEngagementUpdate, onNewComment]);
@@ -53,16 +48,16 @@ export function useReelRealtime({
     if (!enabled || !reelId) return;
 
     const socket = getSocket() || initializeSocket();
-    
+
     // Join reel room
     joinReelRoom(reelId);
 
     // Handle engagement updates
     const handleEngagementUpdate = (data: ReelEngagementUpdate) => {
       if (data.reelId !== reelId) return;
-      
+
       handlersRef.current.onEngagementUpdate?.(data);
-      
+
       if (data.type === 'comment' && data.comment) {
         handlersRef.current.onNewComment?.(data.comment);
       }
@@ -89,7 +84,6 @@ export function useReelsFeedRealtime({
   enabled = true,
 }: UseReelsFeedRealtimeOptions) {
   const handlersRef = useRef({ onReelUpdate });
-  const joinedRoomsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     handlersRef.current = { onReelUpdate };
@@ -100,28 +94,16 @@ export function useReelsFeedRealtime({
 
     const socket = getSocket() || initializeSocket();
 
-    // Join rooms for new reels
-    reelIds.forEach((reelId) => {
-      if (!joinedRoomsRef.current.has(reelId)) {
-        joinReelRoom(reelId);
-        joinedRoomsRef.current.add(reelId);
-      }
-    });
-
-    // Leave rooms for reels no longer in view
-    joinedRoomsRef.current.forEach((reelId) => {
-      if (!reelIds.includes(reelId)) {
-        leaveReelRoom(reelId);
-        joinedRoomsRef.current.delete(reelId);
-      }
-    });
+    const joinedRooms = new Set(reelIds);
+    // Join rooms for visible reels
+    joinedRooms.forEach((reelId) => joinReelRoom(reelId));
 
     // Handle engagement updates
     const handleEngagementUpdate = (data: ReelEngagementUpdate) => {
       if (!reelIds.includes(data.reelId)) return;
 
       const updates: Partial<Reel> = {};
-      
+
       if (data.type === 'like' && data.likesCount !== undefined) {
         updates.likesCount = data.likesCount;
       }
@@ -141,10 +123,10 @@ export function useReelsFeedRealtime({
 
     return () => {
       // Leave all rooms on unmount
-      joinedRoomsRef.current.forEach((reelId) => {
+      joinedRooms.forEach((reelId) => {
         leaveReelRoom(reelId);
       });
-      joinedRoomsRef.current.clear();
+      joinedRooms.clear();
       socket?.off('reel:engagement_update', handleEngagementUpdate);
     };
   }, [reelIds, enabled]);

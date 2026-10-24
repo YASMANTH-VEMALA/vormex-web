@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useCallback, useRef, useEffect } from 'react';
 import Hls from 'hls.js';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface UseReelPlayerOptions {
   hlsUrl: string | null;

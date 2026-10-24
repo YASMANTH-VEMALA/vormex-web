@@ -1,9 +1,9 @@
 'use client';
 
-import Link from 'next/link';
-import Image from 'next/image';
 import { Group } from '@/lib/api/groups';
 import { cn } from '@/lib/utils';
+import Image from 'next/image';
+import Link from 'next/link';
 
 interface GroupCardProps {
   group: Group;
@@ -17,9 +17,18 @@ export default function GroupCard({ group, onJoin, onLeave, isJoining }: GroupCa
   const postCount = group._count?.posts || group.postCount;
 
   const privacyBadge = {
-    PUBLIC: { label: 'Public', color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' },
-    PRIVATE: { label: 'Private', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400' },
-    SECRET: { label: 'Secret', color: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' },
+    PUBLIC: {
+      label: 'Public',
+      color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
+    },
+    PRIVATE: {
+      label: 'Private',
+      color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
+    },
+    SECRET: {
+      label: 'Secret',
+      color: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
+    },
   };
 
   const privacy = privacyBadge[group.privacy];
@@ -30,12 +39,7 @@ export default function GroupCard({ group, onJoin, onLeave, isJoining }: GroupCa
       <Link href={`/groups/${group.slug}`}>
         <div className="relative h-32 bg-gradient-to-r from-blue-500 to-purple-600">
           {group.coverImage && (
-            <Image
-              src={group.coverImage}
-              alt={group.name}
-              fill
-              className="object-cover"
-            />
+            <Image src={group.coverImage} alt={group.name} fill className="object-cover" />
           )}
           {/* Icon overlay */}
           {group.iconImage && (
@@ -55,14 +59,19 @@ export default function GroupCard({ group, onJoin, onLeave, isJoining }: GroupCa
       </Link>
 
       {/* Content */}
-      <div className={cn("p-4", group.iconImage && "pt-8")}>
+      <div className={cn('p-4', group.iconImage && 'pt-8')}>
         <div className="flex items-start justify-between gap-2">
           <Link href={`/groups/${group.slug}`} className="flex-1 min-w-0">
             <h3 className="font-semibold text-gray-900 dark:text-white truncate hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
               {group.name}
             </h3>
           </Link>
-          <span className={cn("px-2 py-0.5 text-xs font-medium rounded-full flex-shrink-0", privacy.color)}>
+          <span
+            className={cn(
+              'px-2 py-0.5 text-xs font-medium rounded-full flex-shrink-0',
+              privacy.color
+            )}
+          >
             {privacy.label}
           </span>
         </div>
@@ -77,13 +86,23 @@ export default function GroupCard({ group, onJoin, onLeave, isJoining }: GroupCa
         <div className="mt-3 flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
           <span className="flex items-center gap-1">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
+              />
             </svg>
             {memberCount.toLocaleString()} members
           </span>
           <span className="flex items-center gap-1">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"
+              />
             </svg>
             {postCount} posts
           </span>
@@ -148,7 +167,12 @@ export default function GroupCard({ group, onJoin, onLeave, isJoining }: GroupCa
                   title="Leave group"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                    />
                   </svg>
                 </button>
               )}
@@ -162,8 +186,19 @@ export default function GroupCard({ group, onJoin, onLeave, isJoining }: GroupCa
               {isJoining ? (
                 <span className="flex items-center justify-center gap-2">
                   <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                    />
                   </svg>
                   Joining...
                 </span>

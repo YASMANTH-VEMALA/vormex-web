@@ -1,8 +1,9 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import { X, Briefcase, MapPin, Clock, ExternalLink } from 'lucide-react';
 import type { OpportunityData } from '@/lib/api/variable-rewards';
+import { motion } from 'framer-motion';
+import { Briefcase, Clock, ExternalLink, MapPin, X } from 'lucide-react';
+import { useState } from 'react';
 
 interface OpportunityCardProps {
   opportunities: OpportunityData[];
@@ -14,11 +15,12 @@ interface OpportunityCardProps {
  * Teal gradient with opportunity details
  */
 export function OpportunityCard({ opportunities, onDismiss }: OpportunityCardProps) {
+  const [openedAt] = useState(() => Date.now());
   if (!opportunities.length) return null;
   const opp = opportunities[0];
 
   const timeAgo = (() => {
-    const diff = Date.now() - new Date(opp.createdAt).getTime();
+    const diff = openedAt - new Date(opp.createdAt).getTime();
     const hours = Math.floor(diff / (1000 * 60 * 60));
     if (hours < 1) return 'Just posted';
     if (hours < 24) return `${hours}h ago`;
@@ -46,18 +48,17 @@ export function OpportunityCard({ opportunities, onDismiss }: OpportunityCardPro
             </p>
           </div>
         </div>
-        <button onClick={onDismiss} className="p-1 rounded-full hover:bg-teal-100 dark:hover:bg-teal-900/40 transition-colors">
+        <button
+          onClick={onDismiss}
+          className="p-1 rounded-full hover:bg-teal-100 dark:hover:bg-teal-900/40 transition-colors"
+        >
           <X className="w-4 h-4 text-teal-400" />
         </button>
       </div>
 
       <div className="px-4 py-3">
-        <h4 className="text-base font-semibold text-gray-900 dark:text-white mb-1">
-          {opp.title}
-        </h4>
-        <p className="text-sm text-teal-700 dark:text-teal-300 font-medium mb-2">
-          {opp.company}
-        </p>
+        <h4 className="text-base font-semibold text-gray-900 dark:text-white mb-1">{opp.title}</h4>
+        <p className="text-sm text-teal-700 dark:text-teal-300 font-medium mb-2">{opp.company}</p>
         <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-neutral-400">
           {opp.location && (
             <span className="flex items-center gap-1">

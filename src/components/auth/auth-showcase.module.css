@@ -1,0 +1,389 @@
+.showcase {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 36px 48px 0;
+  background: radial-gradient(ellipse at 60% 90%, #ffe9d9 0, transparent 62%), #fdf9f4;
+  overflow: hidden;
+  isolation: isolate;
+}
+.wordmark {
+  position: relative;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 17px;
+  width: fit-content;
+  color: #111;
+  text-decoration: none;
+}
+.wordmark svg {
+  width: 54px;
+  height: 34px;
+}
+.wordmark span {
+  font-size: 32px;
+  font-weight: 750;
+  letter-spacing: -1.6px;
+}
+.heroCopy {
+  position: relative;
+  z-index: 3;
+  margin-top: 34px;
+}
+.eyebrow {
+  margin: 0 0 8px;
+  color: #d6573b;
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 4.8px;
+}
+.heroCopy h1 {
+  margin: 0;
+  font-size: clamp(52px, 5.9vw, 108px);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.065em;
+  white-space: nowrap;
+}
+.heroCopy h1 span {
+  color: #c65a3f;
+  background: linear-gradient(125deg, #fc9270, #ac442e);
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.heroDescription {
+  margin: 14px 0 0;
+  color: #636b76;
+  font-size: clamp(16px, 1.48vw, 24px);
+  line-height: 1.4;
+  letter-spacing: -0.45px;
+}
+.collage {
+  position: relative;
+  flex: 1;
+  min-height: 420px;
+  margin: 0 -48px;
+}
+.photo {
+  position: absolute;
+  overflow: hidden;
+  border: 7px solid #fdf9f4;
+  border-radius: 34px;
+  background: #efddcb;
+}
+.photo img {
+  object-fit: cover;
+}
+.photoConversation {
+  z-index: 2;
+  left: 30%;
+  width: 46%;
+  top: 5%;
+  bottom: 25px;
+  transform: rotate(-7deg);
+  border-radius: 40px 35px 48px 45px;
+}
+.photoConversation img {
+  object-position: 56% 50%;
+  transform: scale(1.3);
+  transform-origin: 62% 63%;
+}
+.photoCommunity {
+  left: 0.5%;
+  width: 33%;
+  height: 67%;
+  bottom: 13px;
+  transform: rotate(-13deg);
+  border-radius: 36px 26px 46px 44px;
+}
+.photoCommunity img {
+  object-position: 35% 50%;
+}
+.photoSpeaker {
+  right: 3%;
+  width: 22%;
+  top: -9%;
+  height: 54%;
+  transform: rotate(-5deg);
+  border-radius: 25px;
+}
+.photoSpeaker img {
+  object-position: 52% 34%;
+}
+.photoFriends {
+  z-index: 3;
+  right: -0.4%;
+  width: 26%;
+  bottom: 17px;
+  height: 54%;
+  transform: rotate(6deg);
+  border-radius: 26px 35px 35px 34px;
+}
+.photoFriends img {
+  object-position: 50% 60%;
+  transform: scale(1.25);
+  transform-origin: 50% 70%;
+}
+.note {
+  position: absolute;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-family: 'Segoe Print', 'Bradley Hand', cursive;
+  font-size: clamp(17px, 1.55vw, 24px);
+  line-height: 1.23;
+  color: #c64d2c;
+  background: #ffeadc;
+  font-weight: 600;
+}
+.note i {
+  display: block;
+  width: 54px;
+  height: 12px;
+  border-bottom: 2px solid #dc6547;
+  transform: rotate(-10deg);
+  position: relative;
+}
+.note i::after {
+  content: '';
+  position: absolute;
+  width: 35px;
+  left: 11px;
+  top: 13px;
+  border-bottom: 2px solid #dc6547;
+  transform: rotate(-9deg);
+}
+.noteTop {
+  right: 3px;
+  top: 9%;
+  width: 186px;
+  height: 177px;
+  transform: rotate(-10deg);
+  border-radius: 58% 38% 52% 44%;
+}
+.noteIdeas {
+  top: 12%;
+  left: -24px;
+  width: 190px;
+  height: 166px;
+  transform: rotate(-12deg);
+  border-radius: 45% 55% 47% 40%;
+}
+.noteTogether {
+  top: 27%;
+  right: 0;
+  width: 139px;
+  height: 147px;
+  transform: rotate(-10deg);
+  border-radius: 48% 55% 45% 50%;
+}
+.sparkTop,
+.sparkIdeas,
+.sparkPhoto,
+.sparkSpeaker {
+  position: absolute;
+  z-index: 5;
+  width: 57px;
+  height: 55px;
+  color: #eb7051;
+  pointer-events: none;
+}
+.sparkTop {
+  right: 16%;
+  top: 7%;
+  transform: rotate(8deg);
+}
+.sparkIdeas {
+  top: 12%;
+  left: 9%;
+  transform: rotate(25deg);
+}
+.sparkPhoto {
+  top: 9%;
+  left: 25%;
+  transform: rotate(-22deg);
+}
+.sparkSpeaker {
+  top: 2%;
+  right: 17%;
+  transform: rotate(-10deg);
+}
+@media (min-width: 1650px) {
+  .showcase {
+    padding-top: 42px;
+  }
+  .heroCopy {
+    margin-top: 36px;
+  }
+  .collage {
+    min-height: 460px;
+  }
+}
+@media (max-width: 1199px) {
+  .showcase {
+    padding: 30px 32px 0;
+  }
+  .heroCopy h1 {
+    font-size: 5.6vw;
+  }
+  .collage {
+    margin: 8px -32px 0;
+    min-height: 390px;
+  }
+  .noteTop {
+    top: 14%;
+    right: -8px;
+    width: 150px;
+    height: 145px;
+  }
+  .sparkTop {
+    display: none;
+  }
+  .heroDescription {
+    font-size: 16px;
+    max-width: 90%;
+  }
+  .wideBreak {
+    display: none;
+  }
+  .noteIdeas {
+    width: 145px;
+    height: 140px;
+  }
+  .noteTogether {
+    width: 112px;
+    height: 126px;
+  }
+}
+@media (max-width: 900px) {
+  .showcase {
+    padding: 28px 32px 0;
+    min-height: 580px;
+  }
+  .wordmark svg {
+    width: 40px;
+    height: 28px;
+  }
+  .wordmark span {
+    font-size: 27px;
+  }
+  .heroCopy {
+    margin-top: 26px;
+  }
+  .heroCopy h1 {
+    font-size: clamp(44px, 9vw, 76px);
+  }
+  .heroDescription {
+    max-width: 82%;
+    font-size: 18px;
+  }
+  .collage {
+    min-height: 310px;
+  }
+  .noteTop {
+    top: 15%;
+    right: 0;
+  }
+  .photoSpeaker {
+    top: -5%;
+  }
+}
+@media (max-width: 540px) {
+  .showcase {
+    min-height: 490px;
+    padding: 23px 23px 0;
+  }
+  .heroCopy {
+    margin-top: 27px;
+  }
+  .eyebrow {
+    font-size: 9px;
+    letter-spacing: 3.5px;
+    margin-bottom: 9px;
+  }
+  .heroCopy h1 {
+    font-size: clamp(35px, 9.3vw, 51px);
+    letter-spacing: -0.06em;
+  }
+  .heroDescription {
+    font-size: 14px;
+    line-height: 1.5;
+    max-width: 92%;
+    margin-top: 11px;
+  }
+  .collage {
+    min-height: 250px;
+    margin: 18px -23px 0;
+  }
+  .photo {
+    border-width: 4px;
+    border-radius: 21px;
+  }
+  .photoConversation {
+    top: 7%;
+    left: 27%;
+    width: 49%;
+    bottom: 20px;
+  }
+  .photoCommunity {
+    height: 63%;
+    bottom: 15px;
+    width: 32%;
+  }
+  .photoSpeaker {
+    width: 24%;
+    right: 1%;
+    top: -6%;
+    height: 49%;
+  }
+  .photoFriends {
+    width: 27%;
+    bottom: 18px;
+    height: 49%;
+  }
+  .noteTop,
+  .sparkTop {
+    display: none;
+  }
+  .noteIdeas {
+    top: 3%;
+    left: -17px;
+    width: 105px;
+    height: 98px;
+    font-size: 15px;
+  }
+  .noteTogether {
+    right: -3px;
+    top: 26%;
+    width: 86px;
+    height: 96px;
+    font-size: 14px;
+  }
+  .note i {
+    width: 34px;
+    height: 6px;
+  }
+  .note i::after {
+    width: 25px;
+    left: 5px;
+    top: 9px;
+  }
+  .sparkIdeas {
+    width: 34px;
+    top: -4%;
+    left: 14%;
+  }
+  .sparkPhoto {
+    width: 35px;
+    top: 1%;
+    left: 22%;
+  }
+  .sparkSpeaker {
+    width: 31px;
+    top: -7%;
+    right: 14%;
+  }
+}

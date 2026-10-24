@@ -1,9 +1,9 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import { X, Eye } from 'lucide-react';
-import Link from 'next/link';
 import type { ViewerData } from '@/lib/api/variable-rewards';
+import { motion } from 'framer-motion';
+import { Eye, X } from 'lucide-react';
+import Link from 'next/link';
 
 interface SocialProofCardProps {
   viewers: ViewerData[];
@@ -38,7 +38,10 @@ export function SocialProofCard({ viewers, onDismiss }: SocialProofCardProps) {
             </p>
           </div>
         </div>
-        <button onClick={onDismiss} className="p-1 rounded-full hover:bg-purple-100 dark:hover:bg-purple-900/40 transition-colors">
+        <button
+          onClick={onDismiss}
+          className="p-1 rounded-full hover:bg-purple-100 dark:hover:bg-purple-900/40 transition-colors"
+        >
           <X className="w-4 h-4 text-purple-400" />
         </button>
       </div>
@@ -85,12 +88,15 @@ export function SocialProofCard({ viewers, onDismiss }: SocialProofCardProps) {
               <span className="font-semibold">{viewers[0].name}</span>
               {viewers.length > 1 && (
                 <span className="text-gray-500 dark:text-neutral-400">
-                  {' '}and {viewers.length - 1} other{viewers.length > 2 ? 's' : ''}
+                  {' '}
+                  and {viewers.length - 1} other{viewers.length > 2 ? 's' : ''}
                 </span>
               )}
             </p>
             {viewers[0].college && (
-              <p className="text-[11px] text-purple-500 dark:text-purple-400 truncate">{viewers[0].college}</p>
+              <p className="text-[11px] text-purple-500 dark:text-purple-400 truncate">
+                {viewers[0].college}
+              </p>
             )}
           </div>
         </div>

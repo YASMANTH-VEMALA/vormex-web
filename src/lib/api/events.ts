@@ -1,4 +1,4 @@
-import apiClient from './client';
+import { buildPathWithQuery, getJson, postJson } from './request';
 
 export interface CampusEvent {
   id: string;
@@ -24,32 +24,51 @@ export interface CampusEvent {
   createdAt: string;
 }
 
+export interface EventAttendee {
+  id: string;
+  name: string;
+  profileImage: string | null;
+}
+
 export const eventsAPI = {
-  getEvents: async (params?: { campus?: string; type?: string; upcoming?: boolean; page?: number }): Promise<{
+  getEvents: async (params?: {
+    campus?: string;
+    type?: string;
+    upcoming?: boolean;
+    page?: number;
+  }): Promise<{
     events: CampusEvent[];
     total: number;
     page: number;
     totalPages: number;
   }> => {
-    const sp = new URLSearchParams();
-    if (params?.campus) sp.set('campus', params.campus);
-    if (params?.type) sp.set('type', params.type);
-    if (params?.upcoming) sp.set('upcoming', 'true');
-    if (params?.page) sp.set('page', String(params.page));
-    return apiClient.get(`/events?${sp.toString()}`) as any;
+    return getJson<{
+      events: CampusEvent[];
+      total: number;
+      page: number;
+      totalPages: number;
+    }>('/events', {
+      campus: params?.campus,
+      type: params?.type,
+      upcoming: params?.upcoming ? true : undefined,
+      page: params?.page || undefined,
+    });
   },
 
   getUpcoming: async (campus?: string): Promise<{ events: CampusEvent[] }> => {
-    const sp = campus ? `?campus=${encodeURIComponent(campus)}` : '';
-    return apiClient.get(`/events/upcoming${sp}`) as any;
+    return getJson<{ events: CampusEvent[] }>(buildPathWithQuery('/events/upcoming', { campus }));
   },
 
   getMyEvents: async (): Promise<{ events: CampusEvent[] }> => {
-    return apiClient.get('/events/my') as any;
+    return getJson<{ events: CampusEvent[] }>('/events/my');
   },
 
-  getById: async (eventId: string): Promise<{ event: CampusEvent & { attendeesList: any[] } }> => {
-    return apiClient.get(`/events/${eventId}`) as any;
+  getById: async (
+    eventId: string
+  ): Promise<{ event: CampusEvent & { attendeesList: EventAttendee[] } }> => {
+    return getJson<{ event: CampusEvent & { attendeesList: EventAttendee[] } }>(
+      `/events/${eventId}`
+    );
   },
 
   create: async (data: {
@@ -66,10 +85,13 @@ export const eventsAPI = {
     circleId?: string;
     tags?: string[];
   }): Promise<{ event: CampusEvent }> => {
-    return apiClient.post('/events', data) as any;
+    return postJson<{ event: CampusEvent }>('/events', data);
   },
 
-  rsvp: async (eventId: string, status: 'going' | 'interested' | 'not_going'): Promise<{ message: string; status: string }> => {
-    return apiClient.post(`/events/${eventId}/rsvp`, { status }) as any;
+  rsvp: async (
+    eventId: string,
+    status: 'going' | 'interested' | 'not_going'
+  ): Promise<{ message: string; status: string }> => {
+    return postJson<{ message: string; status: string }>(`/events/${eventId}/rsvp`, { status });
   },
 };

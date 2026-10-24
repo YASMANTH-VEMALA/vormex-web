@@ -1,56 +1,111 @@
-import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import { AuthProvider } from "@/lib/auth/authContext";
-import { ThemeProvider } from "@/components/ui/ThemeProvider";
-import { QueryProvider } from "@/components/providers/QueryProvider";
-import { NotificationToastProvider } from "@/components/notifications/NotificationToast";
-import { VormexDock } from "@/components/ui/dock";
-import { AgentProvider } from "@/components/agent/AgentContext";
-import EngagementProvider from "@/components/engagement/EngagementProvider";
-import "./globals.css";
+import { AgentProvider } from '@/components/agent/AgentContext';
+import { AgentSurface } from '@/components/agent/AgentSurface';
+import ChatOutboxCoordinator from '@/components/chat/ChatOutboxCoordinator';
+import EngagementProvider from '@/components/engagement/EngagementProvider';
+import { NotificationToastProvider } from '@/components/notifications/NotificationToast';
+import { AppInstallProvider } from '@/components/providers/AppInstallProvider';
+import { AppWarmup } from '@/components/providers/AppWarmup';
+import { GoogleAuthProvider } from '@/components/providers/GoogleAuthProvider';
+import { QueryProvider } from '@/components/providers/QueryProvider';
+import { VormexDock } from '@/components/ui/dock';
+import { ThemeProvider } from '@/components/ui/ThemeProvider';
+import { AuthProvider } from '@/lib/auth/authContext';
+import { PostingStatusProvider } from '@/lib/feed/postingStatus';
+import { DEFAULT_DESCRIPTION, PUBLIC_SEO_ENABLED, SITE_URL, safeJsonLd } from '@/lib/seo';
+import { Analytics } from '@vercel/analytics/next';
+import type { Metadata, Viewport } from 'next';
+import { Geist, Geist_Mono } from 'next/font/google';
+import './globals.css';
 
 const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+  variable: '--font-geist-sans',
+  subsets: ['latin'],
 });
 
 const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  variable: '--font-geist-mono',
+  subsets: ['latin'],
 });
 
-const baseUrl =
-  process.env.NEXT_PUBLIC_BASE_URL ||
-  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://vormex.vercel.app');
+const baseUrl = SITE_URL;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: 'Vormex',
+  description:
+    'More than a social network — Vormex helps students connect, collaborate, and grow professionally.',
+  url: baseUrl,
+  applicationCategory: 'SocialNetworkingApplication',
+  operatingSystem: 'Web, Android, iOS',
+  offers: { '@type': 'Offer', price: '0' },
+  author: {
+    '@type': 'Organization',
+    name: 'Vormex',
+  },
+};
+
+const siteJsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Organization',
+      '@id': `${baseUrl}/#organization`,
+      name: 'Vormex',
+      url: baseUrl,
+      logo: `${baseUrl}/logo.png`,
+    },
+    {
+      '@type': 'WebSite',
+      '@id': `${baseUrl}/#website`,
+      name: 'Vormex',
+      url: baseUrl,
+      publisher: { '@id': `${baseUrl}/#organization` },
+      description: DEFAULT_DESCRIPTION,
+    },
+  ],
+};
 
 export const metadata: Metadata = {
+  metadataBase: new URL(baseUrl),
   title: {
-    default: "Vormex - Professional Social Networking for Students",
-    template: "%s | Vormex",
+    default: 'Vormex - Professional Social Networking for Students',
+    template: '%s | Vormex',
   },
   description:
-    "Connect with students, share experiences, and grow your network. Vormex is the professional social platform for students to build connections, discover opportunities, and showcase their skills.",
-  keywords: ["Vormex", "student network", "professional networking", "students", "college", "career", "connections"],
-  authors: [{ name: "Vormex" }],
-  creator: "Vormex",
+    'More than a social network — Vormex helps students connect, collaborate, and grow professionally.',
+  keywords:
+    'students, social network, professional network, student community, connect students, India, networking, career, collaborate, Vormex',
+  authors: [{ name: 'Vormex' }],
+  creator: 'Vormex',
   openGraph: {
-    type: "website",
-    locale: "en_US",
+    title: 'Vormex - Professional Social Networking for Students',
+    description:
+      'More than a social network — Vormex helps students connect, collaborate, and grow professionally.',
     url: baseUrl,
-    siteName: "Vormex",
-    title: "Vormex - Professional Social Networking for Students",
-    description: "Connect with students, share experiences, and grow your network.",
+    siteName: 'Vormex',
+    type: 'website',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Vormex - Professional Social Networking for Students',
+      },
+    ],
+    locale: 'en_US',
   },
   twitter: {
-    card: "summary_large_image",
-    title: "Vormex - Professional Social Networking for Students",
-    description: "Connect with students, share experiences, and grow your network.",
+    card: 'summary_large_image',
+    title: 'Vormex - Professional Social Networking for Students',
+    description:
+      'More than a social network — Vormex helps students connect, collaborate, and grow professionally.',
+    images: ['/og-image.png'],
   },
   robots: {
-    index: true,
-    follow: true,
+    index: PUBLIC_SEO_ENABLED,
+    follow: PUBLIC_SEO_ENABLED,
   },
-  metadataBase: new URL(baseUrl),
   icons: {
     icon: '/logo.png',
     apple: '/logo.png',
@@ -58,9 +113,9 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  width: "device-width",
+  width: 'device-width',
   initialScale: 1,
-  viewportFit: "cover",
+  viewportFit: 'cover',
 };
 
 export default function RootLayout({
@@ -74,29 +129,48 @@ export default function RootLayout({
         <link rel="icon" href="/logo.png" type="image/png" sizes="32x32" />
         <link rel="icon" href="/logo.png" type="image/png" sizes="16x16" />
         <link rel="apple-touch-icon" href="/logo.png" sizes="180x180" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: safeJsonLd(siteJsonLd) }}
+        />
       </head>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
+          defaultTheme="light"
           enableSystem
           disableTransitionOnChange={false}
         >
-          <QueryProvider>
-            <AuthProvider>
-              <NotificationToastProvider>
-                <AgentProvider>
-                  <EngagementProvider>
-                    {children}
-                  </EngagementProvider>
-                  <VormexDock />
-                </AgentProvider>
-              </NotificationToastProvider>
-            </AuthProvider>
+          <AppInstallProvider>
+            <QueryProvider>
+              <GoogleAuthProvider>
+                <AuthProvider>
+                  <AppWarmup />
+                  <ChatOutboxCoordinator />
+                  <NotificationToastProvider>
+                    <AgentProvider>
+                      {/*
+                      Wraps the dock as well as the page: the dock's composer can
+                      start an upload from anywhere, and that upload has to
+                      outlive the modal and survive navigation.
+                    */}
+                      <PostingStatusProvider>
+                        <EngagementProvider>{children}</EngagementProvider>
+                        <AgentSurface />
+                        <VormexDock />
+                      </PostingStatusProvider>
+                    </AgentProvider>
+                  </NotificationToastProvider>
+                </AuthProvider>
+              </GoogleAuthProvider>
             </QueryProvider>
+          </AppInstallProvider>
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   );

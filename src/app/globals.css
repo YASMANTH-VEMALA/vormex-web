@@ -1,4 +1,26 @@
-@import "tailwindcss";
+@import 'tailwindcss';
+@import './styles/social-button.css';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@keyframes reel-comments-enter {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.reel-comments-sheet {
+  animation: reel-comments-enter 220ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reel-comments-sheet {
+    animation: none;
+  }
+}
 
 :root {
   --background: #ffffff;
@@ -54,17 +76,30 @@
 
 /* Profile ring animations (from welcome gift) */
 @keyframes profile-ring-pulse {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
 }
 @keyframes profile-ring-hue {
-  0% { background-position: 0% 50%; }
-  100% { background-position: 300% 50%; }
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 300% 50%;
+  }
 }
 
 @keyframes profile-frame-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Profile frame themes - matches gift card designs when user accepts */
@@ -81,14 +116,67 @@
   box-shadow: 0 0 12px rgba(59, 130, 246, 0.5);
 }
 
-* {
-  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+a,
+button,
+input,
+select,
+textarea,
+[role='button'] {
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+  font-family:
+    var(--font-sans),
+    system-ui,
+    -apple-system,
+    sans-serif;
+}
+
+/*
+ * Native form controls do not consistently inherit the page foreground color.
+ * Keep every onboarding field, including future steps and browser autofill,
+ * readable against both the light and dark onboarding surfaces.
+ */
+.onboarding-shell {
+  color-scheme: light;
+}
+
+.dark .onboarding-shell {
+  color-scheme: dark;
+}
+
+.onboarding-shell :where(input, textarea, select) {
+  color: var(--foreground);
+  caret-color: var(--foreground);
+}
+
+.onboarding-shell :where(input, textarea)::placeholder {
+  color: var(--muted-foreground);
+  opacity: 1;
+}
+
+.onboarding-shell :where(input, textarea, select):-webkit-autofill,
+.onboarding-shell :where(input, textarea, select):-webkit-autofill:hover,
+.onboarding-shell :where(input, textarea, select):-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--foreground);
+  caret-color: var(--foreground);
+}
+
+/*
+ * Keep the compact desktop density without zooming the layout viewport.
+ * CSS `zoom` also scales viewport units, leaving `100vh`/`100dvh` pages only
+ * 80% as tall as the browser and exposing the document background below them.
+ */
+@media (min-width: 1024px) {
+  html {
+    font-size: 80%;
+  }
 }
 
 /* Custom scrollbar for light and dark mode */
@@ -120,6 +208,28 @@ body {
 
 .dark ::-webkit-scrollbar-thumb:hover {
   background: #4b5563;
+}
+
+/* Utility: Hide scrollbar */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Animation: Slow spin */
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+.animate-spin-slow {
+  animation: spin-slow 3s linear infinite;
 }
 
 /* Line clamp utilities */
@@ -155,16 +265,47 @@ body {
 }
 
 .animate-shimmer {
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
+}
+
+/*
+ * Upload bar for a post whose body the browser could not size, so there is no
+ * real fraction to render. It sweeps instead of filling, which reads as "still
+ * working" without claiming a position it does not know.
+ */
+@keyframes posting-indeterminate {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(300%);
+  }
+}
+
+.animate-posting-indeterminate {
+  animation: posting-indeterminate 1.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-posting-indeterminate {
+    animation: none;
+    transform: none;
+    width: 100%;
+    opacity: 0.5;
+  }
 }
 
 /* 404 Page styles */
 .page_404 {
   padding: 40px 0;
   background: var(--background);
-  font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  font-family:
+    var(--font-geist-sans),
+    system-ui,
+    -apple-system,
+    sans-serif;
   min-height: 100vh;
   display: flex;
   align-items: center;
@@ -231,7 +372,9 @@ body {
   text-decoration: none;
   border-radius: 0.5rem;
   font-weight: 500;
-  transition: background 0.2s ease, transform 0.2s ease;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
 }
 
 .link_404:hover {
@@ -241,149 +384,4 @@ body {
 
 .contant_box_404 {
   margin-top: -50px;
-}
-
-/* X/Twitter button - top left */
-.btn_tl {
-  position: absolute;
-  top: 1.8em;
-  left: 1.8em;
-  z-index: 10;
-  pointer-events: all;
-  cursor: pointer;
-  opacity: 1;
-  background: none;
-  border: none;
-  padding: 0;
-  margin: 0;
-  text-decoration: none;
-  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  transform: translateZ(0);
-  width: 3em;
-  height: 3em;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.logo_svg_wrapper {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.logo_svg {
-  width: 100%;
-  height: 100%;
-  fill: #1a365d;
-  transition: all 0.4s ease;
-}
-
-.dark .logo_svg {
-  fill: #63b3ed;
-}
-
-.logo_path {
-  stroke: #1a365d;
-  stroke-width: 0;
-  stroke-dasharray: 1000;
-  stroke-dashoffset: 1000;
-  transition: all 0.8s ease;
-}
-
-.dark .logo_path {
-  stroke: #63b3ed;
-}
-
-.btn_tl:hover .logo_path {
-  animation: drawLogo 2s ease-in-out forwards;
-  stroke-width: 1.5;
-}
-
-.btn_tl:hover .logo_svg {
-  transform: scale(1.1);
-  filter: drop-shadow(0 2px 4px rgba(26, 54, 93, 0.3));
-}
-
-.btn_tl:hover {
-  transform: scale(1.05) translateZ(0);
-}
-
-@keyframes drawLogo {
-  0% {
-    stroke-dashoffset: 1000;
-    fill: transparent;
-    stroke: #1a365d;
-  }
-  50% {
-    stroke-dashoffset: 0;
-    fill: transparent;
-    stroke: #2d3748;
-  }
-  80% {
-    fill: rgba(26, 54, 93, 0.3);
-    stroke: #2d3748;
-  }
-  100% {
-    stroke-dashoffset: 0;
-    fill: #1a365d;
-    stroke: transparent;
-  }
-}
-
-.dark .btn_tl:hover .logo_path {
-  animation: drawLogoDark 2s ease-in-out forwards;
-}
-
-@keyframes drawLogoDark {
-  0% {
-    stroke-dashoffset: 1000;
-    fill: transparent;
-    stroke: #63b3ed;
-  }
-  50% {
-    stroke-dashoffset: 0;
-    fill: transparent;
-    stroke: #90cdf4;
-  }
-  80% {
-    fill: rgba(99, 179, 237, 0.3);
-    stroke: #90cdf4;
-  }
-  100% {
-    stroke-dashoffset: 0;
-    fill: #63b3ed;
-    stroke: transparent;
-  }
-}
-
-.btn_tl:active {
-  transform: scale(0.95) translateZ(0);
-  transition: all 0.15s cubic-bezier(0.215, 0.61, 0.355, 1);
-}
-
-.btn_tl a {
-  text-decoration: none;
-  color: inherit;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: all;
-  position: relative;
-  z-index: 11;
-  cursor: pointer;
-  background: none;
-  transition: inherit;
-  width: 100%;
-  height: 100%;
-}
-
-.btn_tl,
-.btn_tl:focus,
-.btn_tl:active {
-  background: transparent !important;
-  box-shadow: none !important;
-  outline: none !important;
 }

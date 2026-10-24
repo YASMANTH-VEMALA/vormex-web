@@ -1,21 +1,19 @@
 'use client';
 
-import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
-  X,
-  RotateCw,
-  RotateCcw,
-  FlipHorizontal,
-  FlipVertical,
-  Crop,
-  Sun,
+  Check,
   Contrast,
   Droplets,
-  Check,
+  FlipHorizontal,
+  FlipVertical,
+  RotateCcw,
+  RotateCw,
+  Sun,
   Undo2,
-  Download,
+  X,
 } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 
 interface ImageEditorProps {
   isOpen: boolean;
@@ -59,7 +57,7 @@ export function ImageEditor({ isOpen, imageUrl, onClose, onSave }: ImageEditorPr
   // Load image when URL changes
   useEffect(() => {
     if (!imageUrl) return;
-    
+
     const img = new Image();
     img.crossOrigin = 'anonymous';
     img.onload = () => {
@@ -85,7 +83,7 @@ export function ImageEditor({ isOpen, imageUrl, onClose, onSave }: ImageEditorPr
     const maxWidth = 600;
     const maxHeight = 500;
     const scale = Math.min(maxWidth / displayWidth, maxHeight / displayHeight, 1);
-    
+
     canvas.width = displayWidth * scale;
     canvas.height = displayHeight * scale;
 
@@ -134,9 +132,9 @@ export function ImageEditor({ isOpen, imageUrl, onClose, onSave }: ImageEditorPr
 
   const handleSave = async () => {
     if (!canvasRef.current || !image) return;
-    
+
     setIsSaving(true);
-    
+
     try {
       // Create a full-resolution canvas for export
       const exportCanvas = document.createElement('canvas');
@@ -153,19 +151,23 @@ export function ImageEditor({ isOpen, imageUrl, onClose, onSave }: ImageEditorPr
       ctx.filter = `brightness(${filters.brightness}%) contrast(${filters.contrast}%) saturate(${filters.saturation}%)`;
       ctx.drawImage(image, -image.width / 2, -image.height / 2);
 
-      exportCanvas.toBlob((blob) => {
-        if (blob) {
-          onSave(blob);
-        }
-        setIsSaving(false);
-      }, 'image/jpeg', 0.9);
+      exportCanvas.toBlob(
+        (blob) => {
+          if (blob) {
+            onSave(blob);
+          }
+          setIsSaving(false);
+        },
+        'image/jpeg',
+        0.9
+      );
     } catch (error) {
       console.error('Error saving image:', error);
       setIsSaving(false);
     }
   };
 
-  const applyPresetFilter = (preset: typeof presetFilters[0]) => {
+  const applyPresetFilter = (preset: (typeof presetFilters)[0]) => {
     setFilters({
       brightness: preset.brightness,
       contrast: preset.contrast,
@@ -301,7 +303,9 @@ export function ImageEditor({ isOpen, imageUrl, onClose, onSave }: ImageEditorPr
                       min="50"
                       max="150"
                       value={filters.brightness}
-                      onChange={(e) => setFilters({ ...filters, brightness: Number(e.target.value) })}
+                      onChange={(e) =>
+                        setFilters({ ...filters, brightness: Number(e.target.value) })
+                      }
                       className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
                     />
                   </div>
@@ -339,7 +343,9 @@ export function ImageEditor({ isOpen, imageUrl, onClose, onSave }: ImageEditorPr
                       min="0"
                       max="200"
                       value={filters.saturation}
-                      onChange={(e) => setFilters({ ...filters, saturation: Number(e.target.value) })}
+                      onChange={(e) =>
+                        setFilters({ ...filters, saturation: Number(e.target.value) })
+                      }
                       className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
                     />
                   </div>
@@ -363,7 +369,7 @@ export function ImageEditor({ isOpen, imageUrl, onClose, onSave }: ImageEditorPr
                           : 'bg-gray-700 hover:bg-gray-600'
                       }`}
                     >
-                      <div 
+                      <div
                         className="w-full aspect-square rounded-lg mb-1 bg-gray-600"
                         style={{
                           filter: `brightness(${preset.brightness}%) contrast(${preset.contrast}%) saturate(${preset.saturation}%)`,

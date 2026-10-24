@@ -1,12 +1,15 @@
-'use client';
+import { redirect } from 'next/navigation';
 
-import { AuthPage } from '@/components/auth/AuthPage';
-import { AuthRedirect } from '@/components/auth/AuthRedirect';
-
-export default function LoginPage() {
-  return (
-    <AuthRedirect>
-      <AuthPage />
-    </AuthRedirect>
-  );
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(await searchParams)) {
+    if (Array.isArray(value)) value.forEach((item) => params.append(key, item));
+    else if (value !== undefined) params.set(key, value);
+  }
+  const query = params.toString();
+  redirect(query ? '/?' + query : '/');
 }

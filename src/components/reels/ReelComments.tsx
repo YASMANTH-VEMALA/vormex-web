@@ -1,10 +1,14 @@
 'use client';
+import { useSyncedState } from '@/hooks/useSyncedState';
+import { useAuth as useResourceAuth } from '@/lib/auth/useAuth';
+import { useInfiniteQuery } from '@tanstack/react-query';
+import { useMemo } from 'react';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { X, Heart, Send, Loader2, ChevronDown, Pin } from 'lucide-react';
-import Link from 'next/link';
+import { ReelComment, reelsApi } from '@/lib/api/reels';
 import { cn } from '@/lib/utils';
-import { reelsApi, ReelComment } from '@/lib/api/reels';
+import { ChevronDown, Heart, Loader2, Pin, Send, X } from 'lucide-react';
+import Link from 'next/link';
+import { useCallback, useRef, useState } from 'react';
 import { MentionInput } from './MentionInput';
 
 interface ReelCommentsProps {
@@ -15,10 +19,22 @@ interface ReelCommentsProps {
 }
 
 export function ReelComments({ reelId, isOpen, onClose, authorId }: ReelCommentsProps) {
-  const [comments, setComments] = useState<ReelComment[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [hasMore, setHasMore] = useState(false);
-  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const resourceViewer = useResourceAuth().user;
+  const commentsResource = useInfiniteQuery({
+    queryKey: ['reel-comments', resourceViewer?.id, reelId],
+    initialPageParam: undefined as string | undefined,
+    queryFn: ({ pageParam }) => reelsApi.getComments(reelId, { cursor: pageParam, limit: 20 }),
+    getNextPageParam: (last) => (last.hasMore ? (last.nextCursor ?? undefined) : undefined),
+    enabled: isOpen,
+  });
+  const loadedComments = useMemo(
+    () => commentsResource.data?.pages.flatMap((page) => page.comments) || [],
+    [commentsResource.data]
+  );
+  const [comments, setComments] = useSyncedState(loadedComments);
+  const isLoading = commentsResource.isFetching;
+  const hasMore = commentsResource.hasNextPage;
+  const nextCursor = commentsResource.data?.pages.at(-1)?.nextCursor;
   const [newComment, setNewComment] = useState('');
   const [commentMentions, setCommentMentions] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -28,141 +44,126 @@ export function ReelComments({ reelId, isOpen, onClose, authorId }: ReelComments
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const fetchComments = useCallback(async (cursor?: string) => {
-    try {
-      setIsLoading(true);
-      const response = (await reelsApi.getComments(reelId, { cursor, limit: 20 })) as unknown as {
-        comments: ReelComment[];
-        nextCursor: string | null;
-        hasMore: boolean;
-      };
-      
-      if (cursor) {
-        setComments((prev) => [...prev, ...response.comments]);
-      } else {
-        setComments(response.comments);
-      }
-      setNextCursor(response.nextCursor);
-      setHasMore(response.hasMore);
-    } catch (error) {
-      console.error('Failed to fetch comments:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [reelId]);
+  const fetchComments = (cursor?: string) =>
+    cursor ? commentsResource.fetchNextPage() : commentsResource.refetch();
 
-  useEffect(() => {
-    if (isOpen) {
-      fetchComments();
-    }
-  }, [isOpen, fetchComments]);
-
-  const fetchReplies = useCallback(async (parentId: string) => {
-    try {
-      const response = (await reelsApi.getComments(reelId, { parentId, limit: 10 })) as unknown as {
-        comments: ReelComment[];
-        nextCursor: string | null;
-        hasMore: boolean;
-      };
-      setRepliesData((prev) => ({
-        ...prev,
-        [parentId]: response.comments,
-      }));
-    } catch (error) {
-      console.error('Failed to fetch replies:', error);
-    }
-  }, [reelId]);
-
-  const handleSubmit = useCallback(async (e?: React.FormEvent) => {
-    e?.preventDefault();
-    if (!newComment.trim() || isSubmitting) return;
-
-    try {
-      setIsSubmitting(true);
-      const response = (await reelsApi.createComment(reelId, {
-        content: newComment.trim(),
-        parentId: replyTo?.id,
-        mentions: commentMentions,
-      })) as unknown as ReelComment;
-
-      if (replyTo) {
+  const fetchReplies = useCallback(
+    async (parentId: string) => {
+      try {
+        const response = (await reelsApi.getComments(reelId, {
+          parentId,
+          limit: 10,
+        })) as unknown as {
+          comments: ReelComment[];
+          nextCursor: string | null;
+          hasMore: boolean;
+        };
         setRepliesData((prev) => ({
           ...prev,
-          [replyTo.id]: [response, ...(prev[replyTo.id] || [])],
+          [parentId]: response.comments,
         }));
-        setComments((prev) =>
-          prev.map((c) =>
-            c.id === replyTo.id
-              ? { ...c, repliesCount: c.repliesCount + 1 }
-              : c
-          )
-        );
-      } else {
-        setComments((prev) => [response, ...prev]);
+      } catch (error) {
+        console.error('Failed to fetch replies:', error);
       }
+    },
+    [reelId]
+  );
 
-      setNewComment('');
-      setCommentMentions([]);
-      setReplyTo(null);
-    } catch (error) {
-      console.error('Failed to create comment:', error);
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [reelId, newComment, commentMentions, replyTo, isSubmitting]);
+  const handleSubmit = useCallback(
+    async (e?: React.FormEvent) => {
+      e?.preventDefault();
+      if (!newComment.trim() || isSubmitting) return;
+
+      try {
+        setIsSubmitting(true);
+        const response = (await reelsApi.createComment(reelId, {
+          content: newComment.trim(),
+          parentId: replyTo?.id,
+          mentions: commentMentions,
+        })) as unknown as ReelComment;
+
+        if (replyTo) {
+          setRepliesData((prev) => ({
+            ...prev,
+            [replyTo.id]: [response, ...(prev[replyTo.id] || [])],
+          }));
+          setComments((prev) =>
+            prev.map((c) => (c.id === replyTo.id ? { ...c, repliesCount: c.repliesCount + 1 } : c))
+          );
+        } else {
+          setComments((prev) => [response, ...prev]);
+        }
+
+        setNewComment('');
+        setCommentMentions([]);
+        setReplyTo(null);
+      } catch (error) {
+        console.error('Failed to create comment:', error);
+      } finally {
+        setIsSubmitting(false);
+      }
+    },
+    [newComment, isSubmitting, reelId, replyTo, commentMentions, setComments]
+  );
 
   const handleCommentChange = useCallback((value: string, mentions: string[]) => {
     setNewComment(value);
     setCommentMentions(mentions);
   }, []);
 
-  const handleLike = useCallback(async (commentId: string) => {
-    try {
-      const response = (await reelsApi.toggleCommentLike(reelId, commentId)) as unknown as {
-        liked: boolean;
-        likesCount: number;
-      };
-      
-      setComments((prev) =>
-        prev.map((c) =>
-          c.id === commentId
-            ? { ...c, isLiked: response.liked, likesCount: response.likesCount }
-            : c
-        )
-      );
+  const handleLike = useCallback(
+    async (commentId: string) => {
+      try {
+        const response = (await reelsApi.toggleCommentLike(reelId, commentId)) as unknown as {
+          liked: boolean;
+          likesCount: number;
+        };
 
-      Object.keys(repliesData).forEach((parentId) => {
-        setRepliesData((prev) => ({
-          ...prev,
-          [parentId]: prev[parentId].map((c) =>
+        setComments((prev) =>
+          prev.map((c) =>
             c.id === commentId
               ? { ...c, isLiked: response.liked, likesCount: response.likesCount }
               : c
-          ),
-        }));
-      });
-    } catch (error) {
-      console.error('Failed to toggle like:', error);
-    }
-  }, [reelId, repliesData]);
+          )
+        );
+
+        Object.keys(repliesData).forEach((parentId) => {
+          setRepliesData((prev) => ({
+            ...prev,
+            [parentId]: prev[parentId].map((c) =>
+              c.id === commentId
+                ? { ...c, isLiked: response.liked, likesCount: response.likesCount }
+                : c
+            ),
+          }));
+        });
+      } catch (error) {
+        console.error('Failed to toggle like:', error);
+      }
+    },
+    [reelId, repliesData, setComments]
+  );
 
   const handleReply = useCallback((comment: ReelComment) => {
     setReplyTo(comment);
     inputRef.current?.focus();
   }, []);
 
-  const toggleReplies = useCallback((commentId: string) => {
-    const newExpanded = new Set(expandedReplies);
-    if (newExpanded.has(commentId)) {
-      newExpanded.delete(commentId);
-    } else {
-      newExpanded.add(commentId);
-      if (!repliesData[commentId]) {
-        fetchReplies(commentId);
+  const toggleReplies = useCallback(
+    (commentId: string) => {
+      const newExpanded = new Set(expandedReplies);
+      if (newExpanded.has(commentId)) {
+        newExpanded.delete(commentId);
+      } else {
+        newExpanded.add(commentId);
+        if (!repliesData[commentId]) {
+          fetchReplies(commentId);
+        }
       }
-    }
-    setExpandedReplies(newExpanded);
-  }, [expandedReplies, repliesData, fetchReplies]);
+      setExpandedReplies(newExpanded);
+    },
+    [expandedReplies, repliesData, fetchReplies]
+  );
 
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
@@ -180,7 +181,7 @@ export function ReelComments({ reelId, isOpen, onClose, authorId }: ReelComments
   };
 
   const renderComment = (comment: ReelComment, isReply = false) => (
-    <div key={comment.id} className={cn("flex gap-3", isReply && "ml-12")}>
+    <div key={comment.id} className={cn('flex gap-3', isReply && 'ml-12')}>
       <Link href={`/profile/${comment.author.id}`}>
         <img
           src={comment.author.profileImage || '/default-avatar.png'}
@@ -188,7 +189,7 @@ export function ReelComments({ reelId, isOpen, onClose, authorId }: ReelComments
           className="w-8 h-8 rounded-full flex-shrink-0"
         />
       </Link>
-      
+
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
           <Link
@@ -198,48 +199,37 @@ export function ReelComments({ reelId, isOpen, onClose, authorId }: ReelComments
             {comment.author.username}
           </Link>
           {comment.author.id === authorId && (
-            <span className="text-xs bg-blue-500 text-white px-1.5 py-0.5 rounded">
-              Creator
-            </span>
+            <span className="text-xs bg-blue-500 text-white px-1.5 py-0.5 rounded">Creator</span>
           )}
-          {comment.isPinned && (
-            <Pin className="w-3 h-3 text-gray-400" />
-          )}
-          <span className="text-gray-500 text-xs">
-            {formatTime(comment.createdAt)}
-          </span>
+          {comment.isPinned && <Pin className="w-3 h-3 text-gray-400" />}
+          <span className="text-gray-500 text-xs">{formatTime(comment.createdAt)}</span>
         </div>
-        
+
         <p className="text-sm mt-1 break-words">{comment.content}</p>
-        
+
         <div className="flex items-center gap-4 mt-2">
           <button
             onClick={() => handleLike(comment.id)}
             className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700"
           >
-            <Heart
-              className={cn(
-                "w-4 h-4",
-                comment.isLiked && "fill-red-500 text-red-500"
-              )}
-            />
+            <Heart className={cn('w-4 h-4', comment.isLiked && 'fill-red-500 text-red-500')} />
             {comment.likesCount > 0 && comment.likesCount}
           </button>
-          
+
           <button
             onClick={() => handleReply(comment)}
             className="text-xs text-gray-500 hover:text-gray-700"
           >
             Reply
           </button>
-          
+
           {comment.isAuthorHeart && (
             <span className="text-xs text-red-500 flex items-center gap-1">
               <Heart className="w-3 h-3 fill-red-500" /> by creator
             </span>
           )}
         </div>
-        
+
         {!isReply && comment.repliesCount > 0 && (
           <button
             onClick={() => toggleReplies(comment.id)}
@@ -247,17 +237,16 @@ export function ReelComments({ reelId, isOpen, onClose, authorId }: ReelComments
           >
             <ChevronDown
               className={cn(
-                "w-4 h-4 transition-transform",
-                expandedReplies.has(comment.id) && "rotate-180"
+                'w-4 h-4 transition-transform',
+                expandedReplies.has(comment.id) && 'rotate-180'
               )}
             />
             {expandedReplies.has(comment.id)
               ? 'Hide replies'
-              : `View ${comment.repliesCount} ${comment.repliesCount === 1 ? 'reply' : 'replies'}`
-            }
+              : `View ${comment.repliesCount} ${comment.repliesCount === 1 ? 'reply' : 'replies'}`}
           </button>
         )}
-        
+
         {expandedReplies.has(comment.id) && repliesData[comment.id] && (
           <div className="mt-3 space-y-4">
             {repliesData[comment.id].map((reply) => renderComment(reply, true))}
@@ -271,25 +260,30 @@ export function ReelComments({ reelId, isOpen, onClose, authorId }: ReelComments
 
   return (
     <div className="fixed inset-0 z-[100] flex items-end justify-center">
+      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+
       <div
-        className="absolute inset-0 bg-black/50"
-        onClick={onClose}
-      />
-      
-      <div className="relative w-full max-w-lg h-[70vh] bg-white dark:bg-gray-900 rounded-t-3xl flex flex-col animate-slide-up mb-24">
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-lg font-semibold">Comments</h2>
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={`reel-comments-${reelId}`}
+        className="reel-comments-sheet relative flex h-[70dvh] w-full max-w-lg flex-col overflow-hidden rounded-t-3xl bg-white text-gray-900 dark:bg-gray-900 dark:text-white"
+      >
+        <div className="flex shrink-0 items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+          <h2 id={`reel-comments-${reelId}`} className="text-lg font-semibold">
+            Comments
+          </h2>
           <button
             onClick={onClose}
+            aria-label="Close comments"
             className="w-8 h-8 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center justify-center"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
-        
+
         <div
           ref={containerRef}
-          className="flex-1 overflow-y-auto p-4 space-y-6"
+          className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 space-y-6"
         >
           {isLoading && comments.length === 0 ? (
             <div className="flex items-center justify-center h-32">
@@ -303,7 +297,7 @@ export function ReelComments({ reelId, isOpen, onClose, authorId }: ReelComments
           ) : (
             <>
               {comments.map((comment) => renderComment(comment))}
-              
+
               {hasMore && (
                 <button
                   onClick={() => fetchComments(nextCursor || undefined)}
@@ -320,8 +314,8 @@ export function ReelComments({ reelId, isOpen, onClose, authorId }: ReelComments
             </>
           )}
         </div>
-        
-        <div className="border-t border-gray-200 dark:border-gray-700 p-4">
+
+        <div className="shrink-0 border-t border-gray-200 p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] dark:border-gray-700">
           {replyTo && (
             <div className="flex items-center justify-between text-sm text-gray-500 mb-2 bg-gray-100 dark:bg-gray-800 p-2 rounded-lg">
               <span>Replying to @{replyTo.author.username}</span>
@@ -333,13 +327,15 @@ export function ReelComments({ reelId, isOpen, onClose, authorId }: ReelComments
               </button>
             </div>
           )}
-          
+
           <form onSubmit={handleSubmit} className="flex items-center gap-3">
             <div className="flex-1 bg-gray-100 dark:bg-gray-800 rounded-full px-4 py-2">
               <MentionInput
                 value={newComment}
                 onChange={handleCommentChange}
-                placeholder={replyTo ? `Reply to @${replyTo.author.username}...` : "Add a comment..."}
+                placeholder={
+                  replyTo ? `Reply to @${replyTo.author.username}...` : 'Add a comment...'
+                }
                 className="text-sm text-gray-900 dark:text-white"
                 onSubmit={() => handleSubmit()}
                 autoFocus={!!replyTo}

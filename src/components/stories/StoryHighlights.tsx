@@ -1,10 +1,17 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { isTerminalSafetyError } from '@/lib/api/errors';
+import {
+  getHighlightStories,
+  getUserHighlights,
+  type Story,
+  type StoryHighlight,
+} from '@/lib/api/stories';
+import { SAFETY_STATE_CHANGED_EVENT } from '@/lib/socket';
 import { motion } from 'framer-motion';
-import { Plus, Play, Lock } from 'lucide-react';
+import { Lock, Play, Plus } from 'lucide-react';
 import Image from 'next/image';
-import { getUserHighlights, getHighlightStories, type StoryHighlight, type Story } from '@/lib/api/stories';
+import { useCallback, useEffect, useState } from 'react';
 
 interface StoryHighlightsProps {
   userId: string;
@@ -12,26 +19,38 @@ interface StoryHighlightsProps {
   onCreateHighlight?: () => void;
 }
 
-export function StoryHighlights({ userId, isOwnProfile = false, onCreateHighlight }: StoryHighlightsProps) {
+export function StoryHighlights({
+  userId,
+  isOwnProfile = false,
+  onCreateHighlight,
+}: StoryHighlightsProps) {
   const [highlights, setHighlights] = useState<StoryHighlight[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedHighlight, setSelectedHighlight] = useState<StoryHighlight | null>(null);
-  const [highlightStories, setHighlightStories] = useState<Story[]>([]);
+  const [, setSelectedHighlight] = useState<StoryHighlight | null>(null);
+  const [, setHighlightStories] = useState<Story[]>([]);
 
-  useEffect(() => {
-    fetchHighlights();
-  }, [userId]);
-
-  const fetchHighlights = async () => {
+  const fetchHighlights = useCallback(async () => {
     try {
       const response = await getUserHighlights(userId);
       setHighlights(response.highlights);
     } catch (error) {
-      console.error('Error fetching highlights:', error);
+      setHighlights([]);
+      if (isTerminalSafetyError(error)) {
+        window.dispatchEvent(
+          new CustomEvent(SAFETY_STATE_CHANGED_EVENT, {
+            detail: { reason: 'interaction_policy_changed' },
+          })
+        );
+      }
     } finally {
       setLoading(false);
     }
-  };
+  }, [userId]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => void fetchHighlights(), 0);
+    return () => window.clearTimeout(timer);
+  }, [fetchHighlights]);
 
   const handleHighlightClick = async (highlight: StoryHighlight) => {
     setSelectedHighlight(highlight);
@@ -40,7 +59,15 @@ export function StoryHighlights({ userId, isOwnProfile = false, onCreateHighligh
       setHighlightStories(response.highlight.stories);
       // Open story viewer with these stories
     } catch (error) {
-      console.error('Error fetching highlight stories:', error);
+      setSelectedHighlight(null);
+      setHighlightStories([]);
+      if (isTerminalSafetyError(error)) {
+        window.dispatchEvent(
+          new CustomEvent(SAFETY_STATE_CHANGED_EVENT, {
+            detail: { reason: 'interaction_policy_changed' },
+          })
+        );
+      }
     }
   };
 
@@ -64,7 +91,7 @@ export function StoryHighlights({ userId, isOwnProfile = false, onCreateHighligh
   return (
     <div className="mb-6">
       <h3 className="text-white font-semibold mb-4">Story Highlights</h3>
-      
+
       <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
         {/* Create New Highlight Button (for own profile) */}
         {isOwnProfile && (
@@ -104,9 +131,7 @@ export function StoryHighlights({ userId, isOwnProfile = false, onCreateHighligh
                 />
               ) : (
                 <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                  <span className="text-white text-xl">
-                    {highlight.title.charAt(0)}
-                  </span>
+                  <span className="text-white text-xl">{highlight.title.charAt(0)}</span>
                 </div>
               )}
 

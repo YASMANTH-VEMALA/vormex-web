@@ -1,4 +1,5 @@
 import apiClient from './client';
+import { deleteJson, getJson, postJson } from './request';
 
 export interface Company {
   id: string;
@@ -58,75 +59,80 @@ export interface JobApplication {
 
 // Get all companies
 export const getCompanies = async (): Promise<Company[]> => {
-  const response = await apiClient.get('/jobs/companies');
-  return response.data;
+  const envelope = await getJson<{ data: Company[] }>('/jobs/companies');
+  return envelope.data;
 };
 
 // Get company by slug
 export const getCompany = async (slug: string): Promise<Company & { jobs: Job[] }> => {
-  const response = await apiClient.get(`/jobs/companies/${slug}`);
-  return response.data;
+  const envelope = await getJson<{ data: Company & { jobs: Job[] } }>(`/jobs/companies/${slug}`);
+  return envelope.data;
 };
 
-// Get all jobs
-export const getJobs = async (filters?: {
+export interface JobFilters {
   type?: string;
   location?: string;
   experienceLevel?: string;
   isRemote?: boolean;
   search?: string;
-}): Promise<Job[]> => {
-  const response = await apiClient.get('/jobs', { params: filters });
+}
+
+// Get all jobs
+export const getJobs = async (filters?: JobFilters): Promise<Job[]> => {
+  const response = (await apiClient.get('/jobs', { params: filters })) as unknown as {
+    data: Job[];
+  };
   return response.data;
 };
 
 // Get job by slug
 export const getJob = async (slug: string): Promise<Job> => {
-  const response = await apiClient.get(`/jobs/${slug}`);
-  return response.data;
+  const envelope = await getJson<{ data: Job }>(`/jobs/${slug}`);
+  return envelope.data;
 };
 
 // Get featured jobs
 export const getFeaturedJobs = async (limit?: number): Promise<Job[]> => {
-  const response = await apiClient.get('/jobs/featured', { params: { limit } });
+  const response = (await apiClient.get('/jobs/featured', { params: { limit } })) as unknown as {
+    data: Job[];
+  };
   return response.data;
 };
 
 // Get job types
 export const getJobTypes = async (): Promise<string[]> => {
-  const response = await apiClient.get('/jobs/types');
-  return response.data;
+  const envelope = await getJson<{ data: string[] }>('/jobs/types');
+  return envelope.data;
 };
 
-// Apply to a job
-export const applyToJob = async (jobId: string, data: {
+export interface JobApplicationInput {
   coverLetter?: string;
   resumeUrl?: string;
-}) => {
-  const response = await apiClient.post(`/jobs/${jobId}/apply`, data);
-  return response;
+}
+
+// Apply to a job
+export const applyToJob = async (jobId: string, data: JobApplicationInput): Promise<unknown> => {
+  return postJson<unknown>(`/jobs/${jobId}/apply`, data);
 };
 
 // Get my applications
 export const getMyApplications = async (): Promise<JobApplication[]> => {
-  const response = await apiClient.get('/jobs/applications/me');
-  return response.data;
+  const envelope = await getJson<{ data: JobApplication[] }>('/jobs/applications/me');
+  return envelope.data;
 };
 
 // Save a job
-export const saveJob = async (jobId: string) => {
-  const response = await apiClient.post(`/jobs/${jobId}/save`);
-  return response;
+export const saveJob = async (jobId: string): Promise<unknown> => {
+  return postJson<unknown>(`/jobs/${jobId}/save`);
 };
 
 // Unsave a job
-export const unsaveJob = async (jobId: string) => {
-  const response = await apiClient.delete(`/jobs/${jobId}/save`);
-  return response;
+export const unsaveJob = async (jobId: string): Promise<unknown> => {
+  return deleteJson<unknown>(`/jobs/${jobId}/save`);
 };
 
 // Get saved jobs
 export const getSavedJobs = async (): Promise<Job[]> => {
-  const response = await apiClient.get('/jobs/saved');
-  return response.data;
+  const envelope = await getJson<{ data: Job[] }>('/jobs/saved');
+  return envelope.data;
 };

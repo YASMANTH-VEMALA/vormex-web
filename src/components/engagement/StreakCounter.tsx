@@ -1,149 +1,191 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
-import { Flame, Trophy, Target, TrendingUp, X, LogIn, FileText, MessageCircle, ChevronRight } from 'lucide-react';
+import { useLiveStreaks } from '@/hooks/useLiveGamification';
+import { hasAtRiskStreak, selectBestCurrentStreak } from '@/lib/api/engagement';
+import * as Dialog from '@radix-ui/react-dialog';
+import {
+  ArrowUpRight,
+  FileText,
+  Flame,
+  LogIn,
+  MessageCircle,
+  Trophy,
+  Users,
+  X,
+} from 'lucide-react';
 import Link from 'next/link';
-import { getStreaks, type StreakData } from '@/lib/api/engagement';
+import { useState } from 'react';
 
-/**
- * StreakCounter - Professional streak badge with clean detail panel
- */
 export default function StreakCounter() {
-  const [streak, setStreak] = useState<StreakData | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchStreaks = async () => {
-      try {
-        const data = await getStreaks();
-        setStreak(data);
-      } catch (error) {
-        console.error('Failed to fetch streaks:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchStreaks();
-  }, []);
+  const { data: streak, isLoading: loading } = useLiveStreaks();
 
   if (loading || !streak) return null;
 
-  const bestCurrentStreak = Math.max(
-    streak.connectionStreak,
-    streak.loginStreak,
-    streak.postingStreak,
-    streak.messagingStreak
-  );
+  const bestCurrentStreak = selectBestCurrentStreak(streak);
   const hasStreak = bestCurrentStreak > 0;
-  const anyAtRisk = streak.isAtRisk ? Object.values(streak.isAtRisk).some(Boolean) : false;
+  const anyAtRisk = hasAtRiskStreak(streak);
+  const activities = [
+    {
+      label: 'Networking',
+      value: streak.connectionStreak,
+      longest: streak.longestConnectionStreak,
+      icon: Users,
+      riskKey: 'connection',
+    },
+    {
+      label: 'Login',
+      value: streak.loginStreak,
+      longest: streak.longestLoginStreak,
+      icon: LogIn,
+      riskKey: 'login',
+    },
+    {
+      label: 'Posting',
+      value: streak.postingStreak,
+      longest: streak.longestPostingStreak,
+      icon: FileText,
+      riskKey: 'posting',
+    },
+    {
+      label: 'Messaging',
+      value: streak.messagingStreak,
+      longest: streak.longestMessagingStreak,
+      icon: MessageCircle,
+      riskKey: 'messaging',
+    },
+  ];
 
   return (
-    <>
-      {/* Compact Badge */}
-      <button
-        onClick={() => setIsExpanded(true)}
-        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-          hasStreak
-            ? 'bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-orange-900/30'
-            : 'bg-gray-100 dark:bg-neutral-800 text-gray-500 dark:text-neutral-400 hover:bg-gray-200 dark:hover:bg-neutral-700'
-        }`}
-      >
-        <Flame className="w-4 h-4" />
-        <span>{bestCurrentStreak}</span>
-        {anyAtRisk && hasStreak && (
-          <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-        )}
-      </button>
-
-      {/* Detail Panel */}
-      <AnimatePresence>
-        {isExpanded && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
-            className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center p-4"
-            onClick={() => setIsExpanded(false)}
-          >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.15 }}
-              className="bg-white dark:bg-neutral-900 rounded-xl w-full max-w-sm shadow-lg border border-gray-200 dark:border-neutral-800"
-              onClick={(e) => e.stopPropagation()}
+    <Dialog.Root open={isExpanded} onOpenChange={setIsExpanded}>
+      <Dialog.Trigger asChild>
+        <button
+          aria-label={`View streaks: ${bestCurrentStreak} days${anyAtRisk ? ', some streaks at risk' : ''}`}
+          className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+            hasStreak
+              ? 'bg-orange-50 text-orange-600 hover:bg-orange-100 dark:bg-orange-900/20 dark:text-orange-400 dark:hover:bg-orange-900/30'
+              : 'bg-gray-100 text-gray-500 hover:bg-gray-200 dark:bg-neutral-800 dark:text-neutral-400 dark:hover:bg-neutral-700'
+          }`}
+        >
+          <Flame className="h-4 w-4" />
+          <span>{bestCurrentStreak}</span>
+          {anyAtRisk && hasStreak && <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />}
+        </button>
+      </Dialog.Trigger>
+      {/* Portal escapes the sticky header's backdrop-filter containing block. */}
+      <Dialog.Portal>
+        <Dialog.Overlay className="fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm" />
+        <Dialog.Content className="fixed left-1/2 top-1/2 z-[101] flex max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-[420px] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white text-gray-900 shadow-2xl focus:outline-none dark:border-neutral-800 dark:bg-neutral-900 dark:text-white">
+          <div className="flex items-start justify-between gap-4 border-b border-gray-100 p-5 dark:border-neutral-800">
+            <div>
+              <Dialog.Title className="text-lg font-semibold tracking-tight">
+                Your streaks
+              </Dialog.Title>
+              <Dialog.Description className="mt-1 text-sm text-gray-500 dark:text-neutral-400">
+                Small steps. Steady progress.
+              </Dialog.Description>
+            </div>
+            <Dialog.Close
+              aria-label="Close streaks"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-blue-500 dark:text-neutral-400 dark:hover:bg-neutral-800"
             >
-              {/* Header */}
-              <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-neutral-800">
-                <h3 className="text-base font-semibold text-gray-900 dark:text-white">Your Streaks</h3>
-                <button onClick={() => setIsExpanded(false)} className="p-1 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-lg transition-colors">
-                  <X className="w-4 h-4 text-gray-400" />
-                </button>
-              </div>
-
-              <div className="p-5 space-y-4">
-                {/* Streak rows */}
-                {[
-                  { label: 'Networking', value: streak.connectionStreak, longest: streak.longestConnectionStreak, icon: Flame, color: 'text-orange-500', bg: 'bg-orange-50 dark:bg-orange-900/20', riskKey: 'connection' },
-                  { label: 'Login', value: streak.loginStreak, longest: streak.longestLoginStreak, icon: LogIn, color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/20', riskKey: 'login' },
-                  { label: 'Posting', value: streak.postingStreak, longest: streak.longestPostingStreak, icon: FileText, color: 'text-green-500', bg: 'bg-green-50 dark:bg-green-900/20', riskKey: 'posting' },
-                  { label: 'Messaging', value: streak.messagingStreak, longest: streak.longestMessagingStreak, icon: MessageCircle, color: 'text-purple-500', bg: 'bg-purple-50 dark:bg-purple-900/20', riskKey: 'messaging' },
-                ].map((item) => {
-                  const Icon = item.icon;
-                  const atRisk = streak.isAtRisk?.[item.riskKey] ?? false;
-                  return (
-                    <div key={item.riskKey} className="flex items-center gap-3">
-                      <div className={`w-9 h-9 rounded-lg ${item.bg} flex items-center justify-center flex-shrink-0`}>
-                        <Icon className={`w-4 h-4 ${item.color}`} />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-semibold text-gray-900 dark:text-white leading-tight">
-                          {item.value} <span className="text-xs font-normal text-gray-400 dark:text-neutral-500">/ best {item.longest}</span>
-                        </p>
-                        <p className="text-xs text-gray-500 dark:text-neutral-400">{item.label}</p>
-                      </div>
-                      {atRisk && (
-                        <span className="px-1.5 py-0.5 bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 text-[10px] rounded font-medium">
-                          At risk
-                        </span>
-                      )}
-                    </div>
-                  );
-                })}
-
-                {/* Stats Row */}
-                <div className="grid grid-cols-2 gap-3 pt-2 border-t border-gray-100 dark:border-neutral-800">
-                  <div className="py-3 text-center">
-                    <Trophy className="w-4 h-4 text-amber-500 mx-auto mb-1.5" />
-                    <p className="text-base font-semibold text-gray-900 dark:text-white">{streak.overallBestStreak}</p>
-                    <p className="text-[11px] text-gray-400 dark:text-neutral-500 mt-0.5">Best ever</p>
-                  </div>
-                  <div className="py-3 text-center">
-                    <Target className="w-4 h-4 text-blue-500 mx-auto mb-1.5" />
-                    <p className="text-base font-semibold text-gray-900 dark:text-white">
-                      {streak.weeklyConnectionsMade}/{streak.weeklyConnectionsGoal}
-                    </p>
-                    <p className="text-[11px] text-gray-400 dark:text-neutral-500 mt-0.5">This week</p>
-                  </div>
+              <X className="h-4 w-4" />
+            </Dialog.Close>
+          </div>
+          <div className="overflow-y-auto p-5">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-xl border border-gray-100 bg-gray-50 p-4 dark:border-neutral-800 dark:bg-neutral-800/50">
+                <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-neutral-400">
+                  <Flame className="h-4 w-4 text-orange-500" />
+                  Current streak
                 </div>
-
-                {/* View Full Dashboard Link */}
-                <Link
-                  href="/streaks"
-                  onClick={() => setIsExpanded(false)}
-                  className="flex items-center justify-center gap-1.5 w-full py-2.5 text-sm font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/10 rounded-lg transition-colors"
-                >
-                  View Full Dashboard
-                  <ChevronRight className="w-3.5 h-3.5" />
-                </Link>
+                <p className="mt-2 text-2xl font-semibold tracking-tight">
+                  {bestCurrentStreak}
+                  <span className="ml-1.5 text-xs font-normal text-gray-500 dark:text-neutral-400">
+                    days
+                  </span>
+                </p>
               </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </>
+              <div className="rounded-xl border border-gray-100 bg-gray-50 p-4 dark:border-neutral-800 dark:bg-neutral-800/50">
+                <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-neutral-400">
+                  <Trophy className="h-4 w-4 text-amber-500" />
+                  Personal best
+                </div>
+                <p className="mt-2 text-2xl font-semibold tracking-tight">
+                  {streak.overallBestStreak}
+                  <span className="ml-1.5 text-xs font-normal text-gray-500 dark:text-neutral-400">
+                    days
+                  </span>
+                </p>
+              </div>
+            </div>
+            <h4 className="mb-1 mt-5 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-neutral-400">
+              Your activity
+            </h4>
+            <div className="divide-y divide-gray-100 dark:divide-neutral-800">
+              {activities.map(({ label, value, longest, icon: Icon, riskKey }) => (
+                <div key={riskKey} className="flex items-center gap-3 py-3">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gray-50 text-gray-500 dark:bg-neutral-800 dark:text-neutral-400">
+                    <Icon className="h-4 w-4" strokeWidth={1.75} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium">{label}</p>
+                    <p className="mt-0.5 text-xs text-gray-500 dark:text-neutral-400">
+                      Best: {longest} days
+                    </p>
+                  </div>
+                  {streak.isAtRisk?.[riskKey] && (
+                    <span className="rounded-md bg-amber-50 px-2 py-1 text-[10px] font-medium text-amber-700 dark:bg-amber-900/20 dark:text-amber-400">
+                      At risk
+                    </span>
+                  )}
+                  <span className="min-w-9 text-right text-base font-semibold tabular-nums">
+                    {value}
+                    <span className="ml-0.5 text-xs font-normal text-gray-400">d</span>
+                  </span>
+                </div>
+              ))}
+            </div>
+            <div className="mt-3 rounded-xl bg-blue-50/70 p-3.5 dark:bg-blue-500/10">
+              <div className="flex justify-between gap-3 text-xs">
+                <span className="font-medium text-gray-700 dark:text-neutral-300">
+                  Connections this week
+                </span>
+                <span className="font-semibold tabular-nums text-blue-600 dark:text-blue-400">
+                  {streak.weeklyConnectionsMade} / {streak.weeklyConnectionsGoal}
+                </span>
+              </div>
+              <div
+                role="progressbar"
+                aria-label="Weekly connections"
+                aria-valuemin={0}
+                aria-valuemax={Math.max(1, streak.weeklyConnectionsGoal)}
+                aria-valuenow={Math.min(
+                  Math.max(0, streak.weeklyConnectionsMade),
+                  Math.max(1, streak.weeklyConnectionsGoal)
+                )}
+                className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-blue-100 dark:bg-neutral-700"
+              >
+                <div
+                  className="h-full rounded-full bg-blue-600"
+                  style={{
+                    width: `${Math.min(100, Math.max(0, (streak.weeklyConnectionsMade / Math.max(1, streak.weeklyConnectionsGoal)) * 100))}%`,
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+          <div className="border-t border-gray-100 px-5 py-4 dark:border-neutral-800">
+            <Link
+              href="/streaks"
+              onClick={() => setIsExpanded(false)}
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-2.5 text-sm font-medium text-white hover:bg-blue-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+            >
+              View streak dashboard <ArrowUpRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }

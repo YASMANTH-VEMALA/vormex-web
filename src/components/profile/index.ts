@@ -1,17 +1,23 @@
 // Profile Components - Export all profile components
 
-export { ProfileHeader } from './ProfileHeader';
-export { ProfileAbout } from './ProfileAbout';
-export { GitHubStats } from './GitHubStats';
-export { ActivityCalendar } from './ActivityCalendar';
-export { SkillsGrid } from './SkillsGrid';
-export { ProjectsGrid } from './ProjectsGrid';
-export { ExperienceTimeline } from './ExperienceTimeline';
-export { EducationTimeline } from './EducationTimeline';
-export { CertificatesGrid } from './CertificatesGrid';
 export { Achievements } from './Achievements';
-export { ProfileFeed } from './ProfileFeed';
+export { ActivityCalendar } from './ActivityCalendar';
+export { CertificatesGrid } from './CertificatesGrid';
 export { EditProfileModal } from './EditProfileModal';
-export { ProfileSkeleton } from './ProfileSkeleton';
+export { EducationTimeline } from './EducationTimeline';
+export { ExperienceTimeline } from './ExperienceTimeline';
+export { GitHubStats } from './GitHubStats';
+export { ProfileAbout } from './ProfileAbout';
+export { ProfileFeed } from './ProfileFeed';
+export { ProfileHeader } from './ProfileHeader';
 export { ProfilePage } from './ProfilePage';
-
+export {
+  ProfileSection,
+  Reveal,
+  RevealItem,
+  SectionAddButton,
+  SectionEmptyState,
+} from './ProfileSection';
+export { ProfileSkeleton } from './ProfileSkeleton';
+export { ProjectsGrid } from './ProjectsGrid';
+export { SkillsGrid } from './SkillsGrid';

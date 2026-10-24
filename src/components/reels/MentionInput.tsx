@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useRef, useCallback, useEffect, KeyboardEvent } from 'react';
-import Image from 'next/image';
+import { searchUsersForMention } from '@/lib/api/mentions';
 import { User } from 'lucide-react';
-import apiClient from '@/lib/api/client';
+import Image from 'next/image';
+import { KeyboardEvent, useCallback, useEffect, useRef, useState } from 'react';
 
 interface MentionUser {
   id: string;
@@ -60,11 +60,14 @@ export function MentionInput({
 
     setIsLoading(true);
     try {
-      const response = await apiClient.get('/users/search', {
-        params: { q: query, limit: 6 },
-      });
-      const users = response.data.users || response.data || [];
-      setSuggestions(users);
+      const users = (await searchUsersForMention(query)).users.slice(0, 6);
+      setSuggestions(
+        users.map((user) => ({
+          ...user,
+          profileImage: user.profileImage ?? user.avatar ?? null,
+          headline: user.headline ?? undefined,
+        }))
+      );
       setShowSuggestions(users.length > 0);
       setSelectedIndex(0);
     } catch (error) {
@@ -75,90 +78,99 @@ export function MentionInput({
     }
   }, []);
 
-  const handleInput = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const newValue = e.target.value;
-    const cursorPos = e.target.selectionStart || 0;
-    
-    // Check if we're in a mention context
-    const textBeforeCursor = newValue.slice(0, cursorPos);
-    const mentionMatch = textBeforeCursor.match(/@(\w*)$/);
-    
-    if (mentionMatch) {
-      const query = mentionMatch[1];
-      setMentionQuery(query);
-      setMentionStart(cursorPos - query.length - 1);
-      
-      if (debounceRef.current) {
-        clearTimeout(debounceRef.current);
+  const handleInput = useCallback(
+    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      const newValue = e.target.value;
+      const cursorPos = e.target.selectionStart || 0;
+
+      // Check if we're in a mention context
+      const textBeforeCursor = newValue.slice(0, cursorPos);
+      const mentionMatch = textBeforeCursor.match(/@(\w*)$/);
+
+      if (mentionMatch) {
+        const query = mentionMatch[1];
+        setMentionQuery(query);
+        setMentionStart(cursorPos - query.length - 1);
+
+        if (debounceRef.current) {
+          clearTimeout(debounceRef.current);
+        }
+        debounceRef.current = setTimeout(() => {
+          searchUsers(query);
+        }, 200);
+      } else {
+        setShowSuggestions(false);
+        setMentionQuery('');
+        setMentionStart(-1);
       }
-      debounceRef.current = setTimeout(() => {
-        searchUsers(query);
-      }, 200);
-    } else {
+
+      const mentions = extractMentions(newValue);
+      onChange(newValue, mentions);
+    },
+    [onChange, searchUsers, extractMentions]
+  );
+
+  const insertMention = useCallback(
+    (user: MentionUser) => {
+      if (mentionStart === -1) return;
+
+      const beforeMention = value.slice(0, mentionStart);
+      const afterMention = value.slice(mentionStart + mentionQuery.length + 1);
+      const newValue = `${beforeMention}@${user.username} ${afterMention}`;
+
+      const mentions = extractMentions(newValue);
+      onChange(newValue, mentions);
+
       setShowSuggestions(false);
       setMentionQuery('');
       setMentionStart(-1);
-    }
 
-    const mentions = extractMentions(newValue);
-    onChange(newValue, mentions);
-  }, [onChange, searchUsers, extractMentions]);
-
-  const insertMention = useCallback((user: MentionUser) => {
-    if (mentionStart === -1) return;
-
-    const beforeMention = value.slice(0, mentionStart);
-    const afterMention = value.slice(mentionStart + mentionQuery.length + 1);
-    const newValue = `${beforeMention}@${user.username} ${afterMention}`;
-    
-    const mentions = extractMentions(newValue);
-    onChange(newValue, mentions);
-    
-    setShowSuggestions(false);
-    setMentionQuery('');
-    setMentionStart(-1);
-
-    // Focus and set cursor position
-    setTimeout(() => {
-      if (textareaRef.current) {
-        const newCursorPos = mentionStart + user.username.length + 2;
-        textareaRef.current.focus();
-        textareaRef.current.setSelectionRange(newCursorPos, newCursorPos);
-      }
-    }, 0);
-  }, [value, mentionStart, mentionQuery, onChange, extractMentions]);
-
-  const handleKeyDown = useCallback((e: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (!showSuggestions) {
-      if (e.key === 'Enter' && !e.shiftKey && onSubmit) {
-        e.preventDefault();
-        onSubmit();
-      }
-      return;
-    }
-
-    switch (e.key) {
-      case 'ArrowDown':
-        e.preventDefault();
-        setSelectedIndex(prev => (prev + 1) % suggestions.length);
-        break;
-      case 'ArrowUp':
-        e.preventDefault();
-        setSelectedIndex(prev => (prev - 1 + suggestions.length) % suggestions.length);
-        break;
-      case 'Enter':
-      case 'Tab':
-        e.preventDefault();
-        if (suggestions[selectedIndex]) {
-          insertMention(suggestions[selectedIndex]);
+      // Focus and set cursor position
+      setTimeout(() => {
+        if (textareaRef.current) {
+          const newCursorPos = mentionStart + user.username.length + 2;
+          textareaRef.current.focus();
+          textareaRef.current.setSelectionRange(newCursorPos, newCursorPos);
         }
-        break;
-      case 'Escape':
-        e.preventDefault();
-        setShowSuggestions(false);
-        break;
-    }
-  }, [showSuggestions, suggestions, selectedIndex, insertMention, onSubmit]);
+      }, 0);
+    },
+    [value, mentionStart, mentionQuery, onChange, extractMentions]
+  );
+
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent<HTMLTextAreaElement>) => {
+      if (!showSuggestions) {
+        if (e.key === 'Enter' && !e.shiftKey && onSubmit) {
+          e.preventDefault();
+          onSubmit();
+        }
+        return;
+      }
+
+      switch (e.key) {
+        case 'ArrowDown':
+          e.preventDefault();
+          setSelectedIndex((prev) => (prev + 1) % suggestions.length);
+          break;
+        case 'ArrowUp':
+          e.preventDefault();
+          setSelectedIndex((prev) => (prev - 1 + suggestions.length) % suggestions.length);
+          break;
+        case 'Enter':
+        case 'Tab':
+          e.preventDefault();
+          if (suggestions[selectedIndex]) {
+            insertMention(suggestions[selectedIndex]);
+          }
+          break;
+        case 'Escape':
+          e.preventDefault();
+          setShowSuggestions(false);
+          break;
+      }
+    },
+    [showSuggestions, suggestions, selectedIndex, insertMention, onSubmit]
+  );
 
   useEffect(() => {
     if (autoFocus && textareaRef.current) {
@@ -191,9 +203,7 @@ export function MentionInput({
       {showSuggestions && (
         <div className="absolute bottom-full left-0 right-0 mb-2 bg-neutral-800 rounded-xl overflow-hidden shadow-xl border border-white/10 z-50">
           {isLoading ? (
-            <div className="p-3 text-center text-white/60 text-sm">
-              Searching...
-            </div>
+            <div className="p-3 text-center text-white/60 text-sm">Searching...</div>
           ) : (
             <div className="max-h-64 overflow-y-auto">
               {suggestions.map((user, index) => (

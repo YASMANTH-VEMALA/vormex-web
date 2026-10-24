@@ -1,25 +1,26 @@
 'use client';
 
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useProfileForm } from './useProfileForm';
+import { Button } from '@/components/ui/Button';
+import { updateProfile } from '@/lib/api/profile';
+import { profileFieldValue } from '@/lib/utils/profileForm';
+import { formatLocation } from '@/lib/utils/profileLocation';
+import type { ProfileUpdateData, ProfileUser } from '@/types/profile';
 import * as Dialog from '@radix-ui/react-dialog';
+import { motion } from 'framer-motion';
 import {
-  X,
-  User,
-  MapPin,
-  Link2,
-  Linkedin,
-  Github,
+  Eye,
   Globe,
   GraduationCap,
-  Eye,
-  Save,
+  Link2,
+  Linkedin,
   Loader2,
-  Camera,
+  MapPin,
+  Save,
+  User,
+  X,
 } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
-import { updateProfile, updateAvatar, updateBanner } from '@/lib/api/profile';
-import type { ProfileUser, ProfileUpdateData } from '@/types/profile';
+import { useState } from 'react';
 
 interface EditProfileModalProps {
   isOpen: boolean;
@@ -28,21 +29,23 @@ interface EditProfileModalProps {
   onProfileUpdate: (updatedUser: Partial<ProfileUser>) => void;
 }
 
+type ProfileSection = 'basic' | 'education' | 'links' | 'privacy';
+
 export function EditProfileModal({
   isOpen,
   onClose,
   user,
   onProfileUpdate,
 }: EditProfileModalProps) {
-  const [activeSection, setActiveSection] = useState<'basic' | 'education' | 'links' | 'privacy'>('basic');
+  const [activeSection, setActiveSection] = useState<ProfileSection>('basic');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Form state
-  const [formData, setFormData] = useState<ProfileUpdateData>({
+  const initialFormData: ProfileUpdateData = {
     headline: user.headline || '',
     bio: user.bio || '',
-    location: user.location || '',
+    location: formatLocation(user.location),
     currentYear: user.currentYear || undefined,
     degree: user.degree || '',
     graduationYear: user.graduationYear || undefined,
@@ -51,17 +54,22 @@ export function EditProfileModal({
     profileVisibility: user.profileVisibility,
     isOpenToOpportunities: user.isOpenToOpportunities,
     interests: user.interests || [],
-  });
+  };
+
+  // Core profile data can arrive before the full editable profile. Keep the
+  // form in sync with saved field values, without resetting on unrelated updates.
+  const [formData, setFormData] = useProfileForm(initialFormData, `${user.id}:${isOpen}`);
 
   const [interestsInput, setInterestsInput] = useState('');
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
-    const { name, value, type } = e.target;
+    const { name, value } = e.target;
+    setError(null);
     setFormData((prev) => ({
       ...prev,
-      [name]: type === 'number' ? (value ? parseInt(value) : undefined) : value,
+      [name]: profileFieldValue(name, value),
     }));
   };
 
@@ -95,17 +103,18 @@ export function EditProfileModal({
     setError(null);
 
     try {
-      await updateProfile(formData);
-      onProfileUpdate(formData);
+      const saved = await updateProfile(formData);
+      onProfileUpdate({ ...formData, ...saved });
       onClose();
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to update profile');
+    } catch (err: unknown) {
+      const apiError = err as { response?: { data?: { error?: string } } };
+      setError(apiError.response?.data?.error || 'Failed to update profile');
     } finally {
       setSaving(false);
     }
   };
 
-  const sections = [
+  const sections: { id: ProfileSection; label: string; icon: React.ReactNode }[] = [
     { id: 'basic', label: 'Basic Info', icon: <User className="w-4 h-4" /> },
     { id: 'education', label: 'Education', icon: <GraduationCap className="w-4 h-4" /> },
     { id: 'links', label: 'Links', icon: <Link2 className="w-4 h-4" /> },
@@ -116,29 +125,45 @@ export function EditProfileModal({
     <Dialog.Root open={isOpen} onOpenChange={onClose}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50" />
-        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl max-h-[90vh] bg-white dark:bg-neutral-900 rounded-xl border border-gray-200 dark:border-neutral-800 shadow-2xl z-50 overflow-hidden">
+        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] max-w-2xl max-h-[90dvh] flex flex-col bg-white dark:bg-neutral-900 rounded-2xl border border-gray-200 dark:border-neutral-800 shadow-2xl z-50 overflow-hidden">
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-neutral-800">
-            <Dialog.Title className="text-lg font-semibold text-gray-900 dark:text-white">
-              Edit Profile
-            </Dialog.Title>
+            <div>
+              <Dialog.Title className="text-lg font-semibold text-gray-900 dark:text-white">
+                Edit Profile
+              </Dialog.Title>
+              <Dialog.Description className="mt-1 text-sm text-[var(--muted-foreground)]">
+                Update your details and how others see your profile.
+              </Dialog.Description>
+            </div>
             <Dialog.Close asChild>
-              <button className="p-2 text-gray-600 dark:text-neutral-400 hover:text-gray-900 dark:text-white transition-colors rounded-lg hover:bg-gray-100 dark:bg-neutral-800">
+              <button
+                aria-label="Close edit profile"
+                className="p-2 text-gray-600 dark:text-neutral-400 hover:text-gray-900 dark:text-white transition-colors rounded-lg hover:bg-gray-100 dark:bg-neutral-800"
+              >
                 <X className="w-5 h-5" />
               </button>
             </Dialog.Close>
           </div>
 
-          <div className="flex h-[calc(90vh-140px)]">
+          <div className="flex min-h-0 flex-1 flex-col">
             {/* Sidebar */}
-            <div className="w-48 border-r border-gray-200 dark:border-neutral-800 p-2">
+            <div
+              role="tablist"
+              aria-label="Profile settings"
+              className="mx-5 mt-4 grid grid-cols-4 gap-1 rounded-xl bg-[var(--muted)] p-1"
+            >
               {sections.map((section) => (
                 <button
                   key={section.id}
-                  onClick={() => setActiveSection(section.id as any)}
-                  className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
+                  role="tab"
+                  id={`profile-tab-${section.id}`}
+                  aria-selected={activeSection === section.id}
+                  aria-controls="profile-settings-panel"
+                  onClick={() => setActiveSection(section.id)}
+                  className={`w-full flex items-center justify-center gap-1.5 px-1 sm:px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
                     activeSection === section.id
-                      ? 'bg-blue-500/20 text-blue-400'
+                      ? 'bg-[var(--card)] text-[var(--foreground)] shadow-sm'
                       : 'text-gray-600 dark:text-neutral-400 hover:text-gray-900 dark:text-white hover:bg-gray-100 dark:bg-neutral-800'
                   }`}
                 >
@@ -149,8 +174,13 @@ export function EditProfileModal({
             </div>
 
             {/* Content */}
-            <div className="flex-1 overflow-y-auto p-6">
-              <AnimatePresence mode="wait">
+            <div
+              id="profile-settings-panel"
+              role="tabpanel"
+              aria-labelledby={`profile-tab-${activeSection}`}
+              className="min-h-0 min-w-0 overflow-y-auto p-5 sm:p-6"
+            >
+              <div>
                 {activeSection === 'basic' && (
                   <motion.div
                     key="basic"
@@ -160,11 +190,15 @@ export function EditProfileModal({
                     className="space-y-4"
                   >
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
+                      <label
+                        htmlFor="edit-profile-headline"
+                        className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1"
+                      >
                         Headline
                       </label>
                       <input
                         type="text"
+                        id="edit-profile-headline"
                         name="headline"
                         value={formData.headline}
                         onChange={handleChange}
@@ -178,10 +212,14 @@ export function EditProfileModal({
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
+                      <label
+                        htmlFor="edit-profile-bio"
+                        className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1"
+                      >
                         Bio
                       </label>
                       <textarea
+                        id="edit-profile-bio"
                         name="bio"
                         value={formData.bio}
                         onChange={handleChange}
@@ -196,12 +234,16 @@ export function EditProfileModal({
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
+                      <label
+                        htmlFor="edit-profile-location"
+                        className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1"
+                      >
                         <MapPin className="w-4 h-4 inline mr-1" />
                         Location
                       </label>
                       <input
                         type="text"
+                        id="edit-profile-location"
                         name="location"
                         value={formData.location}
                         onChange={handleChange}
@@ -219,11 +261,16 @@ export function EditProfileModal({
                           type="text"
                           value={interestsInput}
                           onChange={(e) => setInterestsInput(e.target.value)}
-                          onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addInterest())}
+                          onKeyDown={(e) =>
+                            e.key === 'Enter' && (e.preventDefault(), addInterest())
+                          }
                           placeholder="Add an interest"
                           className="flex-1 bg-gray-100 dark:bg-neutral-800 text-gray-900 dark:text-white px-3 py-2 rounded-lg border border-gray-300 dark:border-neutral-700 focus:border-blue-500 focus:outline-none"
                         />
-                        <Button onClick={addInterest} className="bg-neutral-700 hover:bg-neutral-600">
+                        <Button
+                          onClick={addInterest}
+                          className="bg-neutral-700 hover:bg-neutral-600"
+                        >
                           Add
                         </Button>
                       </div>
@@ -254,7 +301,10 @@ export function EditProfileModal({
                         onChange={handleCheckboxChange}
                         className="w-4 h-4 rounded border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-blue-500 focus:ring-blue-500"
                       />
-                      <label htmlFor="isOpenToOpportunities" className="text-gray-700 dark:text-neutral-300 text-sm">
+                      <label
+                        htmlFor="isOpenToOpportunities"
+                        className="text-gray-700 dark:text-neutral-300 text-sm"
+                      >
                         Open to opportunities (internships, projects, mentoring)
                       </label>
                     </div>
@@ -270,11 +320,15 @@ export function EditProfileModal({
                     className="space-y-4"
                   >
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
+                      <label
+                        htmlFor="edit-profile-degree"
+                        className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1"
+                      >
                         Degree
                       </label>
                       <input
                         type="text"
+                        id="edit-profile-degree"
                         name="degree"
                         value={formData.degree}
                         onChange={handleChange}
@@ -283,14 +337,18 @@ export function EditProfileModal({
                       />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
+                        <label
+                          htmlFor="edit-profile-current-year"
+                          className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1"
+                        >
                           Current Year
                         </label>
                         <select
+                          id="edit-profile-current-year"
                           name="currentYear"
-                          value={formData.currentYear || ''}
+                          value={formData.currentYear ?? ''}
                           onChange={handleChange}
                           className="w-full bg-gray-100 dark:bg-neutral-800 text-gray-900 dark:text-white px-3 py-2 rounded-lg border border-gray-300 dark:border-neutral-700 focus:border-blue-500 focus:outline-none"
                         >
@@ -304,11 +362,15 @@ export function EditProfileModal({
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
+                        <label
+                          htmlFor="edit-profile-graduation-year"
+                          className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1"
+                        >
                           Graduation Year
                         </label>
                         <input
                           type="number"
+                          id="edit-profile-graduation-year"
                           name="graduationYear"
                           value={formData.graduationYear || ''}
                           onChange={handleChange}
@@ -331,12 +393,16 @@ export function EditProfileModal({
                     className="space-y-4"
                   >
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
+                      <label
+                        htmlFor="edit-profile-portfolioUrl"
+                        className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1"
+                      >
                         <Globe className="w-4 h-4 inline mr-1" />
                         Portfolio URL
                       </label>
                       <input
                         type="url"
+                        id="edit-profile-portfolioUrl"
                         name="portfolioUrl"
                         value={formData.portfolioUrl}
                         onChange={handleChange}
@@ -346,12 +412,16 @@ export function EditProfileModal({
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
+                      <label
+                        htmlFor="edit-profile-linkedinUrl"
+                        className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1"
+                      >
                         <Linkedin className="w-4 h-4 inline mr-1" />
                         LinkedIn URL
                       </label>
                       <input
                         type="url"
+                        id="edit-profile-linkedinUrl"
                         name="linkedinUrl"
                         value={formData.linkedinUrl}
                         onChange={handleChange}
@@ -376,9 +446,21 @@ export function EditProfileModal({
                       </label>
                       <div className="space-y-2">
                         {[
-                          { value: 'PUBLIC', label: 'Public', desc: 'Anyone can view your profile' },
-                          { value: 'STUDENTS_ONLY', label: 'Students Only', desc: 'Only verified students can view' },
-                          { value: 'CONNECTIONS', label: 'Connections Only', desc: 'Only your connections can view' },
+                          {
+                            value: 'PUBLIC',
+                            label: 'Public',
+                            desc: 'Anyone can view your profile',
+                          },
+                          {
+                            value: 'STUDENTS_ONLY',
+                            label: 'Students Only',
+                            desc: 'Only verified students can view',
+                          },
+                          {
+                            value: 'CONNECTIONS',
+                            label: 'Connections Only',
+                            desc: 'Only your connections can view',
+                          },
                         ].map((option) => (
                           <label
                             key={option.value}
@@ -397,8 +479,12 @@ export function EditProfileModal({
                               className="w-4 h-4"
                             />
                             <div>
-                              <p className="text-gray-900 dark:text-white font-medium">{option.label}</p>
-                              <p className="text-sm text-gray-600 dark:text-neutral-400">{option.desc}</p>
+                              <p className="text-gray-900 dark:text-white font-medium">
+                                {option.label}
+                              </p>
+                              <p className="text-sm text-gray-600 dark:text-neutral-400">
+                                {option.desc}
+                              </p>
                             </div>
                           </label>
                         ))}
@@ -406,14 +492,16 @@ export function EditProfileModal({
                     </div>
                   </motion.div>
                 )}
-              </AnimatePresence>
+              </div>
             </div>
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-between p-4 border-t border-gray-200 dark:border-neutral-800">
+          <div className="flex flex-wrap items-center justify-between gap-3 p-4 border-t border-gray-200 dark:border-neutral-800">
             {error && (
-              <p className="text-red-400 text-sm">{error}</p>
+              <p role="alert" className="text-red-600 dark:text-red-400 text-sm">
+                {error}
+              </p>
             )}
             <div className="flex gap-2 ml-auto">
               <Button
@@ -426,7 +514,7 @@ export function EditProfileModal({
               <Button
                 onClick={handleSave}
                 disabled={saving}
-                className="bg-blue-600 hover:bg-blue-700 text-gray-900 dark:text-white"
+                className="bg-[var(--primary)] hover:opacity-90 text-white"
               >
                 {saving ? (
                   <>
@@ -447,4 +535,3 @@ export function EditProfileModal({
     </Dialog.Root>
   );
 }
-

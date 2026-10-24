@@ -1,18 +1,13 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import * as Dialog from '@radix-ui/react-dialog';
-import {
-  X,
-  Upload,
-  Image as ImageIcon,
-  Loader2,
-  Crop,
-} from 'lucide-react';
-import { Button } from '@/components/ui/Button';
-import { uploadGroupIcon, uploadGroupCover } from '@/lib/api/groups';
 import ImageCropper from '@/components/profile/ImageCropper';
+import { Button } from '@/components/ui/Button';
+import { asApiError } from '@/lib/api/errors';
+import { uploadGroupCover, uploadGroupIcon } from '@/lib/api/groups';
+import * as Dialog from '@radix-ui/react-dialog';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Crop, Image as ImageIcon, Loader2, Upload, X } from 'lucide-react';
+import { useCallback, useRef, useState } from 'react';
 
 interface GroupImageUploadModalProps {
   isOpen: boolean;
@@ -47,47 +42,51 @@ export function GroupImageUploadModal({
   const cropAspectRatio = isIcon ? 1 : 4; // 1:1 for icon, 4:1 for cover
   const maxSize = isIcon ? 5 : 10; // MB
 
-  const handleFileSelect = useCallback((file: File) => {
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      setError('Please select an image file');
-      return;
-    }
+  const handleFileSelect = useCallback(
+    (file: File) => {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        setError('Please select an image file');
+        return;
+      }
 
-    // Validate file size
-    const sizeMB = file.size / (1024 * 1024);
-    if (sizeMB > maxSize) {
-      setError(`Image must be less than ${maxSize}MB`);
-      return;
-    }
+      // Validate file size
+      const sizeMB = file.size / (1024 * 1024);
+      if (sizeMB > maxSize) {
+        setError(`Image must be less than ${maxSize}MB`);
+        return;
+      }
 
-    setError(null);
-    setSelectedFile(file);
+      setError(null);
+      setSelectedFile(file);
 
-    // Create preview for cropper
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      setRawImageUrl(e.target?.result as string);
-      setShowCropper(true);
-    };
-    reader.readAsDataURL(file);
-  }, [maxSize]);
+      // Create preview for cropper
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setRawImageUrl(e.target?.result as string);
+        setShowCropper(true);
+      };
+      reader.readAsDataURL(file);
+    },
+    [maxSize]
+  );
 
-  const handleCropComplete = useCallback((croppedBlob: Blob) => {
-    // Convert blob to file
-    const croppedFile = new File(
-      [croppedBlob],
-      selectedFile?.name || 'cropped-image.jpg',
-      { type: 'image/jpeg' }
-    );
-    
-    setCroppedFile(croppedFile);
-    
-    // Create preview URL from cropped blob
-    const url = URL.createObjectURL(croppedBlob);
-    setPreviewUrl(url);
-    setShowCropper(false);
-  }, [selectedFile]);
+  const handleCropComplete = useCallback(
+    (croppedBlob: Blob) => {
+      // Convert blob to file
+      const croppedFile = new File([croppedBlob], selectedFile?.name || 'cropped-image.jpg', {
+        type: 'image/jpeg',
+      });
+
+      setCroppedFile(croppedFile);
+
+      // Create preview URL from cropped blob
+      const url = URL.createObjectURL(croppedBlob);
+      setPreviewUrl(url);
+      setShowCropper(false);
+    },
+    [selectedFile]
+  );
 
   const handleCropCancel = useCallback(() => {
     setShowCropper(false);
@@ -101,15 +100,18 @@ export function GroupImageUploadModal({
     }
   }, [rawImageUrl]);
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setDragActive(false);
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      setDragActive(false);
 
-    const file = e.dataTransfer.files[0];
-    if (file) {
-      handleFileSelect(file);
-    }
-  }, [handleFileSelect]);
+      const file = e.dataTransfer.files[0];
+      if (file) {
+        handleFileSelect(file);
+      }
+    },
+    [handleFileSelect]
+  );
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -137,7 +139,7 @@ export function GroupImageUploadModal({
 
     try {
       let imageUrl: string;
-      
+
       if (isIcon) {
         const result = await uploadGroupIcon(groupId, fileToUpload);
         imageUrl = result.iconUrl;
@@ -148,9 +150,10 @@ export function GroupImageUploadModal({
 
       onImageUpdated(imageUrl);
       handleClose();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Upload error:', err);
-      setError(err.response?.data?.error || err.message || 'Failed to upload image');
+      const apiError = asApiError(err);
+      setError(apiError.response?.data?.error || apiError.message || 'Failed to upload image');
     } finally {
       setUploading(false);
     }
@@ -242,7 +245,9 @@ export function GroupImageUploadModal({
                       {previewUrl ? (
                         <div className="space-y-4">
                           {/* Preview */}
-                          <div className={`relative ${aspectRatio} w-full bg-gray-100 dark:bg-gray-800 rounded-xl overflow-hidden`}>
+                          <div
+                            className={`relative ${aspectRatio} w-full bg-gray-100 dark:bg-gray-800 rounded-xl overflow-hidden`}
+                          >
                             <img
                               src={previewUrl}
                               alt="Preview"
@@ -252,19 +257,11 @@ export function GroupImageUploadModal({
 
                           {/* Actions */}
                           <div className="flex gap-3">
-                            <Button
-                              variant="outline"
-                              onClick={handleReCrop}
-                              className="flex-1"
-                            >
+                            <Button variant="outline" onClick={handleReCrop} className="flex-1">
                               <Crop className="w-4 h-4 mr-2" />
                               Re-crop
                             </Button>
-                            <Button
-                              variant="outline"
-                              onClick={clearSelection}
-                              className="flex-1"
-                            >
+                            <Button variant="outline" onClick={clearSelection} className="flex-1">
                               Choose Different
                             </Button>
                           </div>
@@ -290,11 +287,13 @@ export function GroupImageUploadModal({
                           />
 
                           <div className="flex flex-col items-center gap-4">
-                            <div className={`p-4 rounded-full ${
-                              dragActive
-                                ? 'bg-blue-100 dark:bg-blue-900/40'
-                                : 'bg-gray-100 dark:bg-gray-800'
-                            }`}>
+                            <div
+                              className={`p-4 rounded-full ${
+                                dragActive
+                                  ? 'bg-blue-100 dark:bg-blue-900/40'
+                                  : 'bg-gray-100 dark:bg-gray-800'
+                              }`}
+                            >
                               {dragActive ? (
                                 <Upload className="w-8 h-8 text-blue-500" />
                               ) : (
@@ -326,7 +325,9 @@ export function GroupImageUploadModal({
                           <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
                             Current {isIcon ? 'icon' : 'cover'}:
                           </p>
-                          <div className={`relative ${aspectRatio} w-full max-w-[200px] bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden`}>
+                          <div
+                            className={`relative ${aspectRatio} w-full max-w-[200px] bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden`}
+                          >
                             <img
                               src={currentImageUrl}
                               alt="Current"
@@ -339,11 +340,7 @@ export function GroupImageUploadModal({
 
                     {/* Footer */}
                     <div className="flex justify-end gap-3 p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
-                      <Button
-                        variant="ghost"
-                        onClick={handleClose}
-                        disabled={uploading}
-                      >
+                      <Button variant="ghost" onClick={handleClose} disabled={uploading}>
                         Cancel
                       </Button>
                       <Button

@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
-import { motion } from 'framer-motion';
-import { Calendar, ChevronDown, Flame, TrendingUp } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import type { ActivityHeatmapDay, ActivityYearsResponse } from '@/types/profile';
+import { motion } from 'framer-motion';
+import { ChevronDown, Flame, TrendingUp } from 'lucide-react';
+import { useMemo, useState } from 'react';
 
 interface ActivityCalendarProps {
   userId: string;
@@ -33,7 +33,6 @@ const LEVEL_COLORS_HOVER = {
 };
 
 export function ActivityCalendar({
-  userId,
   activityData,
   currentStreak,
   longestStreak,
@@ -75,7 +74,7 @@ export function ActivityCalendar({
     // 2. Create a map of activity data for O(1) lookup
     const activityMap = new Map<string, ActivityHeatmapDay>();
     if (activityData) {
-      activityData.forEach(day => {
+      activityData.forEach((day) => {
         // Normalize date to YYYY-MM-DD
         const dateStr = new Date(day.date).toISOString().split('T')[0];
         activityMap.set(dateStr, day);
@@ -144,10 +143,7 @@ export function ActivityCalendar({
     onYearChange?.(yearNum);
   };
 
-  const handleDayHover = (
-    day: ActivityHeatmapDay,
-    event: React.MouseEvent
-  ) => {
+  const handleDayHover = (day: ActivityHeatmapDay, event: React.MouseEvent) => {
     if (!day.date) return;
     const rect = event.currentTarget.getBoundingClientRect();
     setTooltipData({
@@ -158,8 +154,7 @@ export function ActivityCalendar({
   };
 
   const calculatedTotal =
-    totalContributions ??
-    activityData.reduce((sum, day) => sum + day.activityCount, 0);
+    totalContributions ?? activityData.reduce((sum, day) => sum + day.activityCount, 0);
 
   const monthLabels = useMemo(() => {
     if (!activityData || activityData.length === 0) return [];
@@ -186,12 +181,13 @@ export function ActivityCalendar({
   }, [weeks, activityData]);
 
   return (
-    <Card className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-gray-200 dark:border-neutral-800">
+    <Card className="rounded-xl border border-neutral-200 bg-white shadow-none dark:border-neutral-800 dark:bg-neutral-900">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
-        <div className="flex items-center gap-2">
-          <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400" />
-          <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">Activity</h2>
+        <div className="flex items-center">
+          <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">
+            Activity
+          </h2>
           <span className="text-gray-600 dark:text-neutral-400 text-xs sm:text-sm ml-1 sm:ml-2">
             {calculatedTotal} contributions
           </span>
@@ -201,12 +197,12 @@ export function ActivityCalendar({
         <div className="flex flex-wrap items-center gap-3 sm:gap-4">
           {/* Streak Stats */}
           <div className="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm">
-            <div className="flex items-center gap-1 sm:gap-1.5 text-orange-400">
+            <div className="flex items-center gap-1 text-neutral-600 sm:gap-1.5 dark:text-neutral-300">
               <Flame className="w-3 h-3 sm:w-4 sm:h-4" />
               <span className="font-medium">{currentStreak}</span>
               <span className="text-gray-500 dark:text-neutral-500 hidden sm:inline">current</span>
             </div>
-            <div className="flex items-center gap-1 sm:gap-1.5 text-purple-400">
+            <div className="flex items-center gap-1 text-neutral-600 sm:gap-1.5 dark:text-neutral-300">
               <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4" />
               <span className="font-medium">{longestStreak}</span>
               <span className="text-gray-500 dark:text-neutral-500 hidden sm:inline">longest</span>
@@ -236,7 +232,9 @@ export function ActivityCalendar({
       </div>
 
       {/* Calendar Grid */}
-      <div className={`overflow-x-auto pb-2 transition-opacity duration-200 ${isLoading ? 'opacity-50 pointer-events-none' : ''}`}>
+      <div
+        className={`overflow-x-auto pb-2 transition-opacity duration-200 ${isLoading ? 'opacity-50 pointer-events-none' : ''}`}
+      >
         {/* Month Labels */}
         <div className="flex mb-2 ml-6 md:ml-8">
           {monthLabels.map((month, i) => (
@@ -284,8 +282,9 @@ export function ActivityCalendar({
                     }}
                     onMouseEnter={(e) => handleDayHover(day, e)}
                     onMouseLeave={() => setTooltipData(null)}
-                    className={`w-2 h-2 md:w-3 md:h-3 rounded-sm border cursor-pointer transition-colors ${LEVEL_COLORS[day.level]
-                      } ${day.date ? LEVEL_COLORS_HOVER[day.level] : ''}`}
+                    className={`w-2 h-2 md:w-3 md:h-3 rounded-sm border cursor-pointer transition-colors ${
+                      LEVEL_COLORS[day.level]
+                    } ${day.date ? LEVEL_COLORS_HOVER[day.level] : ''}`}
                   />
                 ))}
               </div>
@@ -299,8 +298,9 @@ export function ActivityCalendar({
           {[0, 1, 2, 3].map((level) => (
             <div
               key={level}
-              className={`w-2 h-2 md:w-3 md:h-3 rounded-sm border ${LEVEL_COLORS[level as 0 | 1 | 2 | 3]
-                }`}
+              className={`w-2 h-2 md:w-3 md:h-3 rounded-sm border ${
+                LEVEL_COLORS[level as 0 | 1 | 2 | 3]
+              }`}
             />
           ))}
           <span>More</span>
@@ -348,4 +348,3 @@ export function ActivityCalendar({
     </Card>
   );
 }
-

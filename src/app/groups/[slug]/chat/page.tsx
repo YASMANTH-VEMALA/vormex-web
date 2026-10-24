@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { GroupChat } from '@/components/groups';
+import { asApiError } from '@/lib/api/errors';
 import { getGroup, Group } from '@/lib/api/groups';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { use, useEffect, useState } from 'react';
 
 interface GroupChatPageProps {
   params: Promise<{ slug: string }>;
@@ -23,15 +24,15 @@ export default function GroupChatPage({ params }: GroupChatPageProps) {
       try {
         setLoading(true);
         const data = await getGroup(resolvedParams.slug);
-        
+
         if (!data.isMember) {
           router.push(`/groups/${resolvedParams.slug}`);
           return;
         }
-        
+
         setGroup(data);
-      } catch (err: any) {
-        setError(err.response?.data?.error || 'Failed to load group');
+      } catch (err: unknown) {
+        setError(asApiError(err).response?.data?.error || 'Failed to load group');
       } finally {
         setLoading(false);
       }
@@ -78,7 +79,12 @@ export default function GroupChatPage({ params }: GroupChatPageProps) {
             className="inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
             </svg>
             Back to {group.name}
           </Link>

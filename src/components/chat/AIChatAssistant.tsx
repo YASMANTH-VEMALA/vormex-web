@@ -1,65 +1,36 @@
 'use client';
+import type { AIChatAssistantProps, AIFeature, FeatureOption } from './AIChatAssistant.types';
+export type { AIChatAssistantProps, AIFeature, FeatureOption } from './AIChatAssistant.types';
 
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { cn } from '@/lib/utils';
 import {
-  Sparkles,
-  MessageSquarePlus,
-  RefreshCw,
-  SpellCheck,
-  Zap,
-  Languages,
+  changeTone,
+  expandMessage,
+  fixGrammar,
+  getAIErrorMessage,
+  getChatRevivalSuggestions,
+  getConversationStarters,
+  getSmartReplies,
+  translateMessage,
+  type LanguageType,
+  type ToneType,
+} from '@/lib/api/ai-chat';
+import { cn } from '@/lib/utils';
+import { AnimatePresence, motion } from 'framer-motion';
+import {
   ArrowUpRight,
-  Palette,
-  X,
-  Loader2,
   Check,
   ChevronDown,
+  Languages,
+  Loader2,
+  MessageSquarePlus,
+  Palette,
+  RefreshCw,
+  Sparkles,
+  SpellCheck,
+  X,
+  Zap,
 } from 'lucide-react';
-import {
-  getConversationStarters,
-  getChatRevivalSuggestions,
-  fixGrammar,
-  getSmartReplies,
-  changeTone,
-  translateMessage,
-  expandMessage,
-  type ToneType,
-  type LanguageType,
-} from '@/lib/api/ai-chat';
-
-// ============================================
-// Types
-// ============================================
-
-interface AIChatAssistantProps {
-  conversationId: string;
-  otherUserId: string;
-  otherUserName: string;
-  currentMessage: string;
-  lastReceivedMessage?: string;
-  onSuggestionSelect: (text: string) => void;
-  onClose?: () => void;
-}
-
-type AIFeature = 
-  | 'starters'
-  | 'revival'
-  | 'grammar'
-  | 'smart-reply'
-  | 'tone'
-  | 'translate'
-  | 'expand';
-
-interface FeatureOption {
-  id: AIFeature;
-  label: string;
-  icon: React.ReactNode;
-  description: string;
-  requiresMessage?: boolean;
-  requiresReceivedMessage?: boolean;
-}
+import { useState } from 'react';
 
 // ============================================
 // Constants
@@ -139,7 +110,6 @@ const LANGUAGE_OPTIONS: { value: LanguageType; label: string }[] = [
 export default function AIChatAssistant({
   conversationId,
   otherUserId,
-  otherUserName,
   currentMessage,
   lastReceivedMessage,
   onSuggestionSelect,
@@ -157,11 +127,11 @@ export default function AIChatAssistant({
   // Handle feature selection
   const handleFeatureClick = async (feature: AIFeature) => {
     // Check requirements
-    if (FEATURES.find(f => f.id === feature)?.requiresMessage && !currentMessage.trim()) {
+    if (FEATURES.find((f) => f.id === feature)?.requiresMessage && !currentMessage.trim()) {
       setError('Please type a message first');
       return;
     }
-    if (FEATURES.find(f => f.id === feature)?.requiresReceivedMessage && !lastReceivedMessage) {
+    if (FEATURES.find((f) => f.id === feature)?.requiresReceivedMessage && !lastReceivedMessage) {
       setError('No message to reply to');
       return;
     }
@@ -179,7 +149,10 @@ export default function AIChatAssistant({
   };
 
   // Fetch suggestions based on feature
-  const fetchSuggestions = async (feature: AIFeature, extraParams?: { tone?: ToneType; language?: LanguageType }) => {
+  const fetchSuggestions = async (
+    feature: AIFeature,
+    extraParams?: { tone?: ToneType; language?: LanguageType }
+  ) => {
     setLoading(true);
     setError(null);
 
@@ -189,7 +162,7 @@ export default function AIChatAssistant({
       switch (feature) {
         case 'starters': {
           const response = await getConversationStarters(otherUserId);
-          result = response.suggestions;
+          result = response.starters;
           break;
         }
         case 'revival': {
@@ -199,21 +172,24 @@ export default function AIChatAssistant({
         }
         case 'grammar': {
           const response = await fixGrammar(currentMessage);
-          result = [response.corrected, ...response.alternatives];
+          result = [response.corrected, ...response.changes];
           break;
         }
         case 'smart-reply': {
           const response = await getSmartReplies(lastReceivedMessage || '', conversationId);
-          result = response.suggestions;
+          result = response.replies;
           break;
         }
         case 'tone': {
           const response = await changeTone(currentMessage, extraParams?.tone || selectedTone);
-          result = [response.result];
+          result = [response.transformed];
           break;
         }
         case 'translate': {
-          const response = await translateMessage(currentMessage, extraParams?.language || selectedLanguage);
+          const response = await translateMessage(
+            currentMessage,
+            extraParams?.language || selectedLanguage
+          );
           result = [response.translated];
           break;
         }
@@ -225,9 +201,9 @@ export default function AIChatAssistant({
       }
 
       setSuggestions(result);
-    } catch (err: any) {
-      console.error('AI suggestion error:', err);
-      setError(err.response?.data?.error || 'Failed to generate suggestions');
+    } catch (error) {
+      console.error('AI suggestion error:', error);
+      setError(getAIErrorMessage(error, 'AI is temporarily unavailable.'));
     } finally {
       setLoading(false);
     }
@@ -275,12 +251,10 @@ export default function AIChatAssistant({
             <Sparkles className="w-4 h-4 text-white" />
           </div>
           <div>
-            <h3 className="font-semibold text-sm text-gray-900 dark:text-white">
-              AI Assistant
-            </h3>
+            <h3 className="font-semibold text-sm text-gray-900 dark:text-white">AI Assistant</h3>
             <p className="text-xs text-gray-500">
-              {selectedFeature 
-                ? FEATURES.find(f => f.id === selectedFeature)?.description 
+              {selectedFeature
+                ? FEATURES.find((f) => f.id === selectedFeature)?.description
                 : 'Choose an action'}
             </p>
           </div>
@@ -306,7 +280,7 @@ export default function AIChatAssistant({
               className="grid grid-cols-2 gap-2"
             >
               {FEATURES.map((feature) => {
-                const isDisabled = 
+                const isDisabled =
                   (feature.requiresMessage && !currentMessage.trim()) ||
                   (feature.requiresReceivedMessage && !lastReceivedMessage);
 
@@ -316,31 +290,36 @@ export default function AIChatAssistant({
                     onClick={() => handleFeatureClick(feature.id)}
                     disabled={isDisabled}
                     className={cn(
-                      "flex items-center gap-3 p-3 rounded-xl text-left transition-all",
+                      'flex items-center gap-3 p-3 rounded-xl text-left transition-all',
                       isDisabled
-                        ? "opacity-50 cursor-not-allowed bg-gray-50 dark:bg-gray-800"
-                        : "hover:bg-gray-100 dark:hover:bg-gray-700 bg-gray-50 dark:bg-gray-800/50 hover:scale-[1.02]"
+                        ? 'opacity-50 cursor-not-allowed bg-gray-50 dark:bg-gray-800'
+                        : 'hover:bg-gray-100 dark:hover:bg-gray-700 bg-gray-50 dark:bg-gray-800/50 hover:scale-[1.02]'
                     )}
                   >
-                    <div className={cn(
-                      "w-9 h-9 rounded-xl flex items-center justify-center",
-                      feature.id === 'starters' && "bg-green-100 dark:bg-green-900/30 text-green-600",
-                      feature.id === 'revival' && "bg-orange-100 dark:bg-orange-900/30 text-orange-600",
-                      feature.id === 'smart-reply' && "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600",
-                      feature.id === 'grammar' && "bg-blue-100 dark:bg-blue-900/30 text-blue-600",
-                      feature.id === 'tone' && "bg-purple-100 dark:bg-purple-900/30 text-purple-600",
-                      feature.id === 'translate' && "bg-pink-100 dark:bg-pink-900/30 text-pink-600",
-                      feature.id === 'expand' && "bg-cyan-100 dark:bg-cyan-900/30 text-cyan-600",
-                    )}>
+                    <div
+                      className={cn(
+                        'w-9 h-9 rounded-xl flex items-center justify-center',
+                        feature.id === 'starters' &&
+                          'bg-green-100 dark:bg-green-900/30 text-green-600',
+                        feature.id === 'revival' &&
+                          'bg-orange-100 dark:bg-orange-900/30 text-orange-600',
+                        feature.id === 'smart-reply' &&
+                          'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600',
+                        feature.id === 'grammar' && 'bg-blue-100 dark:bg-blue-900/30 text-blue-600',
+                        feature.id === 'tone' &&
+                          'bg-purple-100 dark:bg-purple-900/30 text-purple-600',
+                        feature.id === 'translate' &&
+                          'bg-pink-100 dark:bg-pink-900/30 text-pink-600',
+                        feature.id === 'expand' && 'bg-cyan-100 dark:bg-cyan-900/30 text-cyan-600'
+                      )}
+                    >
                       {feature.icon}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-sm text-gray-900 dark:text-white truncate">
                         {feature.label}
                       </p>
-                      <p className="text-xs text-gray-500 truncate">
-                        {feature.description}
-                      </p>
+                      <p className="text-xs text-gray-500 truncate">{feature.description}</p>
                     </div>
                   </button>
                 );
@@ -371,10 +350,15 @@ export default function AIChatAssistant({
                     className="w-full flex items-center justify-between px-4 py-2.5 bg-gray-100 dark:bg-gray-700 rounded-xl text-sm"
                   >
                     <span className="flex items-center gap-2">
-                      <span>{TONE_OPTIONS.find(t => t.value === selectedTone)?.emoji}</span>
-                      <span>{TONE_OPTIONS.find(t => t.value === selectedTone)?.label}</span>
+                      <span>{TONE_OPTIONS.find((t) => t.value === selectedTone)?.emoji}</span>
+                      <span>{TONE_OPTIONS.find((t) => t.value === selectedTone)?.label}</span>
                     </span>
-                    <ChevronDown className={cn("w-4 h-4 transition-transform", showToneDropdown && "rotate-180")} />
+                    <ChevronDown
+                      className={cn(
+                        'w-4 h-4 transition-transform',
+                        showToneDropdown && 'rotate-180'
+                      )}
+                    />
                   </button>
                   {showToneDropdown && (
                     <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden z-10">
@@ -402,8 +386,13 @@ export default function AIChatAssistant({
                     onClick={() => setShowLanguageDropdown(!showLanguageDropdown)}
                     className="w-full flex items-center justify-between px-4 py-2.5 bg-gray-100 dark:bg-gray-700 rounded-xl text-sm"
                   >
-                    <span>{LANGUAGE_OPTIONS.find(l => l.value === selectedLanguage)?.label}</span>
-                    <ChevronDown className={cn("w-4 h-4 transition-transform", showLanguageDropdown && "rotate-180")} />
+                    <span>{LANGUAGE_OPTIONS.find((l) => l.value === selectedLanguage)?.label}</span>
+                    <ChevronDown
+                      className={cn(
+                        'w-4 h-4 transition-transform',
+                        showLanguageDropdown && 'rotate-180'
+                      )}
+                    />
                   </button>
                   {showLanguageDropdown && (
                     <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden z-10">
@@ -456,10 +445,10 @@ export default function AIChatAssistant({
                       transition={{ delay: index * 0.1 }}
                       onClick={() => handleSuggestionClick(suggestion)}
                       className={cn(
-                        "w-full p-3 text-left rounded-xl transition-all",
-                        "bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700",
-                        "hover:shadow-md hover:scale-[1.01]",
-                        "border border-transparent hover:border-blue-200 dark:hover:border-blue-800"
+                        'w-full p-3 text-left rounded-xl transition-all',
+                        'bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700',
+                        'hover:shadow-md hover:scale-[1.01]',
+                        'border border-transparent hover:border-blue-200 dark:hover:border-blue-800'
                       )}
                     >
                       <p className="text-sm text-gray-800 dark:text-gray-200 leading-relaxed">
@@ -477,15 +466,18 @@ export default function AIChatAssistant({
               )}
 
               {/* Regenerate button */}
-              {!loading && suggestions.length > 0 && selectedFeature !== 'tone' && selectedFeature !== 'translate' && (
-                <button
-                  onClick={() => fetchSuggestions(selectedFeature)}
-                  className="w-full mt-3 flex items-center justify-center gap-2 py-2.5 text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors"
-                >
-                  <RefreshCw className="w-4 h-4" />
-                  Generate new suggestions
-                </button>
-              )}
+              {!loading &&
+                suggestions.length > 0 &&
+                selectedFeature !== 'tone' &&
+                selectedFeature !== 'translate' && (
+                  <button
+                    onClick={() => fetchSuggestions(selectedFeature)}
+                    className="w-full mt-3 flex items-center justify-center gap-2 py-2.5 text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                    Generate new suggestions
+                  </button>
+                )}
             </motion.div>
           )}
         </AnimatePresence>
@@ -494,7 +486,7 @@ export default function AIChatAssistant({
       {/* Footer tip */}
       <div className="px-4 py-2 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-700">
         <p className="text-xs text-gray-500 text-center">
-          {currentMessage.trim() 
+          {currentMessage.trim()
             ? `Message: "${currentMessage.slice(0, 30)}${currentMessage.length > 30 ? '...' : ''}"`
             : 'Type a message to use grammar, tone, or translate features'}
         </p>

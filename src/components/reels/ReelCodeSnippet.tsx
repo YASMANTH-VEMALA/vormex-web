@@ -1,7 +1,7 @@
 'use client';
 
+import { Check, Copy, FileCode } from 'lucide-react';
 import { useState } from 'react';
-import { Copy, Check, FileCode } from 'lucide-react';
 
 interface ReelCodeSnippetProps {
   code: string;
@@ -52,14 +52,10 @@ export function ReelCodeSnippet({ code, language, fileName }: ReelCodeSnippetPro
       <div className="flex items-center justify-between px-4 py-2 bg-white/5 border-b border-white/10">
         <div className="flex items-center gap-2">
           <FileCode className={`w-4 h-4 ${getLanguageColor(language)}`} />
-          {fileName && (
-            <span className="text-white/70 text-sm font-mono">{fileName}</span>
-          )}
-          {language && !fileName && (
-            <span className="text-white/70 text-sm">{language}</span>
-          )}
+          {fileName && <span className="text-white/70 text-sm font-mono">{fileName}</span>}
+          {language && !fileName && <span className="text-white/70 text-sm">{language}</span>}
         </div>
-        
+
         <button
           onClick={handleCopy}
           className="flex items-center gap-1 text-white/60 hover:text-white text-sm transition-colors"
@@ -77,7 +73,7 @@ export function ReelCodeSnippet({ code, language, fileName }: ReelCodeSnippetPro
           )}
         </button>
       </div>
-      
+
       <pre className="p-4 overflow-x-auto">
         <code className="text-sm font-mono text-white/90 whitespace-pre-wrap break-words">
           {code}

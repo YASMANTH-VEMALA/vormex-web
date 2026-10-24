@@ -1,3 +1,4 @@
+import type { MusicAttachment } from '@/types/music';
 import apiClient from './client';
 
 // ============================================
@@ -5,7 +6,16 @@ import apiClient from './client';
 // ============================================
 
 export type StoryMediaType = 'IMAGE' | 'VIDEO' | 'TEXT';
-export type StoryCategory = 'GENERAL' | 'DAY_AT_WORK' | 'LEARNING' | 'ACHIEVEMENT' | 'PROJECT' | 'EVENT' | 'BEHIND_SCENES' | 'TIPS' | 'QNA';
+export type StoryCategory =
+  | 'GENERAL'
+  | 'DAY_AT_WORK'
+  | 'LEARNING'
+  | 'ACHIEVEMENT'
+  | 'PROJECT'
+  | 'EVENT'
+  | 'BEHIND_SCENES'
+  | 'TIPS'
+  | 'QNA';
 export type StoryVisibility = 'PUBLIC' | 'CONNECTIONS' | 'CLOSE_FRIENDS';
 
 export interface StoryAuthor {
@@ -28,8 +38,9 @@ export interface Story {
   textContent?: string | null;
   textPosition?: { x: number; y: number } | null;
   textStyle?: { fontSize?: number; fontWeight?: string; color?: string } | null;
-  stickers?: any[] | null;
+  stickers?: Record<string, unknown>[] | null;
   filters?: string | null;
+  music?: MusicAttachment | null;
   musicUrl?: string | null;
   musicTitle?: string | null;
   musicArtist?: string | null;
@@ -66,7 +77,7 @@ export interface StoryHighlight {
 
 export interface StoryViewer {
   id: string;
-  user: StoryAuthor;
+  user: StoryAuthor | null;
   viewedAt: string;
   duration?: number | null;
 }
@@ -93,8 +104,9 @@ export interface CreateStoryInput {
   textContent?: string;
   textPosition?: { x: number; y: number };
   textStyle?: { fontSize?: number; fontWeight?: string; color?: string };
-  stickers?: any[];
+  stickers?: Record<string, unknown>[];
   filters?: string;
+  music?: MusicAttachment | null;
   musicUrl?: string;
   musicTitle?: string;
   musicArtist?: string;
@@ -104,13 +116,17 @@ export interface CreateStoryInput {
   mentions?: string[];
 }
 
-export const createStory = async (data: CreateStoryInput): Promise<{ message: string; story: Story }> => {
+export const createStory = async (
+  data: CreateStoryInput
+): Promise<{ message: string; story: Story }> => {
   // apiClient interceptor already returns response.data
   return apiClient.post('/stories', data);
 };
 
 // Create story with file upload
-export const createStoryWithMedia = async (formData: FormData): Promise<{ message: string; story: Story }> => {
+export const createStoryWithMedia = async (
+  formData: FormData
+): Promise<{ message: string; story: Story }> => {
   // apiClient interceptor already returns response.data
   return apiClient.post('/stories', formData, {
     headers: {
@@ -124,22 +140,20 @@ export const getStoriesFeed = async (): Promise<{ storyGroups: StoryGroup[] }> =
     // apiClient interceptor already returns response.data, so this IS the data
     const response = await apiClient.get('/stories/feed');
     const data = response.data || response;
-    console.log('📖 Stories API raw response:', data);
-    
+
     // Ensure we always return the expected structure
     if (data && Array.isArray(data.storyGroups)) {
       return { storyGroups: data.storyGroups };
     }
-    
+
     // If response is already an array, wrap it
     if (Array.isArray(data)) {
       return { storyGroups: data };
     }
-    
+
     // Default empty array
     return { storyGroups: [] };
   } catch (error) {
-    console.error('📖 Stories API error:', error);
     throw error;
   }
 };
@@ -158,7 +172,9 @@ export const deleteStory = async (storyId: string): Promise<{ message: string }>
   return apiClient.delete(`/stories/${storyId}`);
 };
 
-export const getUserStories = async (userId: string): Promise<{
+export const getUserStories = async (
+  userId: string
+): Promise<{
   hasStories: boolean;
   user?: StoryAuthor;
   hasUnviewed?: boolean;
@@ -171,7 +187,10 @@ export const getUserStories = async (userId: string): Promise<{
 // Story Viewing
 // ============================================
 
-export const viewStory = async (storyId: string, duration?: number): Promise<{ message: string; viewsCount: number }> => {
+export const viewStory = async (
+  storyId: string,
+  duration?: number
+): Promise<{ message: string; viewsCount: number }> => {
   return apiClient.post(`/stories/${storyId}/view`, { duration });
 };
 
@@ -181,6 +200,7 @@ export const getStoryViewers = async (
   limit = 20
 ): Promise<{
   viewers: StoryViewer[];
+  totalCount: number;
   nextCursor: string | null;
   hasMore: boolean;
 }> => {
@@ -200,7 +220,9 @@ export const reactToStory = async (
   return apiClient.post(`/stories/${storyId}/react`, { reactionType });
 };
 
-export const removeReaction = async (storyId: string): Promise<{ message: string; reactionsCount: number }> => {
+export const removeReaction = async (
+  storyId: string
+): Promise<{ message: string; reactionsCount: number }> => {
   return apiClient.delete(`/stories/${storyId}/react`);
 };
 
@@ -231,15 +253,21 @@ export interface CreateHighlightInput {
   storyIds?: string[];
 }
 
-export const createHighlight = async (data: CreateHighlightInput): Promise<{ message: string; highlight: StoryHighlight }> => {
+export const createHighlight = async (
+  data: CreateHighlightInput
+): Promise<{ message: string; highlight: StoryHighlight }> => {
   return apiClient.post('/stories/highlights', data);
 };
 
-export const getUserHighlights = async (userId: string): Promise<{ highlights: StoryHighlight[] }> => {
+export const getUserHighlights = async (
+  userId: string
+): Promise<{ highlights: StoryHighlight[] }> => {
   return apiClient.get(`/stories/highlights/user/${userId}`);
 };
 
-export const getHighlightStories = async (highlightId: string): Promise<{
+export const getHighlightStories = async (
+  highlightId: string
+): Promise<{
   highlight: StoryHighlight & { user: StoryAuthor; stories: Story[] };
 }> => {
   return apiClient.get(`/stories/highlights/${highlightId}`);
@@ -256,11 +284,17 @@ export const deleteHighlight = async (highlightId: string): Promise<{ message: s
   return apiClient.delete(`/stories/highlights/${highlightId}`);
 };
 
-export const addStoryToHighlight = async (highlightId: string, storyId: string): Promise<{ message: string }> => {
+export const addStoryToHighlight = async (
+  highlightId: string,
+  storyId: string
+): Promise<{ message: string }> => {
   return apiClient.post(`/stories/highlights/${highlightId}/stories/${storyId}`);
 };
 
-export const removeStoryFromHighlight = async (highlightId: string, storyId: string): Promise<{ message: string }> => {
+export const removeStoryFromHighlight = async (
+  highlightId: string,
+  storyId: string
+): Promise<{ message: string }> => {
   return apiClient.delete(`/stories/highlights/${highlightId}/stories/${storyId}`);
 };
 

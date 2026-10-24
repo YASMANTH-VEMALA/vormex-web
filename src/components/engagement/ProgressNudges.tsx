@@ -1,45 +1,42 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Target, MessageSquare, FileText, Users, CheckCircle, X } from 'lucide-react';
-import { getWeeklyGoals, getNudges, type WeeklyGoals, type ProgressNudge } from '@/lib/api/engagement';
+import { getNudges, getWeeklyGoals } from '@/lib/api/engagement';
+import { useQueries } from '@tanstack/react-query';
+import { AnimatePresence, motion } from 'framer-motion';
+import { CheckCircle, FileText, Users, X } from 'lucide-react';
+import { useState } from 'react';
+
+const FEED_CACHE_OPTIONS = {
+  staleTime: 5 * 60 * 1000,
+  gcTime: 10 * 60 * 1000,
+};
 
 /**
  * ProgressNudges - Weekly goals + nudge cards
  * Clean, professional design with subtle progress indicators
  */
-export default function ProgressNudges() {
-  const [goals, setGoals] = useState<WeeklyGoals | null>(null);
-  const [nudges, setNudges] = useState<ProgressNudge[]>([]);
+export default function ProgressNudges({ compact = false }: { compact?: boolean }) {
   const [dismissedNudges, setDismissedNudges] = useState<Set<string>>(new Set());
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [goalsData, nudgesData] = await Promise.all([
-          getWeeklyGoals(),
-          getNudges(),
-        ]);
-        setGoals(goalsData);
-        setNudges(nudgesData);
-      } catch (error) {
-        console.error('Failed to fetch progress:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, []);
+  const [goalsQuery, nudgesQuery] = useQueries({
+    queries: [
+      { queryKey: ['weekly-goals'], queryFn: getWeeklyGoals, ...FEED_CACHE_OPTIONS },
+      { queryKey: ['nudges'], queryFn: getNudges, ...FEED_CACHE_OPTIONS },
+    ],
+  });
+
+  const goals = goalsQuery.data ?? null;
+  const nudges = nudgesQuery.data ?? [];
+  const loading =
+    (goalsQuery.isLoading && !goals) || (nudgesQuery.isLoading && nudges.length === 0);
 
   const dismissNudge = (type: string) => {
-    setDismissedNudges(prev => new Set([...prev, type]));
+    setDismissedNudges((prev) => new Set([...prev, type]));
   };
 
   if (loading) return null;
 
-  const visibleNudges = nudges.filter(n => !dismissedNudges.has(n.type));
+  const visibleNudges = compact ? [] : nudges.filter((n) => !dismissedNudges.has(n.type));
 
   return (
     <div className="space-y-3">
@@ -70,13 +67,6 @@ export default function ProgressNudges() {
               target={goals.postsTarget}
               progress={goals.postsProgress}
             />
-            <GoalBar
-              icon={<MessageSquare className="w-3.5 h-3.5 text-gray-400" />}
-              label="Messages"
-              current={goals.messagesSent}
-              target={goals.messagesTarget}
-              progress={goals.messagesProgress}
-            />
           </div>
         </div>
       )}
@@ -94,7 +84,9 @@ export default function ProgressNudges() {
           >
             <div className="flex items-start gap-2.5">
               <span className="text-base mt-0.5">{nudge.icon}</span>
-              <p className="flex-1 text-sm text-gray-600 dark:text-neutral-300 leading-relaxed">{nudge.message}</p>
+              <p className="flex-1 text-sm text-gray-600 dark:text-neutral-300 leading-relaxed">
+                {nudge.message}
+              </p>
               <button
                 onClick={() => dismissNudge(nudge.type)}
                 className="p-0.5 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded transition-colors flex-shrink-0"
@@ -107,7 +99,7 @@ export default function ProgressNudges() {
               <div className="mt-2 ml-7">
                 <div className="w-full bg-gray-100 dark:bg-neutral-800 rounded-full h-1">
                   <motion.div
-                    className="bg-blue-500 h-1 rounded-full"
+                    className="bg-teal-500 h-1 rounded-full"
                     initial={{ width: 0 }}
                     animate={{ width: `${Math.min((nudge.progress / nudge.target) * 100, 100)}%` }}
                     transition={{ duration: 0.8, delay: 0.2 }}
@@ -148,7 +140,7 @@ function GoalBar({
       </div>
       <div className="w-full bg-gray-100 dark:bg-neutral-800 rounded-full h-1.5">
         <motion.div
-          className="bg-blue-500 h-1.5 rounded-full"
+          className="bg-teal-500 h-1.5 rounded-full"
           initial={{ width: 0 }}
           animate={{ width: `${Math.min(progress, 100)}%` }}
           transition={{ duration: 0.8, delay: 0.1 }}

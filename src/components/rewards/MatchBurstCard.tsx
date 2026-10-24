@@ -1,9 +1,9 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import { X, UserPlus, Sparkles } from 'lucide-react';
-import Link from 'next/link';
 import type { MatchUser } from '@/lib/api/variable-rewards';
+import { motion } from 'framer-motion';
+import { Sparkles, UserPlus, X } from 'lucide-react';
+import Link from 'next/link';
 
 interface MatchBurstCardProps {
   matches: MatchUser[];

@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X } from 'lucide-react';
 import { getSessionSummary, type SessionSummary } from '@/lib/api/engagement';
+import { AnimatePresence, motion } from 'framer-motion';
+import { X } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
 
 /**
  * ExitMessage - Clean toast-style session summary
@@ -35,9 +35,12 @@ export default function ExitMessage() {
     const resetInactivity = () => {
       clearTimeout(inactivityTimer);
       setIsVisible(false);
-      inactivityTimer = setTimeout(() => {
-        showExitMessage();
-      }, 5 * 60 * 1000);
+      inactivityTimer = setTimeout(
+        () => {
+          showExitMessage();
+        },
+        5 * 60 * 1000
+      );
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
@@ -56,7 +59,8 @@ export default function ExitMessage() {
 
   if (!summary) return null;
 
-  const hasStats = summary.connectionsAccepted > 0 || summary.newPosts > 0 || summary.messagesCount > 0;
+  const hasStats =
+    summary.connectionsAccepted > 0 || summary.newPosts > 0 || summary.messagesCount > 0;
 
   return (
     <AnimatePresence>
@@ -83,13 +87,20 @@ export default function ExitMessage() {
             {hasStats && (
               <div className="flex items-center gap-4 mt-2 text-xs text-gray-400 dark:text-neutral-500">
                 {summary.connectionsAccepted > 0 && (
-                  <span>{summary.connectionsAccepted} connection{summary.connectionsAccepted > 1 ? 's' : ''}</span>
+                  <span>
+                    {summary.connectionsAccepted} connection
+                    {summary.connectionsAccepted > 1 ? 's' : ''}
+                  </span>
                 )}
                 {summary.newPosts > 0 && (
-                  <span>{summary.newPosts} post{summary.newPosts > 1 ? 's' : ''}</span>
+                  <span>
+                    {summary.newPosts} post{summary.newPosts > 1 ? 's' : ''}
+                  </span>
                 )}
                 {summary.messagesCount > 0 && (
-                  <span>{summary.messagesCount} message{summary.messagesCount > 1 ? 's' : ''}</span>
+                  <span>
+                    {summary.messagesCount} message{summary.messagesCount > 1 ? 's' : ''}
+                  </span>
                 )}
               </div>
             )}

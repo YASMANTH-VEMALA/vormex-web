@@ -1,18 +1,10 @@
 'use client';
 
-import { useState } from 'react';
-import { motion } from 'framer-motion';
-import {
-  ChevronLeft,
-  BookOpen,
-  Clock,
-  Users,
-  Workflow,
-  Search,
-  Filter
-} from 'lucide-react';
-import Link from 'next/link';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { motion } from 'framer-motion';
+import { BookOpen, ChevronLeft, Clock, Search } from 'lucide-react';
+import Link from 'next/link';
+import { useState } from 'react';
 
 interface Course {
   id: string;
@@ -32,15 +24,16 @@ const courses: Course[] = [
   {
     id: 'n8n',
     title: 'N8N Automation Course',
-    description: 'Complete course on N8N workflow automation - from basics to advanced agents, APIs, and real-world projects.',
+    description:
+      'Complete course on N8N workflow automation - from basics to advanced agents, APIs, and real-world projects.',
     lessons: 13,
     category: 'Automation',
     difficulty: 'Beginner to Advanced',
     language: 'Telugu',
     logo: 'https://n8n.io/favicon.ico',
     href: '/courses/n8n',
-    gradient: 'from-[#FF6D5A]/20 via-[#EA4B71]/20 to-[#7B61FF]/20'
-  }
+    gradient: 'from-[#FF6D5A]/20 via-[#EA4B71]/20 to-[#7B61FF]/20',
+  },
 ];
 
 const categories = ['All', 'Automation', 'Web Development', 'Mobile', 'AI/ML'];
@@ -49,9 +42,10 @@ function CoursesContent() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
 
-  const filteredCourses = courses.filter(course => {
-    const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          course.description.toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredCourses = courses.filter((course) => {
+    const matchesSearch =
+      course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      course.description.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === 'All' || course.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
@@ -61,12 +55,17 @@ function CoursesContent() {
       {/* Header */}
       <div className="sticky top-0 z-40 bg-white dark:bg-neutral-900 border-b border-gray-200 dark:border-neutral-800">
         <div className="flex items-center gap-3 px-4 py-4">
-          <Link href="/learning" className="p-2 -ml-2 rounded-full hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors">
+          <Link
+            href="/learning"
+            className="p-2 -ml-2 rounded-full hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors"
+          >
             <ChevronLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
           </Link>
           <div>
             <h1 className="text-xl font-bold text-gray-900 dark:text-white">Courses</h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400">{courses.length} courses available</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              {courses.length} courses available
+            </p>
           </div>
         </div>
 
@@ -110,7 +109,9 @@ function CoursesContent() {
               <BookOpen className="w-8 h-8 text-gray-400" />
             </div>
             <h3 className="font-medium text-gray-900 dark:text-white mb-2">No courses found</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Try adjusting your search or filters</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Try adjusting your search or filters
+            </p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -126,10 +127,16 @@ function CoursesContent() {
                   className="block bg-white dark:bg-neutral-900 rounded-xl border border-gray-200 dark:border-neutral-800 overflow-hidden hover:border-gray-300 dark:hover:border-neutral-700 transition-colors"
                 >
                   {/* Course Thumbnail */}
-                  <div className={`aspect-[3/1] bg-gradient-to-br ${course.gradient} flex items-center justify-center relative`}>
+                  <div
+                    className={`aspect-[3/1] bg-gradient-to-br ${course.gradient} flex items-center justify-center relative`}
+                  >
                     <div className="flex items-center justify-center">
                       {course.logo ? (
-                        <img src={course.logo} alt={course.title} className="w-12 h-12 object-contain" />
+                        <img
+                          src={course.logo}
+                          alt={course.title}
+                          className="w-12 h-12 object-contain"
+                        />
                       ) : (
                         <div className="text-gray-600/30 dark:text-gray-400/30">{course.icon}</div>
                       )}
@@ -146,9 +153,13 @@ function CoursesContent() {
 
                   {/* Course Info */}
                   <div className="p-4">
-                    <h3 className="font-semibold text-gray-900 dark:text-white mb-1">{course.title}</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">{course.description}</p>
-                    
+                    <h3 className="font-semibold text-gray-900 dark:text-white mb-1">
+                      {course.title}
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
+                      {course.description}
+                    </p>
+
                     <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
                       <div className="flex items-center gap-1">
                         <BookOpen className="w-3.5 h-3.5" />
@@ -175,7 +186,7 @@ function CoursesContent() {
             </div>
             <h4 className="font-medium text-gray-900 dark:text-white mb-1">More Courses Coming</h4>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              We're working on more courses. Stay tuned!
+              We&apos;re working on more courses. Stay tuned!
             </p>
           </div>
         </div>

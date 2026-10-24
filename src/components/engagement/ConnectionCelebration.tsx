@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, Check, Flame, Zap } from 'lucide-react';
 import { getConnectionCelebration, type CelebrationData } from '@/lib/api/engagement';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Check, Flame, X } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
 
 /**
  * ConnectionCelebration - Enhanced connection confirmation overlay
@@ -15,7 +15,10 @@ interface ConnectionCelebrationProps {
   onClose: () => void;
 }
 
-export default function ConnectionCelebration({ connectionId, onClose }: ConnectionCelebrationProps) {
+export default function ConnectionCelebration({
+  connectionId,
+  onClose,
+}: ConnectionCelebrationProps) {
   const [celebration, setCelebration] = useState<CelebrationData | null>(null);
 
   const fireConfetti = useCallback(async () => {
@@ -121,7 +124,8 @@ export default function ConnectionCelebration({ connectionId, onClose }: Connect
 
           {celebration.mutualConnections > 0 && (
             <p className="text-xs text-gray-400 dark:text-neutral-500 mb-3">
-              {celebration.mutualConnections} mutual connection{celebration.mutualConnections > 1 ? 's' : ''}
+              {celebration.mutualConnections} mutual connection
+              {celebration.mutualConnections > 1 ? 's' : ''}
             </p>
           )}
 

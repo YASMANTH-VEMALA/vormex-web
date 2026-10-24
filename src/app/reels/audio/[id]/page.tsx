@@ -1,26 +1,27 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import Image from 'next/image';
-import { ArrowLeft, Music, Loader2, Bookmark, BookmarkCheck, Play } from 'lucide-react';
-import { useAudioReels } from '@/hooks/reels';
 import { ReelCard } from '@/components/reels';
-import { audioApi, Audio } from '@/lib/api/reels';
+import { useAudioReels } from '@/hooks/reels';
+import { Audio, audioApi } from '@/lib/api/reels';
+import { ArrowLeft, Bookmark, BookmarkCheck, Loader2, Music, Play } from 'lucide-react';
+import Image from 'next/image';
+import { useParams, useRouter } from 'next/navigation';
+import { useCallback, useEffect, useState } from 'react';
 
 export default function AudioReelsPage() {
   const params = useParams();
   const router = useRouter();
   const audioId = params.id as string;
-  
+
   const [activeIndex, setActiveIndex] = useState(0);
   const [isMuted, setIsMuted] = useState(true);
   const [showFeed, setShowFeed] = useState(false);
   const [audio, setAudio] = useState<Audio | null>(null);
   const [audioLoading, setAudioLoading] = useState(true);
   const [isSaved, setIsSaved] = useState(false);
-  
-  const { reels, isLoading, isError, hasNextPage, isFetchingNextPage, fetchNextPage } = useAudioReels(audioId);
+
+  const { reels, isLoading, isError, hasNextPage, isFetchingNextPage, fetchNextPage } =
+    useAudioReels(audioId);
 
   useEffect(() => {
     const fetchAudio = async () => {
@@ -41,20 +42,23 @@ export default function AudioReelsPage() {
     }
   }, [audioId]);
 
-  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
-    const container = e.currentTarget;
-    const scrollTop = container.scrollTop;
-    const itemHeight = container.clientHeight;
-    const newIndex = Math.round(scrollTop / itemHeight);
+  const handleScroll = useCallback(
+    (e: React.UIEvent<HTMLDivElement>) => {
+      const container = e.currentTarget;
+      const scrollTop = container.scrollTop;
+      const itemHeight = container.clientHeight;
+      const newIndex = Math.round(scrollTop / itemHeight);
 
-    if (newIndex !== activeIndex) {
-      setActiveIndex(newIndex);
+      if (newIndex !== activeIndex) {
+        setActiveIndex(newIndex);
 
-      if (newIndex >= reels.length - 3 && hasNextPage && !isFetchingNextPage) {
-        fetchNextPage();
+        if (newIndex >= reels.length - 3 && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage();
+        }
       }
-    }
-  }, [activeIndex, reels.length, hasNextPage, isFetchingNextPage, fetchNextPage]);
+    },
+    [activeIndex, reels.length, hasNextPage, isFetchingNextPage, fetchNextPage]
+  );
 
   const toggleSave = async () => {
     try {
@@ -119,16 +123,14 @@ export default function AudioReelsPage() {
 
           <h1 className="text-2xl font-bold text-center mb-1">{audio.title}</h1>
           <p className="text-white/60 mb-2">{audio.artist}</p>
-          
+
           {audio.genre && (
             <span className="px-3 py-1 bg-white/10 rounded-full text-sm text-white/80 mb-4">
               {audio.genre}
             </span>
           )}
 
-          <p className="text-white/50 text-sm mb-6">
-            {audio.usageCount.toLocaleString()} reels
-          </p>
+          <p className="text-white/50 text-sm mb-6">{audio.usageCount.toLocaleString()} reels</p>
 
           <div className="flex gap-4">
             <button
@@ -166,18 +168,13 @@ export default function AudioReelsPage() {
                 <button
                   key={reel.id}
                   onClick={() => {
-                    setActiveIndex(reels.findIndex(r => r.id === reel.id));
+                    setActiveIndex(reels.findIndex((r) => r.id === reel.id));
                     setShowFeed(true);
                   }}
                   className="aspect-[9/16] bg-neutral-800 rounded overflow-hidden relative group"
                 >
                   {reel.thumbnailUrl && (
-                    <Image
-                      src={reel.thumbnailUrl}
-                      alt=""
-                      fill
-                      className="object-cover"
-                    />
+                    <Image src={reel.thumbnailUrl} alt="" fill className="object-cover" />
                   )}
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
                     <Play className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -233,10 +230,7 @@ export default function AudioReelsPage() {
         onScroll={handleScroll}
       >
         {reels.map((reel, index) => (
-          <div
-            key={reel.id}
-            className="h-screen w-full snap-start snap-always"
-          >
+          <div key={reel.id} className="h-screen w-full snap-start snap-always">
             <ReelCard
               reel={reel}
               isActive={index === activeIndex}

@@ -1,29 +1,31 @@
 'use client';
+import { useAuth as useResourceAuth } from '@/lib/auth/useAuth';
+import { useQuery } from '@tanstack/react-query';
 
-import { useState, useEffect } from 'react';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import type { BadgeProgress as ApiBadgeProgress } from '@/lib/api/badges';
+import * as badgesAPI from '@/lib/api/badges';
 import { motion } from 'framer-motion';
-import { 
-  Award, 
-  Trophy, 
-  Target,
-  ChevronLeft,
+import {
+  Award,
   CheckCircle,
-  Lock,
-  Zap,
-  Users,
-  FileText,
-  Heart,
-  Flame,
-  Github,
-  Gift,
+  ChevronLeft,
   Code,
+  Crown,
+  FileText,
+  Flame,
+  Gift,
+  Github,
+  Heart,
+  Lock,
+  Target,
+  Trophy,
   User,
-  Crown
+  Users,
+  Zap,
 } from 'lucide-react';
 import Link from 'next/link';
-import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
-import * as badgesAPI from '@/lib/api/badges';
-import type { BadgeProgress as ApiBadgeProgress, LeaderboardEntry as ApiLeaderboardEntry } from '@/lib/api/badges';
+import { useState } from 'react';
 
 interface BadgeProgress {
   id: string;
@@ -66,67 +68,80 @@ const categoryIcons: Record<string, React.ReactNode> = {
   github: <Github className="w-4 h-4" />,
   referrals: <Gift className="w-4 h-4" />,
   challenges: <Code className="w-4 h-4" />,
-  special: <Award className="w-4 h-4" />
+  special: <Award className="w-4 h-4" />,
 };
 
 const rarityStyles: Record<string, { border: string; bg: string; text: string }> = {
-  common: { border: 'border-gray-300 dark:border-neutral-600', bg: 'bg-gray-100 dark:bg-neutral-800', text: 'text-gray-600 dark:text-gray-400' },
-  rare: { border: 'border-blue-400 dark:border-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/20', text: 'text-blue-600 dark:text-blue-400' },
-  epic: { border: 'border-purple-400 dark:border-purple-500', bg: 'bg-purple-50 dark:bg-purple-900/20', text: 'text-purple-600 dark:text-purple-400' },
-  legendary: { border: 'border-amber-400 dark:border-amber-500', bg: 'bg-amber-50 dark:bg-amber-900/20', text: 'text-amber-600 dark:text-amber-400' }
+  common: {
+    border: 'border-gray-300 dark:border-neutral-600',
+    bg: 'bg-gray-100 dark:bg-neutral-800',
+    text: 'text-gray-600 dark:text-gray-400',
+  },
+  rare: {
+    border: 'border-blue-400 dark:border-blue-500',
+    bg: 'bg-blue-50 dark:bg-blue-900/20',
+    text: 'text-blue-600 dark:text-blue-400',
+  },
+  epic: {
+    border: 'border-purple-400 dark:border-purple-500',
+    bg: 'bg-purple-50 dark:bg-purple-900/20',
+    text: 'text-purple-600 dark:text-purple-400',
+  },
+  legendary: {
+    border: 'border-amber-400 dark:border-amber-500',
+    bg: 'bg-amber-50 dark:bg-amber-900/20',
+    text: 'text-amber-600 dark:text-amber-400',
+  },
 };
 
 export default function BadgesPage() {
   const [activeTab, setActiveTab] = useState<TabType>('progress');
-  const [badgeProgress, setBadgeProgress] = useState<BadgeProgress[]>([]);
-  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [initialBadgeProgress] = useState<BadgeProgress[]>([]);
+  const [initialLeaderboard] = useState<LeaderboardEntry[]>([]);
+
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
-    try {
-      setLoading(true);
+  const resourceViewer = useResourceAuth().user;
+  const loadDataResource = useQuery({
+    queryKey: ['web-resource', 'badges', resourceViewer?.id ?? 'anonymous'],
+    queryFn: async () => {
       const [progressRes, leaderboardRes] = await Promise.all([
         badgesAPI.getBadgeProgress(),
-        badgesAPI.getBadgeLeaderboard()
+        badgesAPI.getBadgeLeaderboard(),
       ]);
-      // Map API response to local BadgeProgress type
-      const mappedProgress: BadgeProgress[] = (progressRes || []).map((p: ApiBadgeProgress) => ({
-        id: p.badge.id,
-        slug: p.badge.slug,
-        name: p.badge.name,
-        description: p.badge.description,
-        icon: p.badge.icon,
-        category: p.badge.category,
-        xpReward: p.badge.xpReward,
-        rarity: p.badge.rarity,
-        unlocked: p.unlocked,
-        unlockedAt: p.unlockedAt || null,
-        progress: p.progress,
-      }));
-      setBadgeProgress(mappedProgress);
-      setLeaderboard((leaderboardRes || []) as LeaderboardEntry[]);
-    } catch (error) {
-      console.error('Error loading badges:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+      return {
+        progress: (progressRes || []).map((p: ApiBadgeProgress) => ({
+          id: p.badge.id,
+          slug: p.badge.slug,
+          name: p.badge.name,
+          description: p.badge.description,
+          icon: p.badge.icon,
+          category: p.badge.category,
+          xpReward: p.badge.xpReward,
+          rarity: p.badge.rarity,
+          unlocked: p.unlocked,
+          unlockedAt: p.unlockedAt || null,
+          progress: p.progress,
+        })),
+        leaderboard: (leaderboardRes || []) as LeaderboardEntry[],
+      };
+    },
+    retry: false,
+  });
+  const badgeProgress = loadDataResource.data?.progress ?? initialBadgeProgress;
+  const leaderboard = loadDataResource.data?.leaderboard ?? initialLeaderboard;
+  const loading = loadDataResource.isPending;
 
-  const categories = ['all', ...new Set(badgeProgress.map(b => b.category))];
-  const filteredBadges = selectedCategory === 'all' 
-    ? badgeProgress 
-    : badgeProgress.filter(b => b.category === selectedCategory);
-  
-  const unlockedBadges = filteredBadges.filter(b => b.unlocked);
-  const lockedBadges = filteredBadges.filter(b => !b.unlocked);
+  const categories = ['all', ...new Set(badgeProgress.map((b) => b.category))];
+  const filteredBadges =
+    selectedCategory === 'all'
+      ? badgeProgress
+      : badgeProgress.filter((b) => b.category === selectedCategory);
 
-  const totalUnlocked = badgeProgress.filter(b => b.unlocked).length;
-  const totalXP = badgeProgress.filter(b => b.unlocked).reduce((sum, b) => sum + b.xpReward, 0);
+  const unlockedBadges = filteredBadges.filter((b) => b.unlocked);
+  const lockedBadges = filteredBadges.filter((b) => !b.unlocked);
+
+  const totalUnlocked = badgeProgress.filter((b) => b.unlocked).length;
+  const totalXP = badgeProgress.filter((b) => b.unlocked).reduce((sum, b) => sum + b.xpReward, 0);
 
   const getRarityStyle = (rarity: string) => rarityStyles[rarity] || rarityStyles.common;
 
@@ -147,11 +162,16 @@ export default function BadgesPage() {
         <div className="bg-white dark:bg-neutral-900 border-b border-gray-200 dark:border-neutral-800 sticky top-0 z-10">
           <div className="max-w-2xl mx-auto px-4 py-4">
             <div className="flex items-center gap-3">
-              <Link href="/more" className="p-2 -ml-2 rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors">
+              <Link
+                href="/more"
+                className="p-2 -ml-2 rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors"
+              >
                 <ChevronLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
               </Link>
               <div>
-                <h1 className="text-xl font-semibold text-gray-900 dark:text-white">Achievements</h1>
+                <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
+                  Achievements
+                </h1>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
                   {totalUnlocked} of {badgeProgress.length} badges unlocked
                 </p>
@@ -168,7 +188,9 @@ export default function BadgesPage() {
                 <Award className="w-4 h-4" />
                 <span className="text-xs">Unlocked</span>
               </div>
-              <p className="text-2xl font-semibold text-gray-900 dark:text-white">{totalUnlocked}</p>
+              <p className="text-2xl font-semibold text-gray-900 dark:text-white">
+                {totalUnlocked}
+              </p>
             </div>
             <div className="bg-white dark:bg-neutral-900 rounded-xl p-4 border border-gray-200 dark:border-neutral-800">
               <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 mb-1">
@@ -183,7 +205,10 @@ export default function BadgesPage() {
                 <span className="text-xs">Progress</span>
               </div>
               <p className="text-2xl font-semibold text-gray-900 dark:text-white">
-                {badgeProgress.length > 0 ? Math.round((totalUnlocked / badgeProgress.length) * 100) : 0}%
+                {badgeProgress.length > 0
+                  ? Math.round((totalUnlocked / badgeProgress.length) * 100)
+                  : 0}
+                %
               </p>
             </div>
           </div>
@@ -195,7 +220,7 @@ export default function BadgesPage() {
             {[
               { id: 'progress', label: 'All Badges', icon: Target },
               { id: 'unlocked', label: 'Unlocked', icon: CheckCircle },
-              { id: 'leaderboard', label: 'Leaderboard', icon: Trophy }
+              { id: 'leaderboard', label: 'Leaderboard', icon: Trophy },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -272,8 +297,12 @@ export default function BadgesPage() {
                       <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 dark:bg-neutral-800 flex items-center justify-center">
                         <Award className="w-8 h-8 text-gray-400 dark:text-gray-500" />
                       </div>
-                      <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-1">No badges yet</h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Complete activities to earn badges</p>
+                      <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-1">
+                        No badges yet
+                      </h3>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        Complete activities to earn badges
+                      </p>
                     </div>
                   ) : (
                     <div className="space-y-2">
@@ -294,7 +323,9 @@ export default function BadgesPage() {
                   <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 dark:bg-neutral-800 flex items-center justify-center">
                     <Trophy className="w-8 h-8 text-gray-400 dark:text-gray-500" />
                   </div>
-                  <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-1">Leaderboard</h3>
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-1">
+                    Leaderboard
+                  </h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400">No data available yet</p>
                 </div>
               ) : (
@@ -307,25 +338,34 @@ export default function BadgesPage() {
                       transition={{ delay: index * 0.05 }}
                       className="bg-white dark:bg-neutral-900 rounded-xl p-4 border border-gray-200 dark:border-neutral-800 flex items-center gap-4"
                     >
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
-                        entry.rank === 1 ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' :
-                        entry.rank === 2 ? 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300' :
-                        entry.rank === 3 ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' :
-                        'bg-gray-100 text-gray-600 dark:bg-neutral-800 dark:text-gray-400'
-                      }`}>
+                      <div
+                        className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
+                          entry.rank === 1
+                            ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                            : entry.rank === 2
+                              ? 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
+                              : entry.rank === 3
+                                ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
+                                : 'bg-gray-100 text-gray-600 dark:bg-neutral-800 dark:text-gray-400'
+                        }`}
+                      >
                         {entry.rank <= 3 ? <Crown className="w-4 h-4" /> : entry.rank}
                       </div>
-                      
+
                       <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-neutral-700 flex items-center justify-center overflow-hidden">
                         {entry.user.profileImage ? (
-                          <img src={entry.user.profileImage} alt="" className="w-full h-full object-cover" />
+                          <img
+                            src={entry.user.profileImage}
+                            alt=""
+                            className="w-full h-full object-cover"
+                          />
                         ) : (
                           <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
                             {entry.user.name?.charAt(0) || entry.user.username?.charAt(0) || '?'}
                           </span>
                         )}
                       </div>
-                      
+
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-gray-900 dark:text-white truncate">
                           {entry.user.name || entry.user.username}
@@ -334,7 +374,7 @@ export default function BadgesPage() {
                           @{entry.user.username}
                         </p>
                       </div>
-                      
+
                       <div className="flex items-center gap-1.5 text-gray-600 dark:text-gray-300">
                         <Award className="w-4 h-4" />
                         <span className="font-semibold">{entry.badgeCount}</span>
@@ -351,11 +391,11 @@ export default function BadgesPage() {
   );
 }
 
-function BadgeCard({ 
-  badge, 
-  getRarityStyle 
-}: { 
-  badge: BadgeProgress; 
+function BadgeCard({
+  badge,
+  getRarityStyle,
+}: {
+  badge: BadgeProgress;
   getRarityStyle: (rarity: string) => { border: string; bg: string; text: string };
 }) {
   const style = getRarityStyle(badge.rarity);
@@ -370,47 +410,53 @@ function BadgeCard({
       }`}
     >
       <div className="flex items-start gap-4">
-        <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${
-          badge.unlocked ? style.bg : 'bg-gray-100 dark:bg-neutral-800'
-        }`}>
+        <div
+          className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${
+            badge.unlocked ? style.bg : 'bg-gray-100 dark:bg-neutral-800'
+          }`}
+        >
           <div className={badge.unlocked ? style.text : 'text-gray-400 dark:text-gray-500'}>
             {icon}
           </div>
         </div>
-        
+
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
             <div>
-              <h4 className={`font-medium ${
-                badge.unlocked ? 'text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-400'
-              }`}>
+              <h4
+                className={`font-medium ${
+                  badge.unlocked
+                    ? 'text-gray-900 dark:text-white'
+                    : 'text-gray-600 dark:text-gray-400'
+                }`}
+              >
                 {badge.name}
               </h4>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-                {badge.description}
-              </p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{badge.description}</p>
             </div>
             <div className="flex items-center gap-1 text-sm shrink-0">
               <Zap className="w-3.5 h-3.5 text-amber-500" />
               <span className="text-gray-600 dark:text-gray-400">{badge.xpReward}</span>
             </div>
           </div>
-          
+
           {!badge.unlocked && (
             <div className="mt-3">
               <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
-                <span>{badge.progress.current} / {badge.progress.target}</span>
+                <span>
+                  {badge.progress.current} / {badge.progress.target}
+                </span>
                 <span>{badge.progress.percentage}%</span>
               </div>
               <div className="h-1.5 bg-gray-100 dark:bg-neutral-800 rounded-full overflow-hidden">
-                <div 
+                <div
                   className="h-full bg-blue-500 rounded-full transition-all duration-300"
                   style={{ width: `${badge.progress.percentage}%` }}
                 />
               </div>
             </div>
           )}
-          
+
           {badge.unlocked && badge.unlockedAt && (
             <p className="text-xs text-gray-400 dark:text-gray-500 mt-2 flex items-center gap-1">
               <CheckCircle className="w-3 h-3" />

@@ -1,8 +1,8 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import { X, TrendingUp, Eye } from 'lucide-react';
 import type { TrendingData } from '@/lib/api/variable-rewards';
+import { motion } from 'framer-motion';
+import { Eye, TrendingUp, X } from 'lucide-react';
 
 interface TrendingCardProps {
   data: TrendingData;
@@ -30,14 +30,17 @@ export function TrendingCard({ data, onDismiss }: TrendingCardProps) {
           </div>
           <div>
             <p className="text-sm font-semibold text-amber-900 dark:text-amber-100">
-              You're Trending! 📈
+              You&apos;re Trending! 📈
             </p>
             <p className="text-[11px] text-amber-600/70 dark:text-amber-400/70">
               Your profile views are surging
             </p>
           </div>
         </div>
-        <button onClick={onDismiss} className="p-1 rounded-full hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors">
+        <button
+          onClick={onDismiss}
+          className="p-1 rounded-full hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors"
+        >
           <X className="w-4 h-4 text-amber-400" />
         </button>
       </div>
@@ -47,7 +50,9 @@ export function TrendingCard({ data, onDismiss }: TrendingCardProps) {
         <div className="flex items-center gap-4">
           <div className="text-center">
             <p className="text-xs text-amber-500 dark:text-amber-400 mb-0.5">Before</p>
-            <p className="text-lg font-bold text-amber-700 dark:text-amber-200">{data.previousViews}</p>
+            <p className="text-lg font-bold text-amber-700 dark:text-amber-200">
+              {data.previousViews}
+            </p>
           </div>
           <div className="text-amber-400">→</div>
           <div className="text-center">

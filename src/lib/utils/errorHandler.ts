@@ -1,10 +1,30 @@
-import { AxiosError } from 'axios';
+import { isTimeoutErrorCode } from '@/lib/api/errors';
 import type { ApiError } from '@/types/auth';
+import { AxiosError } from 'axios';
+
+function formatRetryAfter(seconds: number): string {
+  if (seconds < 60) {
+    return `${seconds} second${seconds === 1 ? '' : 's'}`;
+  }
+
+  const minutes = Math.ceil(seconds / 60);
+  return `${minutes} minute${minutes === 1 ? '' : 's'}`;
+}
+
+export function isApiTimeoutError(error: unknown): boolean {
+  return error instanceof AxiosError && isTimeoutErrorCode(error.code);
+}
 
 export function handleApiError(error: unknown): string {
   if (error instanceof AxiosError) {
+    if (isApiTimeoutError(error)) {
+      return 'Request timed out. Please try again.';
+    }
     const apiError = error.response?.data as ApiError | undefined;
     if (apiError?.error) {
+      if (apiError.retryAfterSeconds && apiError.retryAfterSeconds > 0) {
+        return `${apiError.error} Try again in ${formatRetryAfter(apiError.retryAfterSeconds)}.`;
+      }
       return apiError.error;
     }
     if (error.response?.status === 401) {
@@ -21,11 +41,10 @@ export function handleApiError(error: unknown): string {
     }
     return error.message || 'An unexpected error occurred';
   }
-  
+
   if (error instanceof Error) {
     return error.message;
   }
-  
+
   return 'An unexpected error occurred';
 }
-

@@ -1,5 +1,12 @@
-import { initializeApp, getApps, type FirebaseApp } from 'firebase/app';
-import { getMessaging, getToken, onMessage, isSupported, type Messaging } from 'firebase/messaging';
+import { getApps, initializeApp, type FirebaseApp } from 'firebase/app';
+import {
+  getMessaging,
+  getToken,
+  isSupported,
+  onMessage,
+  type MessagePayload,
+  type Messaging,
+} from 'firebase/messaging';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -65,7 +72,9 @@ export async function requestNotificationToken(): Promise<string | null> {
 
     const token = await getToken(msg, {
       vapidKey,
-      serviceWorkerRegistration: await navigator.serviceWorker.register('/firebase-messaging-sw.js'),
+      serviceWorkerRegistration: await navigator.serviceWorker.register(
+        '/firebase-messaging-sw.js'
+      ),
     });
 
     return token;
@@ -78,15 +87,22 @@ export async function requestNotificationToken(): Promise<string | null> {
 /**
  * Listen for foreground messages
  */
-export function onForegroundMessage(callback: (payload: any) => void): (() => void) | null {
+export function onForegroundMessage(
+  callback: (payload: MessagePayload) => void
+): (() => void) | null {
   if (typeof window === 'undefined') return null;
 
-  getFirebaseMessaging().then(msg => {
-    if (!msg) return;
-    onMessage(msg, callback);
-  });
+  let disposed = false;
+  let unsubscribe: (() => void) | undefined;
+  void getFirebaseMessaging()
+    .then((msg) => {
+      if (!msg || disposed) return;
+      unsubscribe = onMessage(msg, callback);
+    })
+    .catch((error) => console.error('Could not initialize foreground notifications:', error));
 
-  // Firebase onMessage doesn't return a clean unsubscribe for async init,
-  // so we return a no-op. The listener is tied to page lifecycle.
-  return () => {};
+  return () => {
+    disposed = true;
+    unsubscribe?.();
+  };
 }

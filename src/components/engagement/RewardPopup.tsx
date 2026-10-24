@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, Flame, Trophy, Target, Zap, Star, Award, TrendingUp, MessageCircle, Users, Crown } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Award, Crown, Flame, Star, Target, TrendingUp, Users, Zap } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
 
 /**
  * RewardPopup - General purpose milestone/reward popup
@@ -35,13 +35,16 @@ interface RewardPopupProps {
   onDismiss: (id: string) => void;
 }
 
-const rewardConfig: Record<RewardType, {
-  icon: typeof Flame;
-  gradient: string;
-  iconColor: string;
-  badgeBg: string;
-  confettiColors: string[];
-}> = {
+const rewardConfig: Record<
+  RewardType,
+  {
+    icon: typeof Flame;
+    gradient: string;
+    iconColor: string;
+    badgeBg: string;
+    confettiColors: string[];
+  }
+> = {
   streak_milestone: {
     icon: Flame,
     gradient: 'from-orange-500 to-red-500',
@@ -108,13 +111,8 @@ const rewardConfig: Record<RewardType, {
 };
 
 export default function RewardPopup({ rewards, onDismiss }: RewardPopupProps) {
-  const [currentReward, setCurrentReward] = useState<RewardData | null>(null);
-
-  useEffect(() => {
-    if (rewards.length > 0 && !currentReward) {
-      setCurrentReward(rewards[0]);
-    }
-  }, [rewards, currentReward]);
+  const [dismissedIds, setDismissedIds] = useState<string[]>([]);
+  const currentReward = rewards.find((reward) => !dismissedIds.includes(reward.id)) ?? null;
 
   const fireConfetti = useCallback(async (colors: string[]) => {
     try {
@@ -131,30 +129,24 @@ export default function RewardPopup({ rewards, onDismiss }: RewardPopupProps) {
   useEffect(() => {
     if (currentReward?.showConfetti) {
       const config = rewardConfig[currentReward.type];
-      setTimeout(() => fireConfetti(config.confettiColors), 300);
+      const timer = setTimeout(() => fireConfetti(config.confettiColors), 300);
+      return () => clearTimeout(timer);
     }
   }, [currentReward, fireConfetti]);
+
+  const handleDismiss = useCallback(() => {
+    if (!currentReward) return;
+    const id = currentReward.id;
+    setDismissedIds((previous) => [...previous.slice(-199), id]);
+    onDismiss(id);
+  }, [currentReward, onDismiss]);
 
   // Auto-dismiss after 5s
   useEffect(() => {
     if (!currentReward) return;
     const timer = setTimeout(() => handleDismiss(), 5000);
     return () => clearTimeout(timer);
-  }, [currentReward]);
-
-  const handleDismiss = () => {
-    if (!currentReward) return;
-    const id = currentReward.id;
-    setCurrentReward(null);
-    onDismiss(id);
-    // Show next reward after brief delay
-    setTimeout(() => {
-      const remaining = rewards.filter(r => r.id !== id);
-      if (remaining.length > 0) {
-        setCurrentReward(remaining[0]);
-      }
-    }, 300);
-  };
+  }, [currentReward, handleDismiss]);
 
   if (!currentReward) return null;
 
@@ -243,13 +235,11 @@ export default function RewardPopup({ rewards, onDismiss }: RewardPopupProps) {
             {/* Remaining indicator */}
             {rewards.length > 1 && (
               <div className="flex items-center justify-center gap-1 mt-4">
-                {rewards.slice(0, Math.min(rewards.length, 5)).map((r, i) => (
+                {rewards.slice(0, Math.min(rewards.length, 5)).map((r) => (
                   <div
                     key={r.id}
                     className={`w-1.5 h-1.5 rounded-full transition-colors ${
-                      r.id === currentReward.id
-                        ? 'bg-blue-500'
-                        : 'bg-gray-200 dark:bg-neutral-700'
+                      r.id === currentReward.id ? 'bg-blue-500' : 'bg-gray-200 dark:bg-neutral-700'
                     }`}
                   />
                 ))}

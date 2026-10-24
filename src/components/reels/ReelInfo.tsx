@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
-import Link from 'next/link';
-import { Music, MapPin, ChevronDown, ChevronUp, Code, ExternalLink, Loader2 } from 'lucide-react';
-import { Reel } from '@/lib/api/reels';
+import { ProfileLink } from '@/components/profile/ProfileLink';
 import { followUser, unfollowUser } from '@/lib/api/follow';
+import { Reel } from '@/lib/api/reels';
 import { useAuth } from '@/lib/auth/useAuth';
+import { ChevronDown, ChevronUp, Code, ExternalLink, Loader2, MapPin, Music } from 'lucide-react';
+import { useCallback, useState } from 'react';
 
 interface ReelInfoProps {
   reel: Reel;
@@ -20,10 +20,6 @@ export function ReelInfo({ reel, onAudioClick, onHashtagClick, onFollowChange }:
   const [isFollowing, setIsFollowing] = useState(reel.author.isFollowing ?? false);
   const [isFollowLoading, setIsFollowLoading] = useState(false);
   const isOwnReel = user?.id === reel.author.id;
-
-  useEffect(() => {
-    setIsFollowing(reel.author.isFollowing ?? false);
-  }, [reel.author.id, reel.author.isFollowing]);
 
   const handleFollowClick = useCallback(
     async (e: React.MouseEvent) => {
@@ -52,13 +48,12 @@ export function ReelInfo({ reel, onAudioClick, onHashtagClick, onFollowChange }:
   const maxLength = 100;
   const shouldTruncate = reel.caption && reel.caption.length > maxLength;
 
-  const displayCaption = shouldTruncate && !isExpanded
-    ? reel.caption?.slice(0, maxLength) + '...'
-    : reel.caption;
+  const displayCaption =
+    shouldTruncate && !isExpanded ? reel.caption?.slice(0, maxLength) + '...' : reel.caption;
 
   const renderHashtags = (text: string | null) => {
     if (!text) return null;
-    
+
     const parts = text.split(/(#\w+)/g);
     return parts.map((part, index) => {
       if (part.startsWith('#')) {
@@ -82,20 +77,20 @@ export function ReelInfo({ reel, onAudioClick, onHashtagClick, onFollowChange }:
 
   const renderMentions = (text: string | null) => {
     if (!text) return null;
-    
+
     const parts = text.split(/(@\w+)/g);
     return parts.map((part, index) => {
       if (part.startsWith('@')) {
         const username = part.slice(1);
         return (
-          <Link
+          <ProfileLink
             key={index}
-            href={`/profile/${username}`}
+            profileId={username}
             onClick={(e) => e.stopPropagation()}
             className="text-blue-400 font-semibold hover:underline"
           >
             {part}
-          </Link>
+          </ProfileLink>
         );
       }
       return renderHashtags(part);
@@ -103,14 +98,14 @@ export function ReelInfo({ reel, onAudioClick, onHashtagClick, onFollowChange }:
   };
 
   return (
-    <div className="flex flex-col gap-3 max-w-[calc(100%-80px)]">
-      <div className="flex items-center gap-3">
-        <Link
-          href={`/profile/${reel.author.id}`}
+    <div className="flex max-w-full flex-col gap-1.5 sm:gap-3">
+      <div className="flex items-center gap-1.5 sm:gap-3">
+        <ProfileLink
+          profileId={reel.author.id}
           onClick={(e) => e.stopPropagation()}
-          className="flex items-center gap-3 flex-1 min-w-0"
+          className="flex min-w-0 flex-1 items-center gap-1.5 sm:gap-3"
         >
-          <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white flex-shrink-0">
+          <div className="h-8 w-8 flex-shrink-0 overflow-hidden rounded-full border border-white sm:h-10 sm:w-10 sm:border-2">
             <img
               src={reel.author.profileImage || '/default-avatar.png'}
               alt={reel.author.name}
@@ -118,29 +113,29 @@ export function ReelInfo({ reel, onAudioClick, onHashtagClick, onFollowChange }:
             />
           </div>
           <div className="flex flex-col min-w-0">
-            <span className="text-white font-semibold text-sm truncate">
+            <span className="truncate text-xs font-semibold text-white sm:text-sm">
               {reel.author.username}
             </span>
             {reel.author.headline && (
-              <span className="text-white/70 text-xs line-clamp-1">
+              <span className="line-clamp-1 text-[10px] text-white/70 sm:text-xs">
                 {reel.author.headline}
               </span>
             )}
           </div>
-        </Link>
+        </ProfileLink>
         {!isOwnReel && (
           <button
             type="button"
             onClick={handleFollowClick}
             disabled={isFollowLoading}
-            className={`ml-2 px-4 py-1 text-xs font-semibold rounded-full transition-colors flex-shrink-0 ${
+            className={`ml-1 flex-shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-semibold transition-colors sm:ml-2 sm:px-4 sm:py-1 sm:text-xs ${
               isFollowing
                 ? 'bg-white/20 text-white border border-white/40'
                 : 'bg-white text-black hover:bg-white/90'
             } disabled:opacity-50`}
           >
             {isFollowLoading ? (
-              <Loader2 className="w-3 h-3 animate-spin" />
+              <Loader2 className="h-2.5 w-2.5 animate-spin sm:h-3 sm:w-3" />
             ) : isFollowing ? (
               'Following'
             ) : (
@@ -151,13 +146,11 @@ export function ReelInfo({ reel, onAudioClick, onHashtagClick, onFollowChange }:
       </div>
 
       {reel.title && (
-        <h3 className="text-white font-semibold text-base">
-          {reel.title}
-        </h3>
+        <h3 className="text-xs font-semibold leading-snug text-white sm:text-base">{reel.title}</h3>
       )}
 
       {reel.caption && (
-        <div className="text-white text-sm leading-relaxed">
+        <div className="text-[11px] leading-[1.35] text-white sm:text-sm sm:leading-relaxed">
           {renderMentions(displayCaption)}
           {shouldTruncate && (
             <button
@@ -168,9 +161,13 @@ export function ReelInfo({ reel, onAudioClick, onHashtagClick, onFollowChange }:
               className="ml-1 text-white/70 hover:text-white inline-flex items-center gap-0.5"
             >
               {isExpanded ? (
-                <>less <ChevronUp className="w-3 h-3" /></>
+                <>
+                  less <ChevronUp className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                </>
               ) : (
-                <>more <ChevronDown className="w-3 h-3" /></>
+                <>
+                  more <ChevronDown className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                </>
               )}
             </button>
           )}
@@ -178,7 +175,7 @@ export function ReelInfo({ reel, onAudioClick, onHashtagClick, onFollowChange }:
       )}
 
       {reel.hashtags && reel.hashtags.length > 0 && (
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-x-1.5 gap-y-0.5">
           {reel.hashtags.map((tag) => (
             <button
               key={tag}
@@ -186,7 +183,7 @@ export function ReelInfo({ reel, onAudioClick, onHashtagClick, onFollowChange }:
                 e.stopPropagation();
                 onHashtagClick?.(tag);
               }}
-              className="text-white/90 text-sm hover:text-white"
+              className="text-[10px] leading-tight text-white/85 hover:text-white sm:text-sm"
             >
               #{tag}
             </button>
@@ -195,12 +192,10 @@ export function ReelInfo({ reel, onAudioClick, onHashtagClick, onFollowChange }:
       )}
 
       {reel.codeSnippet && (
-        <div className="flex items-center gap-2 text-white/80 text-sm">
-          <Code className="w-4 h-4" />
+        <div className="flex items-center gap-1.5 text-xs text-white/80 sm:gap-2 sm:text-sm">
+          <Code className="h-3 w-3 sm:h-4 sm:w-4" />
           <span>{reel.codeLanguage || 'Code'}</span>
-          {reel.codeFileName && (
-            <span className="text-white/60">• {reel.codeFileName}</span>
-          )}
+          {reel.codeFileName && <span className="text-white/60">• {reel.codeFileName}</span>}
           {reel.repoUrl && (
             <a
               href={reel.repoUrl}
@@ -209,15 +204,15 @@ export function ReelInfo({ reel, onAudioClick, onHashtagClick, onFollowChange }:
               onClick={(e) => e.stopPropagation()}
               className="ml-1 hover:text-white"
             >
-              <ExternalLink className="w-3 h-3" />
+              <ExternalLink className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
             </a>
           )}
         </div>
       )}
 
       {reel.locationName && (
-        <div className="flex items-center gap-1 text-white/70 text-sm">
-          <MapPin className="w-4 h-4" />
+        <div className="flex items-center gap-1 text-xs text-white/70 sm:text-sm">
+          <MapPin className="h-3 w-3 sm:h-4 sm:w-4" />
           <span>{reel.locationName}</span>
         </div>
       )}
@@ -228,10 +223,10 @@ export function ReelInfo({ reel, onAudioClick, onHashtagClick, onFollowChange }:
             e.stopPropagation();
             onAudioClick?.();
           }}
-          className="flex items-center gap-2 text-white/90 text-sm hover:text-white overflow-hidden"
+          className="flex items-center gap-1.5 overflow-hidden text-xs text-white/90 hover:text-white sm:gap-2 sm:text-sm"
         >
           <div className="flex items-center gap-2 animate-marquee">
-            <Music className="w-4 h-4 flex-shrink-0" />
+            <Music className="h-3 w-3 flex-shrink-0 sm:h-4 sm:w-4" />
             <span className="whitespace-nowrap">
               {reel.audio.title}
               {reel.audio.artist && ` • ${reel.audio.artist}`}

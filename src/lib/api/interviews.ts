@@ -58,11 +58,14 @@ export interface InterviewStats {
   passedSessions: number;
   passRate: number;
   avgScore: number;
-  categoryStats: Record<string, {
-    count: number;
-    avgScore: number;
-    passed: number;
-  }>;
+  categoryStats: Record<
+    string,
+    {
+      count: number;
+      avgScore: number;
+      passed: number;
+    }
+  >;
 }
 
 // Get all categories
@@ -72,7 +75,9 @@ export const getInterviewCategories = async (): Promise<InterviewCategory[]> => 
 };
 
 // Get category by slug
-export const getInterviewCategory = async (slug: string): Promise<InterviewCategory & { questions: InterviewQuestion[] }> => {
+export const getInterviewCategory = async (
+  slug: string
+): Promise<InterviewCategory & { questions: InterviewQuestion[] }> => {
   const response = await apiClient.get(`/interviews/categories/${slug}`);
   return response.data;
 };

@@ -1,15 +1,17 @@
 'use client';
 
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { safetyAPI, type BlockUserResponse } from '@/lib/api/safety';
+import { useAuth } from '@/lib/auth/useAuth';
 import {
-  X,
-  AlertTriangle,
-  Shield,
-  Loader2,
-  Check,
-} from 'lucide-react';
-import { blockUser } from '@/lib/api/connections';
+  refreshSafetySensitiveQueries,
+  removeUnavailableConversations,
+} from '@/lib/safety/clientCleanup';
+import { SAFETY_STATE_CHANGED_EVENT } from '@/lib/socket';
+import { handleApiError } from '@/lib/utils/errorHandler';
+import { useQueryClient } from '@tanstack/react-query';
+import { AnimatePresence, motion } from 'framer-motion';
+import { AlertTriangle, Check, Loader2, Shield, X } from 'lucide-react';
+import { useState } from 'react';
 
 interface BlockUserModalProps {
   isOpen: boolean;
@@ -17,7 +19,7 @@ interface BlockUserModalProps {
   userId: string;
   userName: string;
   userImage?: string | null;
-  onBlocked?: () => void;
+  onBlocked?: (response: BlockUserResponse) => void;
 }
 
 export function BlockUserModal({
@@ -28,6 +30,8 @@ export function BlockUserModal({
   userImage,
   onBlocked,
 }: BlockUserModalProps) {
+  const queryClient = useQueryClient();
+  const { user: currentUser } = useAuth();
   const [loading, setLoading] = useState(false);
   const [blocked, setBlocked] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -36,15 +40,30 @@ export function BlockUserModal({
     try {
       setLoading(true);
       setError(null);
-      await blockUser(userId);
+      const response = await safetyAPI.blockUser(userId, 'Blocked from user profile');
+      if (currentUser?.id) {
+        await removeUnavailableConversations({
+          queryClient,
+          ownerId: currentUser.id,
+          conversationIds: response.effects?.affectedConversationIds ?? [],
+        });
+      }
+      await refreshSafetySensitiveQueries(queryClient, currentUser?.id);
+      window.dispatchEvent(
+        new CustomEvent(SAFETY_STATE_CHANGED_EVENT, {
+          detail: {
+            reason: 'interaction_policy_changed',
+            affectedConversationIds: response.effects?.affectedConversationIds ?? [],
+          },
+        })
+      );
       setBlocked(true);
-      onBlocked?.();
+      onBlocked?.(response);
       setTimeout(() => {
         onClose();
       }, 1500);
-    } catch (err: any) {
-      console.error('Failed to block user:', err);
-      setError(err.response?.data?.message || 'Failed to block user. Please try again.');
+    } catch (err: unknown) {
+      setError(handleApiError(err));
     } finally {
       setLoading(false);
     }
@@ -81,9 +100,7 @@ export function BlockUserModal({
                 <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
                   <Shield className="w-5 h-5 text-red-600 dark:text-red-400" />
                 </div>
-                <h2 className="font-semibold text-gray-900 dark:text-white">
-                  Block User
-                </h2>
+                <h2 className="font-semibold text-gray-900 dark:text-white">Block User</h2>
               </div>
               <button
                 onClick={handleClose}
@@ -109,7 +126,8 @@ export function BlockUserModal({
                     User Blocked
                   </h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {userName} has been blocked. They won't be able to see your content or contact you.
+                    {userName} has been blocked. They won&apos;t be able to see your content or
+                    contact you.
                   </p>
                 </motion.div>
               ) : (
@@ -139,11 +157,11 @@ export function BlockUserModal({
                     <ul className="space-y-2">
                       <li className="flex items-start gap-2">
                         <span className="w-1.5 h-1.5 rounded-full bg-gray-400 mt-1.5 shrink-0" />
-                        They won't be able to see your posts or profile
+                        They won&apos;t be able to see your posts or profile
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="w-1.5 h-1.5 rounded-full bg-gray-400 mt-1.5 shrink-0" />
-                        They won't be able to message you
+                        They won&apos;t be able to message you
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="w-1.5 h-1.5 rounded-full bg-gray-400 mt-1.5 shrink-0" />
@@ -151,7 +169,7 @@ export function BlockUserModal({
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="w-1.5 h-1.5 rounded-full bg-gray-400 mt-1.5 shrink-0" />
-                        They won't be notified that you blocked them
+                        They won&apos;t be notified that you blocked them
                       </li>
                     </ul>
                   </div>
@@ -159,9 +177,7 @@ export function BlockUserModal({
                   {/* Warning */}
                   <div className="mt-4 flex items-start gap-3 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400">
                     <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
-                    <p className="text-sm">
-                      You can unblock this user later from your settings.
-                    </p>
+                    <p className="text-sm">You can unblock this user later from your settings.</p>
                   </div>
 
                   {/* Error Message */}

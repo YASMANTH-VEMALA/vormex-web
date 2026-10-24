@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { Loader2 } from 'lucide-react';
 import { ReelEdit } from '@/components/reels';
-import { reelsApi, Reel } from '@/lib/api/reels';
+import { Reel, reelsApi } from '@/lib/api/reels';
+import { Loader2 } from 'lucide-react';
+import { useParams, useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 export default function EditReelPage() {
   const params = useParams();

@@ -1,10 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { getSocialProofLeaderboard, type LeaderboardResponse, type LeaderboardEntry } from '@/lib/api/social-proof';
+import {
+  getSocialProofLeaderboard,
+  type LeaderboardEntry,
+  type LeaderboardResponse,
+} from '@/lib/api/social-proof';
+import 'framer-motion';
+import { ChevronRight, Trophy } from 'lucide-react';
 import Link from 'next/link';
-import { Trophy, ChevronRight } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 /**
  * LeaderboardCard — Top Networkers with competitive ranking
@@ -67,14 +71,12 @@ export default function LeaderboardCard({
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-neutral-800">
         <div className="flex items-center gap-2">
           <Trophy className="w-4 h-4 text-amber-500" />
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-            Top Networkers
-          </h3>
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Top Networkers</h3>
         </div>
 
         {showFilters && (
           <div className="flex bg-gray-100 dark:bg-neutral-800 rounded-lg p-0.5">
-            {(['daily', 'weekly', 'all_time'] as const).map(p => (
+            {(['daily', 'weekly', 'all_time'] as const).map((p) => (
               <button
                 key={p}
                 onClick={() => setPeriod(p)}
@@ -144,9 +146,11 @@ function LeaderboardRow({ entry, index }: { entry: LeaderboardEntry; index: numb
       className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-neutral-800/50 transition-colors"
     >
       {/* Rank */}
-      <span className={`w-6 text-center text-xs font-bold tabular-nums ${
-        index < 3 ? RANK_COLORS[index] : 'text-gray-400 dark:text-neutral-500'
-      }`}>
+      <span
+        className={`w-6 text-center text-xs font-bold tabular-nums ${
+          index < 3 ? RANK_COLORS[index] : 'text-gray-400 dark:text-neutral-500'
+        }`}
+      >
         {index < 3 ? RANK_EMOJIS[index] : entry.rank}
       </span>
 
@@ -167,7 +171,9 @@ function LeaderboardRow({ entry, index }: { entry: LeaderboardEntry; index: numb
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{entry.name}</p>
         {entry.college && (
-          <p className="text-[10px] text-gray-400 dark:text-neutral-500 truncate">{entry.college}</p>
+          <p className="text-[10px] text-gray-400 dark:text-neutral-500 truncate">
+            {entry.college}
+          </p>
         )}
       </div>
 

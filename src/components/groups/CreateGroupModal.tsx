@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { asApiError } from '@/lib/api/errors';
 import { createGroup, GroupPrivacy } from '@/lib/api/groups';
+import { AnimatePresence, motion } from 'framer-motion';
+import { useState } from 'react';
 
 interface CreateGroupModalProps {
   isOpen: boolean;
@@ -64,7 +65,7 @@ export default function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateG
         description: description.trim() || undefined,
         privacy,
         category: category || undefined,
-        rules: rules.filter(r => r.trim()),
+        rules: rules.filter((r) => r.trim()),
       });
 
       // Reset form
@@ -76,8 +77,8 @@ export default function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateG
 
       onSuccess();
       onClose();
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to create group');
+    } catch (err: unknown) {
+      setError(asApiError(err).response?.data?.error || 'Failed to create group');
     } finally {
       setIsSubmitting(false);
     }
@@ -103,15 +104,18 @@ export default function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateG
         >
           {/* Header */}
           <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-              Create Group
-            </h2>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Create Group</h2>
             <button
               onClick={onClose}
               className="p-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           </div>
@@ -175,9 +179,13 @@ export default function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateG
                         : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
                     }`}
                   >
-                    <span className={`block text-sm font-medium ${
-                      privacy === option.value ? 'text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-white'
-                    }`}>
+                    <span
+                      className={`block text-sm font-medium ${
+                        privacy === option.value
+                          ? 'text-blue-600 dark:text-blue-400'
+                          : 'text-gray-900 dark:text-white'
+                      }`}
+                    >
                       {option.label}
                     </span>
                     <span className="block text-xs text-gray-500 dark:text-gray-400 mt-0.5">
@@ -200,7 +208,9 @@ export default function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateG
               >
                 <option value="">Select a category</option>
                 {CATEGORIES.map((cat) => (
-                  <option key={cat} value={cat}>{cat}</option>
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
                 ))}
               </select>
             </div>
@@ -213,7 +223,9 @@ export default function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateG
               <div className="space-y-2">
                 {rules.map((rule, index) => (
                   <div key={index} className="flex items-center gap-2">
-                    <span className="text-sm text-gray-500 dark:text-gray-400 w-6">{index + 1}.</span>
+                    <span className="text-sm text-gray-500 dark:text-gray-400 w-6">
+                      {index + 1}.
+                    </span>
                     <input
                       type="text"
                       value={rule}
@@ -227,8 +239,18 @@ export default function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateG
                         onClick={() => handleRemoveRule(index)}
                         className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                       >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M6 18L18 6M6 6l12 12"
+                          />
                         </svg>
                       </button>
                     )}
@@ -241,7 +263,12 @@ export default function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateG
                     className="flex items-center gap-1 text-sm text-blue-600 dark:text-blue-400 hover:underline"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 4v16m8-8H4"
+                      />
                     </svg>
                     Add Rule
                   </button>
@@ -259,8 +286,19 @@ export default function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateG
                 {isSubmitting ? (
                   <span className="flex items-center justify-center gap-2">
                     <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                      />
                     </svg>
                     Creating...
                   </span>

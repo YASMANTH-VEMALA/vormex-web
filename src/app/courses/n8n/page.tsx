@@ -1,22 +1,20 @@
 'use client';
 
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
-  ChevronLeft,
-  Play,
-  CheckCircle,
-  Clock,
   BookOpen,
-  Users,
-  Star,
-  X,
+  CheckCircle,
   ChevronDown,
+  ChevronLeft,
   ChevronUp,
-  Workflow
+  Play,
+  Star,
+  Users,
+  X,
 } from 'lucide-react';
 import Link from 'next/link';
-import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { useState } from 'react';
 
 interface Lesson {
   id: number;
@@ -28,7 +26,8 @@ interface Lesson {
 
 const courseData = {
   title: 'N8N Automation Course',
-  description: 'Complete course on N8N workflow automation - from basics to advanced agents, APIs, and real-world projects. Learn to build powerful automations in Telugu.',
+  description:
+    'Complete course on N8N workflow automation - from basics to advanced agents, APIs, and real-world projects. Learn to build powerful automations in Telugu.',
   instructor: 'Vormex',
   language: 'Telugu',
   totalLessons: 13,
@@ -39,81 +38,82 @@ const courseData = {
       id: 1,
       title: 'Foundations for agents, automations, LLMs - Part 1',
       videoId: '0sMiHDipuVc',
-      description: 'Introduction to N8N, agents, automations, and LLMs fundamentals.'
+      description: 'Introduction to N8N, agents, automations, and LLMs fundamentals.',
     },
     {
       id: 2,
       title: 'N8N Account Setup - Part 2',
       videoId: '8ySQ8i0_5bE',
-      description: 'Step-by-step guide to setting up your N8N account.'
+      description: 'Step-by-step guide to setting up your N8N account.',
     },
     {
       id: 3,
       title: 'First Workflow & Google Credentials - Part 3',
       videoId: 'iPcGsMto6ds',
-      description: 'Create your first workflow and set up Google credentials.'
+      description: 'Create your first workflow and set up Google credentials.',
     },
     {
       id: 4,
       title: 'Localhost Expose - Part 4',
       videoId: 'x0aiYUjOVhI',
-      description: 'Learn how to expose your localhost for webhooks and testing.'
+      description: 'Learn how to expose your localhost for webhooks and testing.',
     },
     {
       id: 5,
       title: 'Webhooks, Nodes, Triggers, Data Types & Conditions - Part 5',
       videoId: 'LHnF5QFLbvk',
-      description: 'Deep dive into webhooks, important nodes, triggers, data types, and conditions.'
+      description:
+        'Deep dive into webhooks, important nodes, triggers, data types, and conditions.',
     },
     {
       id: 6,
       title: 'Agent, APIs & Telegram Workflow - Part 6',
       videoId: 'rlcCInWzhkc',
-      description: 'Build an agent with APIs and create a Telegram bot workflow.'
+      description: 'Build an agent with APIs and create a Telegram bot workflow.',
     },
     {
       id: 7,
       title: 'Multi Agents - Part 7',
       videoId: '3IGaqJnPHRQ',
-      description: 'Learn to work with multiple agents in N8N.'
+      description: 'Learn to work with multiple agents in N8N.',
     },
     {
       id: 8,
       title: 'Ecommerce Shopify - Part 8',
       videoId: 'GPh_e6WZAhc',
-      description: 'Integrate N8N with Shopify for ecommerce automation.'
+      description: 'Integrate N8N with Shopify for ecommerce automation.',
     },
     {
       id: 9,
       title: 'RAG Automation - Part 9',
       videoId: 'zD25mepqqbE',
-      description: 'Implement Retrieval-Augmented Generation (RAG) automation.'
+      description: 'Implement Retrieval-Augmented Generation (RAG) automation.',
     },
     {
       id: 10,
       title: 'Email Voice Agent - Part 10',
       videoId: 'ehaJ46VeU18',
-      description: 'Build an email voice agent automation.'
+      description: 'Build an email voice agent automation.',
     },
     {
       id: 11,
       title: 'LinkedIn Posts Creation - Part 11',
       videoId: 'J9Sb0jYQmow',
-      description: 'Automate LinkedIn post creation with N8N.'
+      description: 'Automate LinkedIn post creation with N8N.',
     },
     {
       id: 12,
       title: 'YouTube Creatomate Automation - Part 12',
       videoId: '9COKtFo3tq4',
-      description: 'Create YouTube content automation with Creatomate.'
+      description: 'Create YouTube content automation with Creatomate.',
     },
     {
       id: 13,
       title: 'Leads Generation Automation - Part 13',
       videoId: 'AmoLJl1t_pI',
-      description: 'Build a leads generation automation system.'
-    }
-  ] as Lesson[]
+      description: 'Build a leads generation automation system.',
+    },
+  ] as Lesson[],
 };
 
 function N8NCourseContent() {
@@ -126,7 +126,7 @@ function N8NCourseContent() {
   };
 
   const handleMarkComplete = (lessonId: number) => {
-    setCompletedLessons(prev => {
+    setCompletedLessons((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(lessonId)) {
         newSet.delete(lessonId);
@@ -160,8 +160,12 @@ function N8NCourseContent() {
                   <X className="w-5 h-5 text-gray-400" />
                 </button>
                 <div>
-                  <p className="text-xs text-gray-500">Lesson {currentLesson.id} of {courseData.lessons.length}</p>
-                  <h2 className="font-medium text-white text-sm sm:text-base line-clamp-1">{currentLesson.title}</h2>
+                  <p className="text-xs text-gray-500">
+                    Lesson {currentLesson.id} of {courseData.lessons.length}
+                  </p>
+                  <h2 className="font-medium text-white text-sm sm:text-base line-clamp-1">
+                    {currentLesson.title}
+                  </h2>
                 </div>
               </div>
               <button
@@ -200,7 +204,7 @@ function N8NCourseContent() {
             <div className="px-4 py-3 bg-neutral-900 border-t border-neutral-800 flex items-center justify-between">
               <button
                 onClick={() => {
-                  const prevLesson = courseData.lessons.find(l => l.id === currentLesson.id - 1);
+                  const prevLesson = courseData.lessons.find((l) => l.id === currentLesson.id - 1);
                   if (prevLesson) setCurrentLesson(prevLesson);
                 }}
                 disabled={currentLesson.id === 1}
@@ -211,7 +215,7 @@ function N8NCourseContent() {
               </button>
               <button
                 onClick={() => {
-                  const nextLesson = courseData.lessons.find(l => l.id === currentLesson.id + 1);
+                  const nextLesson = courseData.lessons.find((l) => l.id === currentLesson.id + 1);
                   if (nextLesson) setCurrentLesson(nextLesson);
                 }}
                 disabled={currentLesson.id === courseData.lessons.length}
@@ -228,12 +232,19 @@ function N8NCourseContent() {
       {/* Header */}
       <div className="sticky top-0 z-40 bg-white dark:bg-neutral-900 border-b border-gray-200 dark:border-neutral-800">
         <div className="flex items-center gap-3 px-4 py-4">
-          <Link href="/learning" className="p-2 -ml-2 rounded-full hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors">
+          <Link
+            href="/learning"
+            className="p-2 -ml-2 rounded-full hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors"
+          >
             <ChevronLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
           </Link>
           <div className="flex-1 min-w-0">
-            <h1 className="text-lg font-bold text-gray-900 dark:text-white truncate">{courseData.title}</h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400">{courseData.totalLessons} lessons • {courseData.language}</p>
+            <h1 className="text-lg font-bold text-gray-900 dark:text-white truncate">
+              {courseData.title}
+            </h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              {courseData.totalLessons} lessons • {courseData.language}
+            </p>
           </div>
         </div>
       </div>
@@ -244,9 +255,9 @@ function N8NCourseContent() {
           {/* Course Thumbnail */}
           <div className="aspect-video bg-gradient-to-br from-[#FF6D5A]/20 via-[#EA4B71]/20 to-[#7B61FF]/20 flex items-center justify-center relative">
             <div className="absolute inset-0 flex items-center justify-center">
-              <img 
-                src="https://n8n.io/favicon.ico" 
-                alt="n8n Logo" 
+              <img
+                src="https://n8n.io/favicon.ico"
+                alt="n8n Logo"
                 className="w-24 h-24 object-contain"
               />
             </div>
@@ -262,8 +273,12 @@ function N8NCourseContent() {
 
           {/* Course Details */}
           <div className="p-5">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{courseData.title}</h2>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">{courseData.description}</p>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+              {courseData.title}
+            </h2>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              {courseData.description}
+            </p>
 
             {/* Stats */}
             <div className="flex items-center gap-4 mb-4 text-sm text-gray-500 dark:text-gray-400">
@@ -302,20 +317,26 @@ function N8NCourseContent() {
             {/* Start/Continue Button */}
             <button
               onClick={() => {
-                const nextIncomplete = courseData.lessons.find(l => !completedLessons.has(l.id));
+                const nextIncomplete = courseData.lessons.find((l) => !completedLessons.has(l.id));
                 setCurrentLesson(nextIncomplete || courseData.lessons[0]);
               }}
               className="w-full py-3 rounded-lg bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-medium hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors flex items-center justify-center gap-2"
             >
               <Play className="w-4 h-4" />
-              {completedLessons.size === 0 ? 'Start Course' : completedLessons.size === courseData.lessons.length ? 'Watch Again' : 'Continue Learning'}
+              {completedLessons.size === 0
+                ? 'Start Course'
+                : completedLessons.size === courseData.lessons.length
+                  ? 'Watch Again'
+                  : 'Continue Learning'}
             </button>
           </div>
         </div>
 
         {/* Lessons List */}
         <div className="space-y-2">
-          <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3">Course Content</h3>
+          <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3">
+            Course Content
+          </h3>
           {courseData.lessons.map((lesson, index) => (
             <motion.div
               key={lesson.id}
@@ -328,11 +349,13 @@ function N8NCourseContent() {
                 onClick={() => setExpandedLesson(expandedLesson === lesson.id ? null : lesson.id)}
                 className="w-full px-4 py-3 flex items-center gap-3 text-left hover:bg-gray-50 dark:hover:bg-neutral-800/50 transition-colors"
               >
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
-                  completedLessons.has(lesson.id)
-                    ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400'
-                    : 'bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-gray-400'
-                }`}>
+                <div
+                  className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+                    completedLessons.has(lesson.id)
+                      ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400'
+                      : 'bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-gray-400'
+                  }`}
+                >
                   {completedLessons.has(lesson.id) ? (
                     <CheckCircle className="w-4 h-4" />
                   ) : (
@@ -340,7 +363,9 @@ function N8NCourseContent() {
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h4 className="font-medium text-gray-900 dark:text-white text-sm truncate">{lesson.title}</h4>
+                  <h4 className="font-medium text-gray-900 dark:text-white text-sm truncate">
+                    {lesson.title}
+                  </h4>
                 </div>
                 {expandedLesson === lesson.id ? (
                   <ChevronUp className="w-4 h-4 text-gray-400 shrink-0" />
@@ -359,7 +384,9 @@ function N8NCourseContent() {
                   >
                     <div className="px-4 pb-4 pt-1">
                       {lesson.description && (
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">{lesson.description}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                          {lesson.description}
+                        </p>
                       )}
                       <div className="flex gap-2">
                         <button
@@ -402,7 +429,8 @@ function N8NCourseContent() {
               Congratulations!
             </h3>
             <p className="text-sm text-green-700 dark:text-green-300">
-              You've completed the N8N Automation Course. You're now ready to build powerful automations!
+              You&apos;ve completed the N8N Automation Course. You&apos;re now ready to build
+              powerful automations!
             </p>
           </motion.div>
         )}

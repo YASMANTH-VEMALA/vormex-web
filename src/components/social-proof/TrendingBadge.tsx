@@ -14,7 +14,7 @@ import { Flame } from 'lucide-react';
  */
 
 interface TrendingBadgeProps {
-  reason?: string;         // "23 people shared this"
+  reason?: string; // "23 people shared this"
   size?: 'sm' | 'md';
   showTooltip?: boolean;
 }
@@ -44,9 +44,7 @@ export default function TrendingBadge({
       <Flame className="w-3.5 h-3.5" />
       <span className="text-xs font-semibold">Trending</span>
       {reason && (
-        <span className="text-[10px] text-orange-500 dark:text-orange-400 ml-0.5">
-          · {reason}
-        </span>
+        <span className="text-[10px] text-orange-500 dark:text-orange-400 ml-0.5">· {reason}</span>
       )}
     </div>
   );

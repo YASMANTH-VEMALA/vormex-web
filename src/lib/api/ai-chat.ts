@@ -1,3 +1,4 @@
+import { AxiosError } from 'axios';
 import apiClient from './client';
 
 // ============================================
@@ -5,48 +6,137 @@ import apiClient from './client';
 // ============================================
 
 export interface ConversationStartersResponse {
-  suggestions: string[];
-  type: 'conversation_starters';
+  starters: string[];
 }
 
 export interface RevivalSuggestionsResponse {
   suggestions: string[];
-  type: 'revival_suggestions';
 }
 
 export interface GrammarFixResponse {
+  original: string;
   corrected: string;
-  alternatives: string[];
-  type: 'grammar_fix';
+  changes: string[];
 }
 
 export interface SmartRepliesResponse {
-  suggestions: string[];
-  type: 'smart_replies';
+  replies: string[];
 }
 
 export interface ToneChangeResponse {
   original: string;
-  result: string;
+  transformed: string;
   tone: string;
-  type: 'tone_change';
 }
 
 export interface TranslationResponse {
   original: string;
   translated: string;
   targetLanguage: string;
-  type: 'translation';
 }
 
 export interface ExpansionResponse {
   original: string;
   expanded: string;
-  type: 'expansion';
 }
 
-export type ToneType = 'professional' | 'casual' | 'friendly' | 'formal' | 'enthusiastic' | 'concise';
+export interface CareerChatHistoryItem {
+  content: string;
+  role: 'user' | 'assistant';
+}
+
+export interface CareerChatResponse {
+  reply: string;
+}
+
+export interface AIErrorPayload {
+  code?: string;
+  error?: string;
+  requestId?: string;
+  retryAfterSeconds?: number;
+}
+
+export type ToneType =
+  'professional' | 'casual' | 'friendly' | 'formal' | 'enthusiastic' | 'concise';
 export type LanguageType = 'english' | 'hindi' | 'telugu' | 'hinglish' | 'tenglish';
+
+export class AIAPIError extends Error {
+  readonly code?: string;
+  readonly requestId?: string;
+  readonly retryAfterSeconds?: number;
+  readonly status?: number;
+
+  constructor(
+    message: string,
+    options: {
+      code?: string;
+      requestId?: string;
+      retryAfterSeconds?: number;
+      status?: number;
+    } = {}
+  ) {
+    super(message);
+    this.name = 'AIAPIError';
+    this.code = options.code;
+    this.requestId = options.requestId;
+    this.retryAfterSeconds = options.retryAfterSeconds;
+    this.status = options.status;
+  }
+}
+
+function normalizeAIError(error: unknown): AIAPIError {
+  if (error instanceof AIAPIError) {
+    return error;
+  }
+
+  if (error instanceof AxiosError) {
+    const axiosError = error as AxiosError<AIErrorPayload>;
+    const payload = axiosError.response?.data;
+    return new AIAPIError(payload?.error || axiosError.message || 'AI request failed.', {
+      code: payload?.code,
+      requestId: payload?.requestId,
+      retryAfterSeconds: payload?.retryAfterSeconds,
+      status: axiosError.response?.status,
+    });
+  }
+
+  if (error instanceof Error) {
+    return new AIAPIError(error.message);
+  }
+
+  return new AIAPIError('AI request failed.');
+}
+
+async function postAIRequest<T>(path: string, body: unknown): Promise<T> {
+  try {
+    return (await apiClient.post(path, body)) as T;
+  } catch (error) {
+    throw normalizeAIError(error);
+  }
+}
+
+export function getAIErrorMessage(
+  error: unknown,
+  fallbackMessage: string = 'I apologize, but I encountered an issue. Please try again later.'
+): string {
+  const normalizedError = normalizeAIError(error);
+
+  if (normalizedError.code === 'ai_not_configured') {
+    return normalizedError.message || 'AI is not configured on the backend.';
+  }
+
+  if (normalizedError.status === 429) {
+    return normalizedError.retryAfterSeconds
+      ? `AI is cooling down. Please try again in ${normalizedError.retryAfterSeconds} seconds.`
+      : 'AI is cooling down. Please try again in a moment.';
+  }
+
+  if (normalizedError.status === 503) {
+    return 'AI is temporarily busy. Please try again shortly.';
+  }
+
+  return normalizedError.message || fallbackMessage;
+}
 
 // ============================================
 // AI Chat API Functions
@@ -58,7 +148,7 @@ export type LanguageType = 'english' | 'hindi' | 'telugu' | 'hinglish' | 'tengli
 export async function getConversationStarters(
   otherUserId: string
 ): Promise<ConversationStartersResponse> {
-  return apiClient.post('/ai/chat/conversation-starters', { otherUserId });
+  return postAIRequest('/ai/chat/conversation-starters', { otherUserId });
 }
 
 /**
@@ -68,7 +158,7 @@ export async function getChatRevivalSuggestions(
   conversationId: string,
   otherUserId: string
 ): Promise<RevivalSuggestionsResponse> {
-  return apiClient.post('/ai/chat/revival-suggestions', {
+  return postAIRequest('/ai/chat/revival-suggestions', {
     conversationId,
     otherUserId,
   });
@@ -77,11 +167,8 @@ export async function getChatRevivalSuggestions(
 /**
  * Fix grammar and spelling in a message
  */
-export async function fixGrammar(
-  message: string,
-  context?: string
-): Promise<GrammarFixResponse> {
-  return apiClient.post('/ai/chat/fix-grammar', { message, context });
+export async function fixGrammar(message: string, context?: string): Promise<GrammarFixResponse> {
+  return postAIRequest('/ai/chat/fix-grammar', { message, context });
 }
 
 /**
@@ -91,7 +178,7 @@ export async function getSmartReplies(
   lastMessage: string,
   conversationId?: string
 ): Promise<SmartRepliesResponse> {
-  return apiClient.post('/ai/chat/smart-replies', {
+  return postAIRequest('/ai/chat/smart-replies', {
     lastMessage,
     conversationId,
   });
@@ -100,11 +187,8 @@ export async function getSmartReplies(
 /**
  * Change the tone of a message
  */
-export async function changeTone(
-  message: string,
-  tone: ToneType
-): Promise<ToneChangeResponse> {
-  return apiClient.post('/ai/chat/change-tone', { message, tone });
+export async function changeTone(message: string, tone: ToneType): Promise<ToneChangeResponse> {
+  return postAIRequest('/ai/chat/change-tone', { message, tone });
 }
 
 /**
@@ -114,7 +198,7 @@ export async function translateMessage(
   message: string,
   targetLanguage: LanguageType
 ): Promise<TranslationResponse> {
-  return apiClient.post('/ai/chat/translate', { message, targetLanguage });
+  return postAIRequest('/ai/chat/translate', { message, targetLanguage });
 }
 
 /**
@@ -124,5 +208,15 @@ export async function expandMessage(
   message: string,
   context?: 'professional' | 'casual'
 ): Promise<ExpansionResponse> {
-  return apiClient.post('/ai/chat/expand', { message, context });
+  return postAIRequest('/ai/chat/expand', { message, context });
+}
+
+export async function sendCareerChatMessage(
+  message: string,
+  conversationHistory: CareerChatHistoryItem[]
+): Promise<CareerChatResponse> {
+  return postAIRequest('/ai/chat/career-chat', {
+    message,
+    conversationHistory,
+  });
 }

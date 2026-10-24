@@ -1,25 +1,28 @@
+import type { GitHubContributionCalendar } from '@/types/profile';
+import type { GitHubStats } from './integrations';
 // Profile API - Complete API client for all profile endpoints
 
-import apiClient from './client';
 import type {
-  FullProfileResponse,
-  ProfileUpdateData,
-  ActivityHeatmapResponse,
-  ActivityYearsResponse,
-  UserSkill,
-  SkillInput,
-  Experience,
-  ExperienceInput,
-  Education,
-  EducationInput,
-  Project,
-  ProjectInput,
-  Certificate,
-  CertificateInput,
   Achievement,
   AchievementInput,
+  ActivityHeatmapResponse,
+  ActivityYearsResponse,
+  Certificate,
+  CertificateInput,
+  CoreProfileResponse,
+  Education,
+  EducationInput,
+  Experience,
+  ExperienceInput,
+  FullProfileResponse,
+  ProfileUpdateData,
+  Project,
+  ProjectInput,
   RecentActivity,
+  SkillInput,
+  UserSkill,
 } from '@/types/profile';
+import apiClient from './client';
 
 // ============================================
 // Profile Endpoints
@@ -35,17 +38,65 @@ export async function uploadCompanyLogo(file: File): Promise<{ logoUrl: string }
 }
 
 /**
- * Get full user profile with all data
+ * Get the small profile header/stats payload used to make navigation visible.
  * @param usernameOrId - Username or user ID
  */
-export async function getProfile(usernameOrId: string): Promise<FullProfileResponse> {
+export async function getCoreProfile(usernameOrId: string): Promise<CoreProfileResponse> {
   return apiClient.get(`/users/${usernameOrId}/profile`);
+}
+
+/** Get the deferred profile bundle for the lower sections. */
+export async function getProfile(usernameOrId: string): Promise<FullProfileResponse> {
+  return apiClient.get(`/users/${usernameOrId}/profile`, { params: { include: 'all' } });
+}
+
+export function profileQueryAliases(
+  requestedId: string,
+  profile: Pick<CoreProfileResponse, 'user'>
+): string[] {
+  return Array.from(
+    new Set(
+      [requestedId, profile.user.id, profile.user.username, `@${profile.user.username}`]
+        .map((value) => value.trim())
+        .filter(Boolean)
+    )
+  );
+}
+
+export function materializeCoreProfile(
+  core: CoreProfileResponse,
+  existing?: FullProfileResponse | null
+): FullProfileResponse {
+  return {
+    user: { ...(existing?.user || {}), ...core.user },
+    stats: core.stats,
+    github: existing?.github || {
+      connected: false,
+      username: null,
+      avatarUrl: null,
+      profileUrl: null,
+      stats: null,
+      contributionCalendar: null,
+      lastSyncedAt: null,
+    },
+    activityHeatmap: existing?.activityHeatmap || [],
+    recentActivity: existing?.recentActivity || { items: [], totalCount: 0, hasMore: false },
+    skills: existing?.skills || [],
+    experiences: existing?.experiences || [],
+    education: existing?.education || [],
+    projects: existing?.projects || [],
+    certificates: existing?.certificates || [],
+    achievements: existing?.achievements || [],
+    viewerContext: core.viewerContext || existing?.viewerContext,
+  };
 }
 
 /**
  * Update own profile
  */
-export async function updateProfile(data: ProfileUpdateData): Promise<any> {
+export async function updateProfile(
+  data: ProfileUpdateData
+): Promise<Partial<import('@/types/profile').ProfileUser>> {
   return apiClient.put('/users/me', data);
 }
 
@@ -61,19 +112,6 @@ export async function updateAvatar(avatarUrl: string): Promise<{ avatar: string 
  */
 export async function updateBanner(bannerUrl: string): Promise<{ bannerImageUrl: string }> {
   return apiClient.post('/users/me/banner', { bannerUrl });
-}
-
-/**
- * Claim welcome gift and apply profile ring
- * Uses PUT /users/me (existing route) to avoid 404 on separate endpoint
- * @param profileRing - "original" | "hue"
- */
-export async function claimWelcomeGift(profileRing: 'original' | 'hue'): Promise<{ profileRing: string; hasClaimedWelcomeGift: boolean }> {
-  const updated = await updateProfile({ profileRing, hasClaimedWelcomeGift: true });
-  return {
-    profileRing: (updated as any).profileRing ?? profileRing,
-    hasClaimedWelcomeGift: (updated as any).hasClaimedWelcomeGift ?? true,
-  };
 }
 
 /**
@@ -128,10 +166,7 @@ export async function addSkill(data: SkillInput): Promise<UserSkill> {
 /**
  * Update a skill
  */
-export async function updateSkill(
-  id: string,
-  data: Partial<SkillInput>
-): Promise<UserSkill> {
+export async function updateSkill(id: string, data: Partial<SkillInput>): Promise<UserSkill> {
   return apiClient.put(`/users/me/skills/${id}`, data);
 }
 
@@ -235,10 +270,7 @@ export async function createProject(data: ProjectInput): Promise<Project> {
 /**
  * Update a project
  */
-export async function updateProject(
-  id: string,
-  data: Partial<ProjectInput>
-): Promise<Project> {
+export async function updateProject(id: string, data: Partial<ProjectInput>): Promise<Project> {
   return apiClient.put(`/users/me/projects/${id}`, data);
 }
 
@@ -349,7 +381,7 @@ export async function startGitHubOAuth(): Promise<{ authUrl: string }> {
  */
 export async function syncGitHubStats(): Promise<{
   message: string;
-  stats: any;
+  stats: GitHubStats | null;
   syncedAt: string;
 }> {
   return apiClient.post('/integrations/github/sync');
@@ -368,7 +400,8 @@ export async function disconnectGitHub(): Promise<{ message: string }> {
 export async function getGitHubStats(): Promise<{
   connected: boolean;
   username: string | null;
-  stats: any;
+  stats: GitHubStats | null;
+  contributionCalendar?: GitHubContributionCalendar | null;
   lastSyncedAt: string | null;
 }> {
   return apiClient.get('/integrations/github/stats');
@@ -376,6 +409,7 @@ export async function getGitHubStats(): Promise<{
 
 // Default export for convenience
 export const profileAPI = {
+  getCoreProfile,
   getProfile,
   updateProfile,
   updateAvatar,
@@ -413,4 +447,3 @@ export const profileAPI = {
   disconnectGitHub,
   getGitHubStats,
 };
-

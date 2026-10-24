@@ -1,9 +1,9 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import { X, Gem, UserPlus } from 'lucide-react';
-import Link from 'next/link';
 import type { MatchUser } from '@/lib/api/variable-rewards';
+import { motion } from 'framer-motion';
+import { Gem, UserPlus, X } from 'lucide-react';
+import Link from 'next/link';
 
 interface HiddenGemCardProps {
   gems: MatchUser[];
@@ -42,7 +42,10 @@ export function HiddenGemCard({ gems, onDismiss }: HiddenGemCardProps) {
             </p>
           </div>
         </div>
-        <button onClick={onDismiss} className="p-1 rounded-full hover:bg-yellow-100 dark:hover:bg-yellow-900/40 transition-colors">
+        <button
+          onClick={onDismiss}
+          className="p-1 rounded-full hover:bg-yellow-100 dark:hover:bg-yellow-900/40 transition-colors"
+        >
           <X className="w-4 h-4 text-yellow-400" />
         </button>
       </div>
@@ -62,20 +65,24 @@ export function HiddenGemCard({ gems, onDismiss }: HiddenGemCardProps) {
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{gem.name}</p>
+            <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+              {gem.name}
+            </p>
             {gem.headline && (
               <p className="text-xs text-gray-500 dark:text-neutral-400 truncate">{gem.headline}</p>
             )}
             {gem.college && (
-              <p className="text-[11px] text-yellow-600 dark:text-yellow-400 mt-0.5">{gem.college}</p>
+              <p className="text-[11px] text-yellow-600 dark:text-yellow-400 mt-0.5">
+                {gem.college}
+              </p>
             )}
           </div>
         </div>
 
-        {/* Shared interests */}
-        {gem.interests.length > 0 && (
+        {/* Shared interests — optional; the hidden-gem endpoint omits the field */}
+        {(gem.interests?.length ?? 0) > 0 && (
           <div className="flex flex-wrap gap-1.5 mt-3">
-            {gem.interests.slice(0, 4).map((interest) => (
+            {(gem.interests ?? []).slice(0, 4).map((interest) => (
               <span
                 key={interest}
                 className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 border border-yellow-200 dark:border-yellow-800/50"

@@ -1,10 +1,12 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import type { ManagedAdCreative } from '@/lib/api/managed-ads';
+import { Reel, reelsApi, ReelsFeedResponse } from '@/lib/api/reels';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ReelCard } from './ReelCard';
-import { reelsApi, Reel, ReelsFeedResponse } from '@/lib/api/reels';
+import { ReelManagedAdCard } from './ReelManagedAdCard';
 
 interface ReelsFeedProps {
   mode?: 'foryou' | 'following';
@@ -15,46 +17,60 @@ export function ReelsFeed({ mode = 'foryou', initialReels }: ReelsFeedProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isMuted, setIsMuted] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
-  const observerRefs = useRef<Map<string, IntersectionObserver>>(new Map());
+  const [adSessionId] = useState(() =>
+    typeof crypto !== 'undefined' && 'randomUUID' in crypto
+      ? crypto.randomUUID()
+      : `reels-${performance.timeOrigin.toString(36)}`
+  );
+  const adItemOffsetRef = useRef(0);
 
-  const {
-    data,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    isLoading,
-    isError,
-  } = useInfiniteQuery({
-    queryKey: ['reels-feed', mode],
-    queryFn: async ({ pageParam }) => {
-      const response = await reelsApi.getFeed({ cursor: pageParam, limit: 10, mode });
-      return response as unknown as ReelsFeedResponse;
-    },
-    getNextPageParam: (lastPage) => lastPage.nextCursor,
-    initialPageParam: undefined as string | undefined,
-    staleTime: 1000 * 60 * 5,
-    initialData: initialReels
-      ? {
-          pages: [{ reels: initialReels, nextCursor: null, hasMore: false }],
-          pageParams: [undefined],
-        }
-      : undefined,
-  });
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError } =
+    useInfiniteQuery({
+      queryKey: ['reels-feed', mode],
+      queryFn: async ({ pageParam }) => {
+        const adItemOffset = pageParam ? adItemOffsetRef.current : 0;
+        const response = await reelsApi.getFeed({
+          cursor: pageParam,
+          limit: 10,
+          mode,
+          adSessionId,
+          adItemOffset,
+        });
+        adItemOffsetRef.current =
+          adItemOffset + (response as unknown as ReelsFeedResponse).reels.length;
+        return response as unknown as ReelsFeedResponse;
+      },
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+      initialPageParam: undefined as string | undefined,
+      staleTime: 1000 * 60 * 5,
+      initialData: initialReels
+        ? {
+            pages: [{ reels: initialReels, nextCursor: null, hasMore: false, adPlacements: [] }],
+            pageParams: [undefined],
+          }
+        : undefined,
+    });
 
-  const reels = data?.pages.flatMap((p) => p.reels) ?? [];
+  const reels = useMemo(() => data?.pages.flatMap((p) => p.reels) ?? [], [data]);
+  const adPlacements = useMemo(
+    () => data?.pages.flatMap((p) => p.adPlacements || []) ?? [],
+    [data]
+  );
+  const items = useMemo(() => {
+    const feedItems: Array<{ type: 'reel'; reel: Reel } | { type: 'ad'; ad: ManagedAdCreative }> =
+      [];
+    reels.forEach((reel, index) => {
+      feedItems.push({ type: 'reel', reel });
+      adPlacements
+        .filter((ad) => ad.afterItemCount === index + 1)
+        .forEach((ad) => feedItems.push({ type: 'ad', ad }));
+    });
+    return feedItems;
+  }, [adPlacements, reels]);
 
   useEffect(() => {
-    const preloadReels = reels.slice(activeIndex + 1, activeIndex + 4);
-    preloadReels.forEach((reel) => {
-      if (reel.hlsUrl) {
-        fetch(reel.hlsUrl).catch(() => {});
-      }
-      if (reel.thumbnailUrl) {
-        const img = new Image();
-        img.src = reel.thumbnailUrl;
-      }
-    });
-  }, [activeIndex, reels]);
+    adItemOffsetRef.current = reels.length;
+  }, [reels.length]);
 
   const handleScroll = useCallback(() => {
     const container = containerRef.current;
@@ -67,11 +83,11 @@ export function ReelsFeed({ mode = 'foryou', initialReels }: ReelsFeedProps) {
     if (newIndex !== activeIndex) {
       setActiveIndex(newIndex);
 
-      if (newIndex >= reels.length - 3 && hasNextPage && !isFetchingNextPage) {
+      if (newIndex >= items.length - 3 && hasNextPage && !isFetchingNextPage) {
         fetchNextPage();
       }
     }
-  }, [activeIndex, reels.length, hasNextPage, isFetchingNextPage, fetchNextPage]);
+  }, [activeIndex, items.length, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -93,7 +109,7 @@ export function ReelsFeed({ mode = 'foryou', initialReels }: ReelsFeedProps) {
 
   if (isLoading) {
     return (
-      <div className="h-screen w-full flex items-center justify-center bg-black">
+      <div className="flex h-[100dvh] w-full items-center justify-center bg-black">
         <Loader2 className="w-12 h-12 text-white animate-spin" />
       </div>
     );
@@ -101,7 +117,7 @@ export function ReelsFeed({ mode = 'foryou', initialReels }: ReelsFeedProps) {
 
   if (isError) {
     return (
-      <div className="h-screen w-full flex flex-col items-center justify-center bg-black text-white gap-4">
+      <div className="flex h-[100dvh] w-full flex-col items-center justify-center gap-4 bg-black text-white">
         <p>Failed to load reels</p>
         <button
           onClick={() => window.location.reload()}
@@ -113,9 +129,9 @@ export function ReelsFeed({ mode = 'foryou', initialReels }: ReelsFeedProps) {
     );
   }
 
-  if (reels.length === 0) {
+  if (items.length === 0) {
     return (
-      <div className="h-screen w-full flex flex-col items-center justify-center bg-black text-white gap-4">
+      <div className="flex h-[100dvh] w-full flex-col items-center justify-center gap-4 bg-black text-white">
         <p className="text-xl">No reels yet</p>
         <p className="text-gray-400">Be the first to create one!</p>
       </div>
@@ -125,25 +141,34 @@ export function ReelsFeed({ mode = 'foryou', initialReels }: ReelsFeedProps) {
   return (
     <div
       ref={containerRef}
-      className="h-screen w-full snap-y snap-mandatory overflow-y-scroll scrollbar-hide"
+      className="scrollbar-hide h-[100dvh] w-full snap-y snap-mandatory overflow-y-scroll overscroll-y-contain"
       onClick={handleFirstInteraction}
     >
-      {reels.map((reel, index) => (
+      {items.map((item, index) => (
         <div
-          key={reel.id}
-          className="h-screen w-full snap-start snap-always"
+          key={item.type === 'reel' ? item.reel.id : `${item.ad.campaignId}-${item.ad.slotKey}`}
+          className="h-[100dvh] w-full snap-start snap-always"
         >
-          <ReelCard
-            reel={reel}
-            isActive={index === activeIndex}
-            isMuted={isMuted}
-            onMuteToggle={handleMuteToggle}
-          />
+          {item.type === 'reel' ? (
+            <ReelCard
+              reel={item.reel}
+              isActive={index === activeIndex}
+              shouldPreload={Math.abs(index - activeIndex) <= 2}
+              isMuted={isMuted}
+              onMuteToggle={handleMuteToggle}
+            />
+          ) : (
+            <ReelManagedAdCard
+              ad={item.ad}
+              isActive={index === activeIndex}
+              sessionId={adSessionId}
+            />
+          )}
         </div>
       ))}
 
       {isFetchingNextPage && (
-        <div className="h-screen w-full flex items-center justify-center bg-black">
+        <div className="flex h-[100dvh] w-full items-center justify-center bg-black">
           <Loader2 className="w-12 h-12 text-white animate-spin" />
         </div>
       )}

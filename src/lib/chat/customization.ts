@@ -74,10 +74,7 @@ export function buildChatCustomizationEntitlements(
   };
 }
 
-export function isWallpaperUnlocked(
-  wallpaperId: string,
-  ownedThemePacks: string[]
-): boolean {
+export function isWallpaperUnlocked(wallpaperId: string, ownedThemePacks: string[]): boolean {
   const requiredPack = WALLPAPER_PACK_REQUIREMENTS[wallpaperId];
   if (!requiredPack) {
     return true;

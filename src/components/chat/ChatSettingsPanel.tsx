@@ -1,22 +1,23 @@
 'use client';
 
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { UserAvatar } from '@/components/ui/UserAvatar';
+import { isWallpaperUnlocked } from '@/lib/chat/customization';
 import { cn } from '@/lib/utils';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
-  X,
-  Image as ImageIcon,
-  FileText,
-  Video,
-  Trash2,
+  Ban,
   Bell,
   BellOff,
-  Ban,
+  FileText,
   Flag,
-  Search,
+  Image as ImageIcon,
   Lock,
+  Search,
+  Trash2,
+  Video,
+  X,
 } from 'lucide-react';
-import { isWallpaperUnlocked } from '@/lib/chat/customization';
+import { useState } from 'react';
 
 // Wallpaper option type
 interface WallpaperOption {
@@ -31,16 +32,70 @@ interface WallpaperOption {
 // Default wallpaper options
 const WALLPAPER_OPTIONS: WallpaperOption[] = [
   { id: 'default', name: 'Default', color: 'bg-gray-50 dark:bg-gray-900' },
-  { id: 'gradient-1', name: 'Ocean', color: 'bg-gradient-to-br from-blue-100 to-cyan-100 dark:from-blue-900/30 dark:to-cyan-900/30' },
-  { id: 'gradient-2', name: 'Sunset', color: 'bg-gradient-to-br from-orange-100 to-pink-100 dark:from-orange-900/30 dark:to-pink-900/30', requiredPackSlug: 'chat-theme-vibrant-dms' },
-  { id: 'gradient-3', name: 'Forest', color: 'bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30' },
-  { id: 'gradient-4', name: 'Lavender', color: 'bg-gradient-to-br from-purple-100 to-violet-100 dark:from-purple-900/30 dark:to-violet-900/30', requiredPackSlug: 'chat-theme-dark-variants' },
-  { id: 'gradient-5', name: 'Rose', color: 'bg-gradient-to-br from-rose-100 to-pink-100 dark:from-rose-900/30 dark:to-pink-900/30', requiredPackSlug: 'chat-theme-vibrant-dms' },
-  { id: 'gradient-6', name: 'Midnight', color: 'bg-gradient-to-br from-slate-800 to-gray-900', requiredPackSlug: 'chat-theme-dark-variants' },
-  { id: 'gradient-7', name: 'Sky', color: 'bg-gradient-to-br from-sky-100 to-indigo-100 dark:from-sky-900/30 dark:to-indigo-900/30' },
-  { id: 'gradient-8', name: 'Amber', color: 'bg-gradient-to-br from-amber-100 to-yellow-100 dark:from-amber-900/30 dark:to-yellow-900/30' },
-  { id: 'pattern-1', name: 'Dots', color: 'bg-gray-100 dark:bg-gray-800', pattern: 'bg-[radial-gradient(circle,_#00000010_1px,_transparent_1px)] bg-[size:20px_20px]', requiredPackSlug: 'chat-theme-vibrant-dms' },
-  { id: 'pattern-2', name: 'Grid', color: 'bg-gray-100 dark:bg-gray-800', pattern: 'bg-[linear-gradient(#00000008_1px,_transparent_1px),linear-gradient(90deg,_#00000008_1px,_transparent_1px)] bg-[size:20px_20px]', requiredPackSlug: 'chat-theme-dark-variants' },
+  {
+    id: 'gradient-1',
+    name: 'Ocean',
+    color: 'bg-gradient-to-br from-blue-100 to-cyan-100 dark:from-blue-900/30 dark:to-cyan-900/30',
+  },
+  {
+    id: 'gradient-2',
+    name: 'Sunset',
+    color:
+      'bg-gradient-to-br from-orange-100 to-pink-100 dark:from-orange-900/30 dark:to-pink-900/30',
+    requiredPackSlug: 'chat-theme-vibrant-dms',
+  },
+  {
+    id: 'gradient-3',
+    name: 'Forest',
+    color:
+      'bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30',
+  },
+  {
+    id: 'gradient-4',
+    name: 'Lavender',
+    color:
+      'bg-gradient-to-br from-purple-100 to-violet-100 dark:from-purple-900/30 dark:to-violet-900/30',
+    requiredPackSlug: 'chat-theme-dark-variants',
+  },
+  {
+    id: 'gradient-5',
+    name: 'Rose',
+    color: 'bg-gradient-to-br from-rose-100 to-pink-100 dark:from-rose-900/30 dark:to-pink-900/30',
+    requiredPackSlug: 'chat-theme-vibrant-dms',
+  },
+  {
+    id: 'gradient-6',
+    name: 'Midnight',
+    color: 'bg-gradient-to-br from-slate-800 to-gray-900',
+    requiredPackSlug: 'chat-theme-dark-variants',
+  },
+  {
+    id: 'gradient-7',
+    name: 'Sky',
+    color:
+      'bg-gradient-to-br from-sky-100 to-indigo-100 dark:from-sky-900/30 dark:to-indigo-900/30',
+  },
+  {
+    id: 'gradient-8',
+    name: 'Amber',
+    color:
+      'bg-gradient-to-br from-amber-100 to-yellow-100 dark:from-amber-900/30 dark:to-yellow-900/30',
+  },
+  {
+    id: 'pattern-1',
+    name: 'Dots',
+    color: 'bg-gray-100 dark:bg-gray-800',
+    pattern: 'bg-[radial-gradient(circle,_#00000010_1px,_transparent_1px)] bg-[size:20px_20px]',
+    requiredPackSlug: 'chat-theme-vibrant-dms',
+  },
+  {
+    id: 'pattern-2',
+    name: 'Grid',
+    color: 'bg-gray-100 dark:bg-gray-800',
+    pattern:
+      'bg-[linear-gradient(#00000008_1px,_transparent_1px),linear-gradient(90deg,_#00000008_1px,_transparent_1px)] bg-[size:20px_20px]',
+    requiredPackSlug: 'chat-theme-dark-variants',
+  },
 ];
 
 interface MediaItem {
@@ -91,7 +146,7 @@ export default function ChatSettingsPanel({
   const [activeTab, setActiveTab] = useState<TabType>('settings');
   const [isMuted, setIsMuted] = useState(() => {
     if (typeof window === 'undefined') return false;
-    return localStorage.getItem(`chat_muted_${conversationId}`) === 'true';
+    return sessionStorage.getItem(`chat_muted_${conversationId}`) === 'true';
   });
   const [mediaFilter, setMediaFilter] = useState<'all' | 'images' | 'videos' | 'files'>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -99,11 +154,11 @@ export default function ChatSettingsPanel({
   const handleMuteToggle = () => {
     const newMuted = !isMuted;
     setIsMuted(newMuted);
-    localStorage.setItem(`chat_muted_${conversationId}`, String(newMuted));
+    sessionStorage.setItem(`chat_muted_${conversationId}`, String(newMuted));
   };
 
   // Filter media items
-  const filteredMedia = mediaItems.filter(item => {
+  const filteredMedia = mediaItems.filter((item) => {
     if (mediaFilter === 'all') return true;
     if (mediaFilter === 'images') return item.type === 'image';
     if (mediaFilter === 'videos') return item.type === 'video';
@@ -134,9 +189,7 @@ export default function ChatSettingsPanel({
           >
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Chat Info
-              </h2>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Chat Info</h2>
               <button
                 onClick={onClose}
                 className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
@@ -147,18 +200,15 @@ export default function ChatSettingsPanel({
 
             {/* User Info */}
             <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex flex-col items-center">
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white text-2xl font-semibold mb-3">
-                {otherUser.profileImage ? (
-                  <img
-                    src={otherUser.profileImage}
-                    alt={otherUser.name}
-                    className="w-20 h-20 rounded-full object-cover"
-                  />
-                ) : (
-                  otherUser.name.charAt(0).toUpperCase()
-                )}
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">{otherUser.name}</h3>
+              <UserAvatar
+                imageSrc={otherUser.profileImage}
+                name={otherUser.name}
+                className="mb-3 h-20 w-20 bg-gradient-to-br from-blue-400 to-purple-500 text-2xl font-semibold text-white"
+                fallbackClassName="text-2xl"
+              />
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                {otherUser.name}
+              </h3>
               <p className="text-gray-500 dark:text-gray-400">@{otherUser.username}</p>
               {otherUser.isOnline && (
                 <span className="mt-2 px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-xs rounded-full">
@@ -213,14 +263,18 @@ export default function ChatSettingsPanel({
                       )}
                       <span className="text-gray-900 dark:text-white">Mute Notifications</span>
                     </div>
-                    <div className={cn(
-                      'w-10 h-6 rounded-full transition-colors relative',
-                      isMuted ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'
-                    )}>
-                      <div className={cn(
-                        'absolute top-1 w-4 h-4 bg-white rounded-full transition-transform',
-                        isMuted ? 'translate-x-5' : 'translate-x-1'
-                      )} />
+                    <div
+                      className={cn(
+                        'w-10 h-6 rounded-full transition-colors relative',
+                        isMuted ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'
+                      )}
+                    >
+                      <div
+                        className={cn(
+                          'absolute top-1 w-4 h-4 bg-white rounded-full transition-transform',
+                          isMuted ? 'translate-x-5' : 'translate-x-1'
+                        )}
+                      />
                     </div>
                   </button>
 
@@ -299,7 +353,10 @@ export default function ChatSettingsPanel({
                             <span className="text-xs text-white font-medium">{wallpaper.name}</span>
                             {!unlocked && (
                               <p className="text-[10px] text-white/90">
-                                Requires {requiredPack === 'chat-theme-dark-variants' ? 'Dark Variants Pack' : 'Vibrant DMs Pack'}
+                                Requires{' '}
+                                {requiredPack === 'chat-theme-dark-variants'
+                                  ? 'Dark Variants Pack'
+                                  : 'Vibrant DMs Pack'}
                               </p>
                             )}
                           </div>
@@ -310,8 +367,18 @@ export default function ChatSettingsPanel({
                           )}
                           {currentWallpaper === wallpaper.id && (
                             <div className="absolute top-2 right-2 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
-                              <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                              <svg
+                                className="w-3 h-3 text-white"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={3}
+                                  d="M5 13l4 4L19 7"
+                                />
                               </svg>
                             </div>
                           )}
@@ -339,12 +406,14 @@ export default function ChatSettingsPanel({
 
                   {/* Filter buttons */}
                   <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
-                    {([
-                      { id: 'all', label: 'All', icon: null },
-                      { id: 'images', label: 'Images', icon: ImageIcon },
-                      { id: 'videos', label: 'Videos', icon: Video },
-                      { id: 'files', label: 'Files', icon: FileText },
-                    ] as const).map((filter) => (
+                    {(
+                      [
+                        { id: 'all', label: 'All', icon: null },
+                        { id: 'images', label: 'Images', icon: ImageIcon },
+                        { id: 'videos', label: 'Videos', icon: Video },
+                        { id: 'files', label: 'Files', icon: FileText },
+                      ] as const
+                    ).map((filter) => (
                       <button
                         key={filter.id}
                         onClick={() => setMediaFilter(filter.id)}
@@ -373,11 +442,7 @@ export default function ChatSettingsPanel({
                           className="aspect-square rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 hover:opacity-80 transition-opacity relative group"
                         >
                           {item.type === 'image' ? (
-                            <img
-                              src={item.url}
-                              alt=""
-                              className="w-full h-full object-cover"
-                            />
+                            <img src={item.url} alt="" className="w-full h-full object-cover" />
                           ) : item.type === 'video' ? (
                             <div className="w-full h-full flex items-center justify-center bg-gray-200 dark:bg-gray-700">
                               <Video className="w-8 h-8 text-gray-500" />

@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { useEffect, useRef } from 'react';
 
 // Fix Leaflet default icon issue
-delete (L.Icon.Default.prototype as any)._getIconUrl;
+delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
   iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
@@ -50,10 +50,8 @@ export function LocationMap({ center, radius, users, onUserClick }: LocationMapP
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current) return;
 
-    console.log('[LocationMap] Initializing map at', center.lat, center.lng);
-    
     // Initialize map
-    const map = L.map(mapRef.current).setView([center.lat, center.lng], 13);
+    const map = L.map(mapRef.current).setView([0, 0], 13);
 
     // Add OpenStreetMap tiles
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -72,8 +70,6 @@ export function LocationMap({ center, radius, users, onUserClick }: LocationMapP
   useEffect(() => {
     if (!mapInstanceRef.current) return;
 
-    console.log('[LocationMap] Updating center to', center.lat, center.lng, 'radius:', radius);
-    
     mapInstanceRef.current.setView([center.lat, center.lng], 13);
 
     // Update or create circle
@@ -115,8 +111,6 @@ export function LocationMap({ center, radius, users, onUserClick }: LocationMapP
   useEffect(() => {
     if (!mapInstanceRef.current) return;
 
-    console.log('[LocationMap] Updating user markers, count:', users.length);
-
     // Clear existing user markers
     userMarkersRef.current.forEach((marker) => marker.remove());
     userMarkersRef.current = [];
@@ -124,14 +118,11 @@ export function LocationMap({ center, radius, users, onUserClick }: LocationMapP
     // Add user markers
     users.forEach((user) => {
       if (!user.location?.lat || !user.location?.lng) {
-        console.log('[LocationMap] Skipping user without coordinates:', user.username);
         return;
       }
-      
+
       const userLat = user.location.lat;
       const userLng = user.location.lng;
-
-      console.log('[LocationMap] Adding marker for', user.username, 'at', userLat, userLng);
 
       // Create custom icon with user avatar - using inline styles for reliability
       const userMarkerIcon = L.divIcon({
@@ -139,9 +130,10 @@ export function LocationMap({ center, radius, users, onUserClick }: LocationMapP
         html: `
           <div style="position: relative; cursor: pointer; transition: transform 0.2s;">
             <div style="width: 48px; height: 48px; border-radius: 50%; border: 3px solid white; box-shadow: 0 4px 12px rgba(0,0,0,0.3); overflow: hidden; background: linear-gradient(135deg, #60a5fa, #a855f7); display: flex; align-items: center; justify-content: center;">
-              ${user.profileImage 
-                ? `<img src="${user.profileImage}" style="width: 100%; height: 100%; object-fit: cover;" alt="${user.name}"/>`
-                : `<span style="color: white; font-weight: bold; font-size: 18px;">${user.name?.charAt(0) || '?'}</span>`
+              ${
+                user.profileImage
+                  ? `<img src="${user.profileImage}" style="width: 100%; height: 100%; object-fit: cover;" alt="${user.name}"/>`
+                  : `<span style="color: white; font-weight: bold; font-size: 18px;">${user.name?.charAt(0) || '?'}</span>`
               }
             </div>
             ${user.isOnline ? `<div style="position: absolute; top: 0; right: 0; width: 12px; height: 12px; background: #22c55e; border-radius: 50%; border: 2px solid white;"></div>` : ''}
@@ -155,9 +147,9 @@ export function LocationMap({ center, radius, users, onUserClick }: LocationMapP
         popupAnchor: [0, -48],
       });
 
-      const marker = L.marker([userLat, userLng], { icon: userMarkerIcon })
-        .addTo(mapInstanceRef.current!)
-        .bindPopup(`
+      const marker = L.marker([userLat, userLng], { icon: userMarkerIcon }).addTo(
+        mapInstanceRef.current!
+      ).bindPopup(`
           <div style="text-align: center; min-width: 140px; padding: 4px;">
             <p style="font-weight: 600; color: #111; font-size: 14px; margin: 0;">${user.name}</p>
             <p style="font-size: 12px; color: #666; margin: 2px 0;">@${user.username}</p>
@@ -174,8 +166,6 @@ export function LocationMap({ center, radius, users, onUserClick }: LocationMapP
 
       userMarkersRef.current.push(marker);
     });
-    
-    console.log('[LocationMap] Added', userMarkersRef.current.length, 'user markers');
   }, [users, onUserClick]);
 
   return (
@@ -194,8 +184,15 @@ export function LocationMap({ center, radius, users, onUserClick }: LocationMapP
           margin: 8px 12px;
         }
         @keyframes pulse {
-          0%, 100% { opacity: 1; transform: scale(1); }
-          50% { opacity: 0.8; transform: scale(1.1); }
+          0%,
+          100% {
+            opacity: 1;
+            transform: scale(1);
+          }
+          50% {
+            opacity: 0.8;
+            transform: scale(1.1);
+          }
         }
       `}</style>
     </>

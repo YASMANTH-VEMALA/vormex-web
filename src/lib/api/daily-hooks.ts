@@ -1,4 +1,4 @@
-import apiClient from './client';
+import { getJson } from './request';
 
 export interface DailyHook {
   id: string;
@@ -12,6 +12,6 @@ export interface DailyHook {
 
 export const dailyHooksAPI = {
   getHooks: async (): Promise<{ hooks: DailyHook[]; date: string }> => {
-    return apiClient.get('/daily-hooks') as any;
+    return getJson<{ hooks: DailyHook[]; date: string }>('/daily-hooks');
   },
 };
