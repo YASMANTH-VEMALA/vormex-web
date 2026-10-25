@@ -3,6 +3,10 @@ import { StoryMediaView } from './StoryMediaView';
 import type { StoryViewerProps } from './StoryViewer.types';
 import { StoryViewersDialog } from './StoryViewersDialog';
 import { useStoryPlayback } from './useStoryPlayback';
+import { useStoryMusic } from './useStoryMusic';
+import { useStoryMediaPreload } from './useStoryMediaPreload';
+import { isStoryMusic } from '@/lib/stories/music';
+import { formatTimeAgo } from './StoryViewer.utils';
 export type { StoryViewerProps } from './StoryViewer.types';
 
 import { getStructuredApiError, isTerminalSafetyError } from '@/lib/api/errors';
@@ -40,7 +44,9 @@ export function StoryViewer({
   const [currentStoryIndex, setCurrentStoryIndex] = useState(initialStoryIndex);
   const [progress, setProgress] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
-  const [isMuted, setIsMuted] = useState(true);
+  const [isMuted, setIsMuted] = useState(
+    () => !isStoryMusic(storyGroups[initialGroupIndex]?.stories[initialStoryIndex]?.music)
+  );
   const [showReactions, setShowReactions] = useState(false);
   const [showReplyInput, setShowReplyInput] = useState(false);
   const [replyText, setReplyText] = useState('');
@@ -64,10 +70,17 @@ export function StoryViewer({
   const unavailableCloseTimerRef = useRef<number | null>(null);
   const wasPausedBeforeViewersRef = useRef(false);
 
+  useStoryMediaPreload(storyGroups, currentGroupIndex, currentStoryIndex);
   const currentGroup = storyGroups[currentGroupIndex];
   const [storiesWithViews, setStoriesWithViews] = useState<Record<string, number>>({});
   const currentStory = currentGroup?.stories[currentStoryIndex];
   const currentStoryId = currentStory?.id;
+  const playbackPaused = isPaused || showMenu || showReplyInput;
+  const {
+    playerRef: musicPlayerRef,
+    status: musicStatus,
+    retry: retryMusic,
+  } = useStoryMusic(currentStory, playbackPaused, isMuted);
   const currentViewsCount =
     storiesWithViews[currentStory?.id ?? ''] ?? currentStory?.viewsCount ?? 0;
   const isOwnStory = currentGroup?.isOwnStory;
@@ -186,12 +199,10 @@ export function StoryViewer({
     if (currentStoryId && !isOwnStory) {
       const duration = Date.now() - viewStartTimeRef.current;
 
-      // Use socket for real-time view tracking
       const socket = getSocket();
       if (socket) {
         socket.emit('story:view', { storyId: currentStoryId, duration });
       } else {
-        // Fallback to HTTP
         try {
           await viewStory(currentStoryId, duration);
         } catch (error) {
@@ -202,9 +213,10 @@ export function StoryViewer({
   }, [currentStoryId, handleStoryActionError, isOwnStory]);
 
   const handleClose = useCallback(async () => {
-    await recordView();
+    musicPlayerRef.current?.pause();
+    void recordView();
     onClose();
-  }, [onClose, recordView]);
+  }, [onClose, recordView, musicPlayerRef]);
 
   const selectStory = useCallback(
     (groupIndex: number, storyIndex: number) => {
@@ -219,7 +231,8 @@ export function StoryViewer({
   );
 
   const goToNextStory = useCallback(async () => {
-    await recordView();
+    musicPlayerRef.current?.pause();
+    void recordView();
 
     if (currentStoryIndex < currentGroup.stories.length - 1) {
       selectStory(currentGroupIndex, currentStoryIndex + 1);
@@ -230,6 +243,7 @@ export function StoryViewer({
       onStoryEnd?.();
     }
   }, [
+    musicPlayerRef,
     currentStoryIndex,
     currentGroupIndex,
     currentGroup,
@@ -241,7 +255,9 @@ export function StoryViewer({
   ]);
 
   const goToPreviousStory = useCallback(async () => {
-    await recordView();
+    if (currentStoryIndex === 0 && currentGroupIndex === 0) return;
+    musicPlayerRef.current?.pause();
+    void recordView();
 
     if (currentStoryIndex > 0) {
       selectStory(currentGroupIndex, currentStoryIndex - 1);
@@ -250,9 +266,8 @@ export function StoryViewer({
       const previousStoryIndex = storyGroups[previousGroupIndex].stories.length - 1;
       selectStory(previousGroupIndex, previousStoryIndex);
     }
-  }, [currentStoryIndex, currentGroupIndex, storyGroups, recordView, selectStory]);
+  }, [currentStoryIndex, currentGroupIndex, storyGroups, recordView, selectStory, musicPlayerRef]);
 
-  // Mark story as viewed on mount and story change.
   useEffect(() => {
     if (!currentStoryId || isOwnStory) return;
 
@@ -263,13 +278,15 @@ export function StoryViewer({
     }
   }, [currentStoryId, isOwnStory]);
 
-  // Progress timer
+  // Progress follows audio time for music stories.
   useStoryPlayback({
     currentStory,
+    musicPlayerRef,
+    musicStatus,
     goToNextStory,
     goToPreviousStory,
     handleClose,
-    isPaused,
+    isPaused: playbackPaused,
     progressIntervalRef,
     progressValueRef,
     setIsMuted,
@@ -280,7 +297,6 @@ export function StoryViewer({
     wasPausedBeforeViewersRef,
   });
 
-  // Swipe handling for vertical navigation
   const handleDragEnd = (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     const threshold = 50;
     const velocity = 500;
@@ -305,7 +321,6 @@ export function StoryViewer({
         setSelectedReaction(reaction);
       }
 
-      // Also emit via socket for real-time updates
       const socket = getSocket();
       if (socket) {
         socket.emit('story:react', { storyId: currentStory.id, reaction });
@@ -321,13 +336,11 @@ export function StoryViewer({
 
     try {
       setActionError(null);
-      // The authenticated endpoint persists the reply and performs realtime
-      // delivery to the story owner after the database write succeeds.
+      // The endpoint persists the reply and delivers it to the story owner.
       await replyToStory(currentStory.id, replyText.trim());
 
       setReplyText('');
       setShowReplyInput(false);
-      // Show success toast or animation
     } catch (error) {
       handleStoryActionError(error);
     }
@@ -350,7 +363,6 @@ export function StoryViewer({
 
     try {
       await archiveStory(currentStory.id);
-      // Show success message
     } catch (error) {
       console.error('Error archiving story:', error);
     }
@@ -382,9 +394,10 @@ export function StoryViewer({
             </motion.div>
           )}
         </AnimatePresence>
-        {/* Main Content Container */}
         <StoryMediaView
           REACTIONS={REACTIONS}
+          musicStatus={musicStatus}
+          retryMusic={retryMusic}
           containerRef={containerRef}
           currentGroup={currentGroup}
           currentStory={currentStory}
@@ -400,7 +413,7 @@ export function StoryViewer({
           handleSendReply={handleSendReply}
           isMuted={isMuted}
           isOwnStory={isOwnStory}
-          isPaused={isPaused}
+          isPaused={playbackPaused}
           progress={progress}
           replyText={replyText}
           selectedReaction={selectedReaction}
@@ -430,7 +443,6 @@ export function StoryViewer({
           viewersHasMore={viewersHasMore}
         />
 
-        {/* Menu Modal */}
         <AnimatePresence>
           {showMenu && (
             <motion.div
@@ -481,16 +493,4 @@ export function StoryViewer({
       </motion.div>
     </AnimatePresence>
   );
-}
-
-function formatTimeAgo(date: Date): string {
-  const now = new Date();
-  const diff = now.getTime() - date.getTime();
-  const minutes = Math.floor(diff / 60000);
-  const hours = Math.floor(diff / 3600000);
-
-  if (minutes < 1) return 'Just now';
-  if (minutes < 60) return `${minutes}m ago`;
-  if (hours < 24) return `${hours}h ago`;
-  return '1d ago';
 }

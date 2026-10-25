@@ -1,7 +1,11 @@
 'use client';
 import React, { useEffect } from 'react';
+import { isStoryMusic } from '@/lib/stories/music';
+import type { MusicPlaybackStatus, YouTubeClipPlayer } from '@/lib/stories/youtubeMusic';
 
 interface useStoryPlaybackOptions {
+  musicPlayerRef: React.RefObject<YouTubeClipPlayer | null>;
+  musicStatus: MusicPlaybackStatus;
   currentStory: import('@/lib/api/stories').Story;
   goToNextStory: () => Promise<void>;
   goToPreviousStory: () => Promise<void>;
@@ -17,6 +21,8 @@ interface useStoryPlaybackOptions {
   wasPausedBeforeViewersRef: React.RefObject<boolean>;
 }
 export function useStoryPlayback({
+  musicPlayerRef,
+  musicStatus,
   currentStory,
   goToNextStory,
   goToPreviousStory,
@@ -34,17 +40,33 @@ export function useStoryPlayback({
   useEffect(() => {
     if (!currentStory || isPaused) return;
 
-    const duration =
-      currentStory.mediaType === 'VIDEO'
+    const music = isStoryMusic(currentStory.music) ? currentStory.music : null;
+    const duration = music
+      ? 15000
+      : currentStory.mediaType === 'VIDEO'
         ? currentStory.duration || 15000
         : currentStory.duration || 5000;
 
     const interval = 50; // Update every 50ms for smooth progress
     const increment = (100 / duration) * interval;
 
+    let advancing = false;
     progressIntervalRef.current = setInterval(() => {
-      const nextProgress = progressValueRef.current + increment;
-      if (nextProgress >= 100) {
+      if (advancing) return;
+      const audio = musicPlayerRef.current;
+      if (
+        music &&
+        musicStatus !== 'error' &&
+        (!audio || audio.readyState < 2 || (audio.paused && !audio.ended))
+      )
+        return;
+      const nextProgress =
+        music && musicStatus !== 'error' && audio
+          ? Math.max(0, ((audio.currentTime - music.startOffset) / 15) * 100)
+          : progressValueRef.current + increment;
+      if (nextProgress >= 100 || (music && musicStatus !== 'error' && audio?.ended)) {
+        advancing = true;
+        audio?.pause();
         progressValueRef.current = 0;
         void goToNextStory();
         return;
@@ -58,7 +80,16 @@ export function useStoryPlayback({
         clearInterval(progressIntervalRef.current);
       }
     };
-  }, [currentStory, isPaused, goToNextStory, progressIntervalRef, progressValueRef, setProgress]);
+  }, [
+    currentStory,
+    isPaused,
+    goToNextStory,
+    musicPlayerRef,
+    musicStatus,
+    progressIntervalRef,
+    progressValueRef,
+    setProgress,
+  ]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

@@ -28,13 +28,13 @@ export function buildSecurityHeaders(env: Partial<NodeJS.ProcessEnv> = process.e
     // Razorpay Checkout loads checkout.js from its own host, renders the payment sheet in a
     // razorpay.com iframe, and reports telemetry to lumberjack. All three need allowing or
     // the payment sheet silently fails to open.
-    `script-src 'self' 'unsafe-inline'${isProduction ? '' : " 'unsafe-eval'"} https://accounts.google.com https://apis.google.com https://www.gstatic.com https://checkout.razorpay.com`,
+    `script-src 'self' 'unsafe-inline'${isProduction ? '' : " 'unsafe-eval'"} https://accounts.google.com https://apis.google.com https://www.gstatic.com https://checkout.razorpay.com https://www.youtube.com https://s.ytimg.com`,
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com/gsi/style",
     "font-src 'self' data: https://fonts.gstatic.com https://cdn.razorpay.com",
     "img-src 'self' data: blob: https:",
     "media-src 'self' blob: https:",
     `connect-src 'self' ${backendOrigin} ${backendSocketOrigin} https://video.bunnycdn.com https://accounts.google.com https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://*.b-cdn.net https://*.cloudfront.net https://api.razorpay.com https://lumberjack.razorpay.com https://lumberjack-cx.razorpay.com`,
-    'frame-src https://accounts.google.com https://www.youtube-nocookie.com https://api.razorpay.com https://checkout.razorpay.com https://*.razorpay.com',
+    'frame-src https://accounts.google.com https://www.youtube.com https://www.youtube-nocookie.com https://api.razorpay.com https://checkout.razorpay.com https://*.razorpay.com',
     'child-src https://api.razorpay.com https://checkout.razorpay.com https://*.razorpay.com',
     "worker-src 'self' blob:",
     ...(isProduction ? ['upgrade-insecure-requests'] : []),

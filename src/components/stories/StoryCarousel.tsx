@@ -3,6 +3,8 @@
 import { getStoriesFeed, type Story, type StoryGroup } from '@/lib/api/stories';
 import { useAuth } from '@/lib/auth/useAuth';
 import { initializeSocket } from '@/lib/socket';
+import { isStoryMusic } from '@/lib/stories/music';
+import { prepareStoryMusic, startPreparedStoryMusic } from '@/lib/stories/preparedMusic';
 import { readCachedStories, writeCachedStories } from '@/lib/stories/browserCache';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -251,7 +253,13 @@ export function StoryCarousel({ onOpenStory, onCreateStory }: StoryCarouselProps
 
         {/* Own Story (if exists) */}
         {ownStoryGroup && (
-          <StoryCard group={ownStoryGroup} onClick={() => onOpenStory(ownStoryGroup)} isOwn eager />
+          <StoryCard
+            group={ownStoryGroup}
+            onClick={() => onOpenStory(ownStoryGroup)}
+            isOwn
+            eager
+            prepareOnMount
+          />
         )}
 
         {/* Other Stories */}
@@ -261,6 +269,7 @@ export function StoryCarousel({ onOpenStory, onCreateStory }: StoryCarouselProps
             group={group}
             onClick={() => onOpenStory(group)}
             eager={index < 3}
+            prepareOnMount={index === 0}
           />
         ))}
 
@@ -283,6 +292,7 @@ interface StoryCardProps {
   onClick: () => void;
   isOwn?: boolean;
   eager?: boolean;
+  prepareOnMount?: boolean;
 }
 
 // Hosts covered by next.config.ts images.remotePatterns. Media from these can
@@ -300,14 +310,30 @@ function canOptimizeImage(src: string): boolean {
   }
 }
 
-function StoryCard({ group, onClick, isOwn, eager }: StoryCardProps) {
+function StoryCard({ group, onClick, isOwn, eager, prepareOnMount }: StoryCardProps) {
   const { user, stories, hasUnviewed } = group;
   const latestStory = stories[0];
   const storyImageSrc = latestStory.thumbnailUrl || latestStory.mediaUrl;
 
+  const preparePlayback = () => {
+    void import('./StoryViewer').catch(() => {});
+    if (isStoryMusic(latestStory.music)) prepareStoryMusic(latestStory.music);
+  };
+  useEffect(() => {
+    if (!prepareOnMount) return;
+    void import('./StoryViewer').catch(() => {});
+    if (isStoryMusic(latestStory.music)) prepareStoryMusic(latestStory.music);
+  }, [prepareOnMount, latestStory.music]);
+
   return (
     <motion.button
-      onClick={onClick}
+      onPointerEnter={preparePlayback}
+      onFocus={preparePlayback}
+      onPointerDown={preparePlayback}
+      onClick={() => {
+        if (isStoryMusic(latestStory.music)) startPreparedStoryMusic(latestStory.music);
+        onClick();
+      }}
       whileHover={{ scale: 1.02, y: -2 }}
       whileTap={{ scale: 0.98 }}
       aria-label={`Open ${isOwn ? 'your' : user.name + "'s"} story`}

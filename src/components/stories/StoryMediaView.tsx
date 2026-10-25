@@ -17,8 +17,14 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import React from 'react';
+import { useStoryMediaControls } from './useStoryMediaControls';
+import { StoryMusicSticker } from './StoryMusicSticker';
+import { isStoryMusic } from '@/lib/stories/music';
+import type { MusicPlaybackStatus } from '@/lib/stories/youtubeMusic';
 
 interface StoryMediaViewProps {
+  musicStatus: MusicPlaybackStatus;
+  retryMusic: () => void;
   REACTIONS: string[];
   containerRef: React.RefObject<HTMLDivElement | null>;
   currentGroup: import('@/lib/api/stories').StoryGroup;
@@ -54,6 +60,8 @@ interface StoryMediaViewProps {
 }
 
 export function StoryMediaView({
+  musicStatus,
+  retryMusic,
   REACTIONS,
   containerRef,
   currentGroup,
@@ -84,6 +92,13 @@ export function StoryMediaView({
   showReplyInput,
   videoRef,
 }: StoryMediaViewProps) {
+  const music = isStoryMusic(currentStory.music) ? currentStory.music : null;
+  const mediaControls = useStoryMediaControls({
+    isPaused,
+    setIsPaused,
+    videoRef,
+    storyId: currentStory.id,
+  });
   return (
     <motion.div
       ref={containerRef}
@@ -92,7 +107,11 @@ export function StoryMediaView({
       dragElastic={0.2}
       onDragEnd={handleDragEnd}
       className="relative w-full h-full flex items-center justify-center"
+      onPointerDown={mediaControls.onPointerDown}
+      onPointerUp={mediaControls.onPointerUp}
+      onPointerCancel={mediaControls.onPointerCancel}
       onClick={(e) => {
+        if (mediaControls.consumeHold()) return;
         // Tap left/right to navigate
         const rect = containerRef.current?.getBoundingClientRect();
         if (rect) {
@@ -118,13 +137,13 @@ export function StoryMediaView({
               className="w-full h-full object-cover"
               autoPlay
               loop
-              muted={isMuted}
+              muted={isMuted || !!music}
               playsInline
             />
           ) : currentStory.mediaType === 'TEXT' ? (
             <div
               className="w-full h-full flex items-center justify-center p-8"
-              style={{ backgroundColor: currentStory.backgroundColor || '#3B82F6' }}
+              style={{ background: currentStory.backgroundColor || '#3B82F6' }}
             >
               <p
                 className="text-white text-2xl font-bold text-center leading-relaxed"
@@ -169,7 +188,21 @@ export function StoryMediaView({
           {/* Progress Bars */}
           <div className="flex gap-1 mb-4">
             {currentGroup.stories.map((_, idx) => (
-              <div key={idx} className="flex-1 h-[3px] bg-white/30 rounded-full overflow-hidden">
+              <div
+                key={idx}
+                role="progressbar"
+                aria-label={`Story ${idx + 1} progress`}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={
+                  idx < currentStoryIndex
+                    ? 100
+                    : idx === currentStoryIndex
+                      ? Math.round(progress)
+                      : 0
+                }
+                className="flex-1 h-[3px] bg-white/30 rounded-full overflow-hidden"
+              >
                 <motion.div
                   className="h-full bg-white rounded-full"
                   style={{
@@ -220,6 +253,7 @@ export function StoryMediaView({
             <div className="flex items-center gap-2">
               {/* Pause/Play */}
               <button
+                aria-label={isPaused ? 'Play story' : 'Pause story'}
                 onClick={(e) => {
                   e.stopPropagation();
                   setIsPaused((prev) => !prev);
@@ -234,12 +268,13 @@ export function StoryMediaView({
               </button>
 
               {/* Mute (for video) */}
-              {currentStory.mediaType === 'VIDEO' && (
+              {(currentStory.mediaType === 'VIDEO' || music) && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     setIsMuted((prev) => !prev);
                   }}
+                  aria-label={isMuted ? 'Unmute story' : 'Mute story'}
                   className="w-8 h-8 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center"
                 >
                   {isMuted ? (
@@ -263,6 +298,7 @@ export function StoryMediaView({
 
               {/* Close */}
               <button
+                aria-label="Close story viewer"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleClose();
@@ -275,6 +311,25 @@ export function StoryMediaView({
           </div>
         </div>
 
+        {music && (
+          <StoryMusicSticker
+            music={music}
+            playing={!isPaused && !isMuted && musicStatus === 'playing'}
+          />
+        )}
+        {music && musicStatus === 'blocked' && (
+          <button
+            onClick={(event) => {
+              event.stopPropagation();
+              setIsMuted(false);
+              setIsPaused(false);
+              retryMusic();
+            }}
+            className="absolute left-1/2 top-52 z-20 -translate-x-1/2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-black"
+          >
+            Tap to play music
+          </button>
+        )}
         {/* Navigation Indicators */}
         <div className="absolute left-4 top-1/2 -translate-y-1/2 z-10 pointer-events-none">
           <ChevronUp className="w-6 h-6 text-white/40 animate-pulse" />

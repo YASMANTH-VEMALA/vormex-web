@@ -1,3 +1,4 @@
+import type { StoryMusic } from '@/lib/stories/music';
 import type { MusicAttachment } from '@/types/music';
 import apiClient from './client';
 
@@ -40,7 +41,7 @@ export interface Story {
   textStyle?: { fontSize?: number; fontWeight?: string; color?: string } | null;
   stickers?: Record<string, unknown>[] | null;
   filters?: string | null;
-  music?: MusicAttachment | null;
+  music?: StoryMusic | MusicAttachment | null;
   musicUrl?: string | null;
   musicTitle?: string | null;
   musicArtist?: string | null;
@@ -106,7 +107,7 @@ export interface CreateStoryInput {
   textStyle?: { fontSize?: number; fontWeight?: string; color?: string };
   stickers?: Record<string, unknown>[];
   filters?: string;
-  music?: MusicAttachment | null;
+  music?: StoryMusic | MusicAttachment | null;
   musicUrl?: string;
   musicTitle?: string;
   musicArtist?: string;

@@ -1,4 +1,5 @@
 'use client';
+import type { StoryMusic } from '@/lib/stories/music';
 import type { CreatorStep, StoryCreatorProps, StoryType } from './StoryCreator.types';
 import { StoryCreatorView } from './StoryCreatorView';
 export type { CreatorStep, StoryCreatorProps, StoryType } from './StoryCreator.types';
@@ -10,19 +11,32 @@ import {
   type StoryCategory,
   type StoryVisibility,
 } from '@/lib/api/stories';
-import { Globe, Lock, Users } from 'lucide-react';
+import {
+  Globe,
+  Lock,
+  Users,
+  BriefcaseBusiness,
+  BookOpen,
+  Trophy,
+  FolderKanban,
+  Clapperboard,
+  Lightbulb,
+  CalendarDays,
+  MessageCircle,
+  Layers,
+} from 'lucide-react';
 import React, { useCallback, useRef, useState } from 'react';
 
-const STORY_CATEGORIES: { value: StoryCategory; label: string; icon: string }[] = [
-  { value: 'DAY_AT_WORK', label: 'Day at Work', icon: '💼' },
-  { value: 'LEARNING', label: 'Learning', icon: '📚' },
-  { value: 'ACHIEVEMENT', label: 'Achievement', icon: '🏆' },
-  { value: 'PROJECT', label: 'Project', icon: '📢' },
-  { value: 'BEHIND_SCENES', label: 'Behind the Scenes', icon: '🎬' },
-  { value: 'TIPS', label: 'Tips', icon: '💭' },
-  { value: 'EVENT', label: 'Event', icon: '📅' },
-  { value: 'QNA', label: 'Q&A', icon: '🎯' },
-  { value: 'GENERAL', label: 'General', icon: '✨' },
+const STORY_CATEGORIES: { value: StoryCategory; label: string; icon: React.ReactNode }[] = [
+  { value: 'DAY_AT_WORK', label: 'Day at Work', icon: <BriefcaseBusiness /> },
+  { value: 'LEARNING', label: 'Learning', icon: <BookOpen /> },
+  { value: 'ACHIEVEMENT', label: 'Achievement', icon: <Trophy /> },
+  { value: 'PROJECT', label: 'Project', icon: <FolderKanban /> },
+  { value: 'BEHIND_SCENES', label: 'Behind scenes', icon: <Clapperboard /> },
+  { value: 'TIPS', label: 'Tips', icon: <Lightbulb /> },
+  { value: 'EVENT', label: 'Event', icon: <CalendarDays /> },
+  { value: 'QNA', label: 'Q&A', icon: <MessageCircle /> },
+  { value: 'GENERAL', label: 'General', icon: <Layers /> },
 ];
 
 const VISIBILITY_OPTIONS: {
@@ -63,6 +77,7 @@ const TEXT_BACKGROUNDS = [
 ];
 
 export function StoryCreator({ isOpen, onClose, onStoryCreated }: StoryCreatorProps) {
+  const [music, setMusic] = useState<StoryMusic | null>(null);
   const [step, setStep] = useState<CreatorStep>('select-type');
   const [storyType, setStoryType] = useState<StoryType | null>(null);
   const [mediaFile, setMediaFile] = useState<File | null>(null);
@@ -137,6 +152,7 @@ export function StoryCreator({ isOpen, onClose, onStoryCreated }: StoryCreatorPr
       if (storyType === 'text') {
         // Text-only story - use JSON API
         await createStory({
+          music,
           mediaType: 'TEXT',
           textContent,
           backgroundColor: textBackground,
@@ -157,6 +173,7 @@ export function StoryCreator({ isOpen, onClose, onStoryCreated }: StoryCreatorPr
           formData.append('textContent', textContent);
         }
 
+        if (music) formData.append('music', JSON.stringify(music));
         formData.append('category', category);
         formData.append('visibility', visibility);
 
@@ -184,6 +201,7 @@ export function StoryCreator({ isOpen, onClose, onStoryCreated }: StoryCreatorPr
     if (mediaPreview) {
       URL.revokeObjectURL(mediaPreview);
     }
+    setMusic(null);
     setStep('select-type');
     setStoryType(null);
     setMediaFile(null);
@@ -232,6 +250,8 @@ export function StoryCreator({ isOpen, onClose, onStoryCreated }: StoryCreatorPr
 
   return (
     <StoryCreatorView
+      music={music}
+      setMusic={setMusic}
       STORY_CATEGORIES={STORY_CATEGORIES}
       TEXT_BACKGROUNDS={TEXT_BACKGROUNDS}
       VISIBILITY_OPTIONS={VISIBILITY_OPTIONS}

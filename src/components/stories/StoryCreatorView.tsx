@@ -1,7 +1,6 @@
 'use client';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
-  Check,
   ChevronLeft,
   ChevronRight,
   Images,
@@ -9,21 +8,25 @@ import {
   Clapperboard,
   MessageSquareText,
   Clock3,
-  Link2,
   Loader2,
-  Sparkles,
+  Send,
   Trash2,
   Upload,
   X,
 } from 'lucide-react';
 import Image from 'next/image';
 import React from 'react';
+import { StoryMusicPicker } from './StoryMusicPicker';
+import { StoryDetailsPanel } from './StoryDetailsPanel';
+import type { StoryMusic } from '@/lib/stories/music';
 
 interface StoryCreatorViewProps {
+  music: StoryMusic | null;
+  setMusic: (music: StoryMusic | null) => void;
   STORY_CATEGORIES: {
     value: import('@/lib/api/stories').StoryCategory;
     label: string;
-    icon: string;
+    icon: React.ReactNode;
   }[];
   TEXT_BACKGROUNDS: string[];
   VISIBILITY_OPTIONS: {
@@ -63,6 +66,8 @@ interface StoryCreatorViewProps {
 }
 
 export function StoryCreatorView({
+  music,
+  setMusic,
   STORY_CATEGORIES,
   TEXT_BACKGROUNDS,
   VISIBILITY_OPTIONS,
@@ -109,11 +114,11 @@ export function StoryCreatorView({
           role="dialog"
           aria-modal="true"
           aria-labelledby="story-creator-title"
-          className={`relative w-full max-w-lg max-h-[90dvh] bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white rounded-2xl border border-neutral-200 dark:border-neutral-800 shadow-2xl overflow-hidden flex flex-col ${step === 'select-type' ? '' : 'h-[min(700px,90dvh)]'}`}
+          className={`relative w-full max-w-lg max-h-[90dvh] bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white rounded-2xl border border-neutral-200 dark:border-neutral-800 shadow-2xl overflow-hidden flex flex-col ${step === 'select-type' || step === 'details' ? '' : 'h-[min(700px,90dvh)]'}`}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-neutral-200 dark:border-neutral-800">
+          <div className="shrink-0 flex items-center justify-between p-4 border-b border-neutral-200 dark:border-neutral-800">
             <div className="flex items-center gap-2">
               {step !== 'select-type' && (
                 <button
@@ -144,7 +149,7 @@ export function StoryCreatorView({
           </div>
 
           {/* Content */}
-          <div className="flex-1 overflow-y-auto">
+          <div className="min-h-0 flex-1 overflow-y-auto">
             {/* Step 1: Select Type */}
             {step === 'select-type' && (
               <div className="p-5 sm:p-7">
@@ -299,7 +304,7 @@ export function StoryCreatorView({
 
                 {/* Text Background Picker (for text stories) */}
                 {storyType === 'text' && (
-                  <div className="p-4 border-t border-neutral-200 dark:border-neutral-800">
+                  <div className="shrink-0 p-4 border-t border-neutral-200 dark:border-neutral-800">
                     <p className="text-neutral-500 dark:text-neutral-400 text-sm mb-3">
                       Background
                     </p>
@@ -327,106 +332,38 @@ export function StoryCreatorView({
               </div>
             )}
 
-            {/* Step 4: Details */}
-            {step === 'details' && (
-              <div className="p-6 space-y-6">
-                {/* Category */}
-                <div>
-                  <label className="text-neutral-900 dark:text-white font-medium mb-3 block">
-                    Category
-                  </label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {STORY_CATEGORIES.map((cat) => (
-                      <button
-                        key={cat.value}
-                        onClick={() => setCategory(cat.value)}
-                        className={`p-3 rounded-xl border transition-colors flex flex-col items-center gap-1 ${
-                          category === cat.value
-                            ? 'bg-blue-50 dark:bg-blue-500/20 border-blue-500 text-blue-600 dark:text-blue-400'
-                            : 'bg-neutral-50 dark:bg-neutral-800/50 border-neutral-200 dark:border-neutral-700 text-neutral-500 dark:text-neutral-400 hover:border-neutral-600'
-                        }`}
-                      >
-                        <span className="text-xl">{cat.icon}</span>
-                        <span className="text-xs">{cat.label}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Visibility */}
-                <div>
-                  <label className="text-neutral-900 dark:text-white font-medium mb-3 block">
-                    Who can view
-                  </label>
-                  <div className="space-y-2">
-                    {VISIBILITY_OPTIONS.map((opt) => (
-                      <button
-                        key={opt.value}
-                        onClick={() => setVisibility(opt.value)}
-                        className={`w-full p-3 rounded-xl border transition-colors flex items-center gap-3 ${
-                          visibility === opt.value
-                            ? 'bg-blue-500/20 border-blue-500'
-                            : 'bg-neutral-50 dark:bg-neutral-800/50 border-neutral-200 dark:border-neutral-700 hover:border-neutral-600'
-                        }`}
-                      >
-                        <div
-                          className={`${visibility === opt.value ? 'text-blue-600 dark:text-blue-400' : 'text-neutral-500 dark:text-neutral-400'}`}
-                        >
-                          {opt.icon}
-                        </div>
-                        <div className="flex-1 text-left">
-                          <p
-                            className={`font-medium ${visibility === opt.value ? 'text-blue-600 dark:text-blue-400' : 'text-neutral-900 dark:text-white'}`}
-                          >
-                            {opt.label}
-                          </p>
-                          <p className="text-neutral-500 text-sm">{opt.desc}</p>
-                        </div>
-                        {visibility === opt.value && (
-                          <Check className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Link (optional) */}
-                <div>
-                  <label className="text-neutral-900 dark:text-white font-medium mb-3 flex items-center gap-2">
-                    <Link2 className="w-4 h-4" />
-                    Add Link (optional)
-                  </label>
-                  <input
-                    type="url"
-                    value={linkUrl}
-                    onChange={(e) => setLinkUrl(e.target.value)}
-                    placeholder="https://..."
-                    className="w-full px-4 py-3 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-neutral-900 dark:text-white placeholder-neutral-500 focus:outline-none focus:border-blue-500"
-                  />
-                  {linkUrl && (
-                    <input
-                      type="text"
-                      value={linkTitle}
-                      onChange={(e) => setLinkTitle(e.target.value)}
-                      placeholder="Link title (optional)"
-                      className="w-full px-4 py-3 mt-2 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-neutral-900 dark:text-white placeholder-neutral-500 focus:outline-none focus:border-blue-500"
-                    />
-                  )}
-                </div>
-
-                {error && <p className="text-red-400 text-sm">{error}</p>}
+            {step === 'edit' && (
+              <div className="px-6 py-4">
+                <StoryMusicPicker music={music} onChange={setMusic} />
               </div>
+            )}
+            {step === 'details' && (
+              <StoryDetailsPanel
+                STORY_CATEGORIES={STORY_CATEGORIES}
+                VISIBILITY_OPTIONS={VISIBILITY_OPTIONS}
+                category={category}
+                setCategory={setCategory}
+                visibility={visibility}
+                setVisibility={setVisibility}
+                music={music}
+                setMusic={setMusic}
+                linkUrl={linkUrl}
+                setLinkUrl={setLinkUrl}
+                linkTitle={linkTitle}
+                setLinkTitle={setLinkTitle}
+                error={error}
+              />
             )}
           </div>
 
           {/* Footer */}
           {(step === 'edit' || step === 'details') && (
-            <div className="p-4 border-t border-neutral-200 dark:border-neutral-800">
+            <div className="shrink-0 p-4 border-t border-neutral-200 dark:border-neutral-800">
               {step === 'edit' ? (
                 <button
                   onClick={() => setStep('details')}
                   disabled={!canProceed()}
-                  className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full py-3 bg-neutral-900 hover:bg-neutral-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-neutral-900 font-semibold rounded-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   Continue
                   <ChevronRight className="w-5 h-5" />
@@ -435,7 +372,7 @@ export function StoryCreatorView({
                 <button
                   onClick={handleSubmit}
                   disabled={isUploading}
-                  className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full py-3 bg-neutral-900 hover:bg-neutral-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-neutral-900 font-semibold rounded-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {isUploading ? (
                     <>
@@ -444,7 +381,7 @@ export function StoryCreatorView({
                     </>
                   ) : (
                     <>
-                      <Sparkles className="w-5 h-5" />
+                      <Send className="w-4 h-4" />
                       Share Story
                     </>
                   )}
