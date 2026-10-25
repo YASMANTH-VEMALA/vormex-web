@@ -1,13 +1,13 @@
 'use client';
 import {
   ConnectionLimitBanner,
-  Leaderboard,
   PeopleFromYourCollege,
   ProgressNudges,
   RewardPopup,
   StreakCounter,
 } from '@/components/engagement';
 import { NudgeCard, StreakWidget, WeeklyGoalsWidget } from '@/components/engagement/FeedWidgets';
+import { FeedEngagementSidebar } from '@/components/feed/FeedEngagementSidebar';
 import { FeedLeftNav } from '@/components/feed/FeedLeftNav';
 import { FeedModuleCard } from '@/components/feed/FeedModuleCard';
 import { ManagedAdCard } from '@/components/feed/ManagedAdCard';
@@ -410,26 +410,7 @@ export function FeedTimelineView({
           </div>
 
           {/* ── Right: engagement widgets + sponsored rail (desktop only) ── */}
-          {user && (
-            <aside className="hidden lg:block">
-              <div className="sticky top-[76px] space-y-4 pt-6">
-                <ProgressNudges compact />
-                <SidebarAdCard sessionId={adSessionId} />
-                <PeopleFromYourCollege />
-                <details className="group rounded-2xl border border-gray-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
-                  <summary className="cursor-pointer text-sm font-semibold text-gray-600 dark:text-neutral-300">
-                    Community leaderboard
-                  </summary>
-                  <div className="pt-4">
-                    <Leaderboard />
-                  </div>
-                </details>
-                <p className="px-2 text-xs leading-relaxed text-gray-500 dark:text-neutral-400">
-                  Make a connection. Share an idea. Grow together.
-                </p>
-              </div>
-            </aside>
-          )}
+          {user && <FeedEngagementSidebar sessionId={adSessionId} />}
         </div>
 
         {/* Create Post Modal */}

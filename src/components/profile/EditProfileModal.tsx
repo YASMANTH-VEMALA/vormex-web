@@ -1,5 +1,6 @@
 'use client';
 
+import { EditProfileLinks } from './EditProfileLinks';
 import { useProfileForm } from './useProfileForm';
 import { Button } from '@/components/ui/Button';
 import { updateProfile } from '@/lib/api/profile';
@@ -8,18 +9,7 @@ import { formatLocation } from '@/lib/utils/profileLocation';
 import type { ProfileUpdateData, ProfileUser } from '@/types/profile';
 import * as Dialog from '@radix-ui/react-dialog';
 import { motion } from 'framer-motion';
-import {
-  Eye,
-  Globe,
-  GraduationCap,
-  Link2,
-  Linkedin,
-  Loader2,
-  MapPin,
-  Save,
-  User,
-  X,
-} from 'lucide-react';
+import { Eye, GraduationCap, Link2, Loader2, MapPin, Save, User, X } from 'lucide-react';
 import { useState } from 'react';
 
 interface EditProfileModalProps {
@@ -385,51 +375,12 @@ export function EditProfileModal({
                 )}
 
                 {activeSection === 'links' && (
-                  <motion.div
+                  <EditProfileLinks
                     key="links"
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    className="space-y-4"
-                  >
-                    <div>
-                      <label
-                        htmlFor="edit-profile-portfolioUrl"
-                        className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1"
-                      >
-                        <Globe className="w-4 h-4 inline mr-1" />
-                        Portfolio URL
-                      </label>
-                      <input
-                        type="url"
-                        id="edit-profile-portfolioUrl"
-                        name="portfolioUrl"
-                        value={formData.portfolioUrl}
-                        onChange={handleChange}
-                        placeholder="https://yourportfolio.com"
-                        className="w-full bg-gray-100 dark:bg-neutral-800 text-gray-900 dark:text-white px-3 py-2 rounded-lg border border-gray-300 dark:border-neutral-700 focus:border-blue-500 focus:outline-none"
-                      />
-                    </div>
-
-                    <div>
-                      <label
-                        htmlFor="edit-profile-linkedinUrl"
-                        className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1"
-                      >
-                        <Linkedin className="w-4 h-4 inline mr-1" />
-                        LinkedIn URL
-                      </label>
-                      <input
-                        type="url"
-                        id="edit-profile-linkedinUrl"
-                        name="linkedinUrl"
-                        value={formData.linkedinUrl}
-                        onChange={handleChange}
-                        placeholder="https://linkedin.com/in/yourprofile"
-                        className="w-full bg-gray-100 dark:bg-neutral-800 text-gray-900 dark:text-white px-3 py-2 rounded-lg border border-gray-300 dark:border-neutral-700 focus:border-blue-500 focus:outline-none"
-                      />
-                    </div>
-                  </motion.div>
+                    portfolioUrl={formData.portfolioUrl}
+                    linkedinUrl={formData.linkedinUrl}
+                    onChange={handleChange}
+                  />
                 )}
 
                 {activeSection === 'privacy' && (

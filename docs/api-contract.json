@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-10-22",
+  "capturedAt": "2026-10-25",
   "routes": [
     {
       "method": "post",
@@ -2452,6 +2452,10 @@
     {
       "method": "post",
       "endpoint": "/api/chat/uploads/:uploadId/complete"
+    },
+    {
+      "method": "get",
+      "endpoint": "/api/music/search"
     }
   ]
 }
