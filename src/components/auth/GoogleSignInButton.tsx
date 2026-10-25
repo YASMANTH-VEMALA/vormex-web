@@ -22,13 +22,13 @@ export function GoogleSignInButton({
   const wrapperRef = useRef<HTMLDivElement>(null);
   const [buttonWidth, setButtonWidth] = useState(260);
   useEffect(() => {
-    if (!fullWidth || disabled || !wrapperRef.current) return;
+    if (!fullWidth || !wrapperRef.current) return;
     const observer = new ResizeObserver(([entry]) => {
       setButtonWidth(Math.min(400, Math.max(200, Math.floor(entry.contentRect.width))));
     });
     observer.observe(wrapperRef.current);
     return () => observer.disconnect();
-  }, [fullWidth, disabled]);
+  }, [fullWidth]);
   const googleButtonText = text.toLowerCase().includes('sign up')
     ? 'signup_with'
     : text.toLowerCase().includes('continue')
@@ -36,6 +36,7 @@ export function GoogleSignInButton({
       : 'signin_with';
 
   const handleSuccess = (credentialResponse: CredentialResponse) => {
+    if (disabled) return;
     const idToken = credentialResponse.credential;
     if (!idToken) {
       onError?.('Google did not return a sign-in credential. Please try again.');
@@ -45,11 +46,14 @@ export function GoogleSignInButton({
     void onClick(idToken);
   };
 
-  if (!disabled && GOOGLE_CLIENT_ID) {
+  if (GOOGLE_CLIENT_ID) {
     return (
       <div
         ref={wrapperRef}
         className="google-login-wrapper"
+        inert={disabled}
+        aria-busy={disabled}
+        aria-disabled={disabled}
         style={fullWidth ? { width: '100%' } : undefined}
       >
         <GoogleLogin

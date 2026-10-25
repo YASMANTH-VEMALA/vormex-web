@@ -25,6 +25,22 @@ test('deployment environment can override every local default', () => {
   assert.equal(resolveSocketUrl(env), 'https://socket.example.com');
 });
 
+test('server proxy target overrides a stale public backend origin', () => {
+  const env = {
+    NODE_ENV: 'production' as const,
+    BACKEND_URL: 'https://working-backend.example.com/',
+    NEXT_PUBLIC_BACKEND_URL: 'https://stale-backend.example.com',
+    NEXT_PUBLIC_API_URL: '/api',
+  };
+  assert.equal(resolveBackendUrl(env), 'https://working-backend.example.com');
+  const csp =
+    new Map(buildSecurityHeaders(env).map(({ key, value }) => [key, value])).get(
+      'Content-Security-Policy'
+    ) ?? '';
+  assert.match(csp, /connect-src 'self' https:\/\/working-backend\.example\.com/);
+  assert.doesNotMatch(csp, /stale-backend/);
+});
+
 test('browser configuration survives an empty runtime environment after build-time capture', () => {
   const result = spawnSync(
     process.execPath,
