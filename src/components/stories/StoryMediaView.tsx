@@ -132,6 +132,7 @@ export function StoryMediaView({
         <div className="absolute inset-0">
           {currentStory.mediaType === 'VIDEO' ? (
             <video
+              key={currentStory.id}
               ref={videoRef}
               src={currentStory.mediaUrl}
               className="w-full h-full object-cover"

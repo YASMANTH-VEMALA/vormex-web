@@ -54,6 +54,82 @@ class FakePlayer {
 }
 const clip = { songId: 'J7p4bzqLvCw', startOffset: 30, duration: 15 };
 
+test('five music stories start without pause/resume when cue and pause acknowledgements arrive late', () => {
+  type Selection = { videoId: string; startSeconds: number; endSeconds: number };
+  class QueuedPlayer extends FakePlayer {
+    commands: (() => void)[] = [];
+    waitingForCue = false;
+    onState: (state: number) => void = () => {};
+    cueVideoById(selection: Selection) {
+      this.cues.push(selection);
+      this.waitingForCue = true;
+      this.commands.push(() => {
+        this.waitingForCue = false;
+        this.time = selection.startSeconds;
+        this.state = 5;
+        this.onState(5);
+      });
+    }
+    pauseVideo() {
+      this.commands.push(() => {
+        this.state = 2;
+        this.onState(2);
+      });
+    }
+    playVideo() {
+      this.playCalls++;
+      if (this.waitingForCue) return; // The initial play is ignored while YouTube switches songs.
+      this.state = 1;
+      this.onState(1);
+    }
+    flush() {
+      while (this.commands.length) this.commands.shift()!();
+    }
+  }
+  const raw = new QueuedPlayer();
+  const player = new YouTubeClipPlayer(raw, clip);
+  raw.onState = (state) => player.observeState(state);
+  raw.flush();
+  player.play();
+  for (let index = 1; index < 5; index++) {
+    if (index % 2 === 0) {
+      raw.state = 0;
+      player.observeState(0);
+    }
+    player.pause();
+    const next = {
+      ...clip,
+      songId: index < 2 ? clip.songId : 'plnfIj7dkJE',
+      startOffset: index * 10,
+    };
+    player.setClip(next, true);
+    player.play();
+    raw.flush();
+    assert.equal(raw.state, 1, `story ${index + 1} must start without a manual toggle`);
+    assert.equal(player.paused, false);
+    assert.equal(player.readyState, 2);
+    assert.equal(player.currentTime, next.startOffset);
+  }
+  player.pause();
+  player.setClip({ ...clip, startOffset: 80 }, true);
+  player.play();
+  const latePause = raw.commands.shift()!;
+  raw.flush();
+  assert.equal(raw.state, 1);
+  latePause();
+  assert.equal(raw.state, 1, 'the previous pause must not stop an already-started new story');
+  player.pause();
+  raw.flush();
+  assert.equal(raw.state, 2, 'an explicit user pause must stay paused');
+  player.setClip({ ...clip, startOffset: 90 }, true);
+  raw.flush();
+  assert.equal(raw.state, 5, 'a cue arriving during a user pause must not autoplay');
+  raw.state = 1;
+  player.observeState(1);
+  raw.flush();
+  assert.equal(raw.state, 2, 'a late playing event must respect the user pause');
+});
+
 test('YouTube clips preserve the exact selection when loading, resuming, and replaying', () => {
   const raw = new FakePlayer();
   const player = new YouTubeClipPlayer(raw, clip);

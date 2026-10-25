@@ -1,5 +1,7 @@
 'use client';
 
+import { attachStoryVideoPlayback } from '@/lib/stories/videoPlayback';
+
 import {
   useEffect,
   useRef,
@@ -26,8 +28,7 @@ export function useStoryMediaControls({
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
-    if (isPaused) video.pause();
-    else void video.play().catch(() => {});
+    return attachStoryVideoPlayback(video, isPaused);
   }, [isPaused, storyId, videoRef]);
 
   const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {

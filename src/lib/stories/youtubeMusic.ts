@@ -75,6 +75,7 @@ export function loadYouTubeMusicAPI(): Promise<YouTubeAPI> {
 export class YouTubeClipPlayer {
   private started = false;
   private requestedPause = true;
+  private pausePending = false;
   private transitioning = true;
   constructor(
     private player: YouTubePlayer,
@@ -97,7 +98,20 @@ export class YouTubeClipPlayer {
     this.player.cueVideoById(this.video());
   }
   observeState(state: number) {
-    if (state === 1 && this.started) this.transitioning = false;
+    if (state === 5) {
+      // cueVideoById is asynchronous. A play sent before this acknowledgement can be ignored.
+      if (this.started && !this.requestedPause && this.player.getPlayerState() !== 1) {
+        this.player.playVideo();
+      }
+    } else if (state === 2) {
+      const wasOurPause = this.pausePending;
+      this.pausePending = false;
+      // The previous story's pause acknowledgement can arrive after the next story requests play.
+      if (wasOurPause && this.started && !this.requestedPause) this.player.playVideo();
+    } else if (state === 1) {
+      if (this.requestedPause) this.pause();
+      else if (this.started) this.transitioning = false;
+    }
   }
   private video() {
     return {
@@ -134,7 +148,10 @@ export class YouTubeClipPlayer {
     this.player.playVideo();
   }
   pause() {
+    const alreadyPaused = this.requestedPause;
     this.requestedPause = true;
+    if (alreadyPaused && (this.pausePending || this.player.getPlayerState() !== 1)) return;
+    this.pausePending = true;
     this.player.pauseVideo();
   }
 }
