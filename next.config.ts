@@ -7,7 +7,7 @@ export function resolveBackendUrl(env: Partial<NodeJS.ProcessEnv> = process.env)
     env.NEXT_PUBLIC_BACKEND_URL?.replace(/\/+$/, '') ||
     env.NEXT_PUBLIC_API_URL?.replace(/\/api\/?$/, '') ||
     (env.NODE_ENV === 'production'
-      ? 'https://vormex-backend.onrender.com'
+      ? 'https://vormex-backend-ten.vercel.app'
       : 'http://localhost:5000')
   );
 }

@@ -68,12 +68,12 @@ test('browser configuration survives an empty runtime environment after build-ti
   assert.equal(result.status, 0, result.stderr || result.stdout);
 });
 
-test('production retains the secure backend fallback when deployment env is incomplete', () => {
+test('production falls back to the current Vercel backend when deployment env is incomplete', () => {
   assert.equal(
     resolveBackendUrl({ NODE_ENV: 'production' }),
-    'https://vormex-backend.onrender.com'
+    'https://vormex-backend-ten.vercel.app'
   );
-  assert.equal(resolveSocketUrl({ NODE_ENV: 'production' }), 'https://vormex-backend.onrender.com');
+  assert.equal(resolveSocketUrl({ NODE_ENV: 'production' }), 'https://vormex-backend-ten.vercel.app');
 });
 
 test('production responses enforce privacy and browser security headers', () => {

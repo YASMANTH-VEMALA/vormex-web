@@ -56,7 +56,7 @@ export function resolveSocketUrl(env: Partial<NodeJS.ProcessEnv> = publicBuildEn
   }
 
   return env.NODE_ENV === 'production'
-    ? 'https://vormex-backend.onrender.com'
+    ? 'https://vormex-backend-ten.vercel.app'
     : 'http://localhost:5000';
 }
 

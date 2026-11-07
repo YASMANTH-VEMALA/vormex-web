@@ -36,7 +36,7 @@ function backendOrigin(): string {
   const configured = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_URL;
   return configured?.startsWith('http')
     ? configured.replace(/\/+$/, '')
-    : 'https://vormex-backend.onrender.com';
+    : 'https://vormex-backend-ten.vercel.app';
 }
 
 async function publicFetch<T>(path: string, init?: RequestInit): Promise<T | null> {
