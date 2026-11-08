@@ -81,7 +81,7 @@ export default function StepProfile({ initialData, onComplete, saving, userColle
       <CollegeSearch value={college} onChange={setCollege} disabled={saving} />
       <fieldset disabled={saving}>
         <legend className="text-sm font-medium">What brings you to Vormex?</legend>
-        <p className="mt-1 text-sm text-stone-400">Just choose one to start.</p>
+        <p className="mt-1 text-sm text-gray-400">Just choose one to start.</p>
         <div className="mt-4 grid grid-cols-2 gap-2.5">
           {visibleGoals.map((goal) => {
             const Icon = goal.icon;
@@ -93,16 +93,16 @@ export default function StepProfile({ initialData, onComplete, saving, userColle
                 aria-pressed={selected}
                 onClick={() => setPrimaryGoal(goal.id)}
                 className={
-                  'flex min-h-[66px] items-center gap-2 rounded-xl border px-3 py-3 sm:gap-3 sm:px-4 text-left transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-500 ' +
+                  'flex min-h-[66px] items-center gap-2 rounded-xl border px-3 py-3 sm:gap-3 sm:px-4 text-left transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500 ' +
                   (selected
-                    ? 'border-[#b65b3d] bg-[#fbefe8] text-stone-900 dark:border-orange-400 dark:bg-orange-400/10 dark:text-white'
-                    : 'border-stone-200 bg-white text-stone-600 hover:border-stone-400 dark:border-stone-800 dark:bg-stone-900 dark:text-stone-300')
+                    ? 'border-[#2563eb] bg-[#eff6ff] text-gray-900 dark:border-blue-400 dark:bg-blue-400/10 dark:text-white'
+                    : 'border-gray-200 bg-white text-gray-600 hover:border-gray-400 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-300')
                 }
               >
                 <Icon
                   className={
                     'h-5 w-5 shrink-0 ' +
-                    (selected ? 'text-[#b65b3d] dark:text-orange-400' : 'text-stone-400')
+                    (selected ? 'text-[#2563eb] dark:text-blue-400' : 'text-gray-400')
                   }
                   aria-hidden="true"
                 />
@@ -111,8 +111,8 @@ export default function StepProfile({ initialData, onComplete, saving, userColle
                   className={
                     'flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ' +
                     (selected
-                      ? 'border-[#b65b3d] bg-[#b65b3d] text-white dark:border-orange-400 dark:bg-orange-400 dark:text-stone-950'
-                      : 'border-stone-200 dark:border-stone-600')
+                      ? 'border-[#2563eb] bg-[#2563eb] text-white dark:border-blue-400 dark:bg-blue-400 dark:text-neutral-950'
+                      : 'border-gray-200 dark:border-neutral-600')
                   }
                 >
                   {selected && <Check className="h-3 w-3" />}
@@ -125,15 +125,15 @@ export default function StepProfile({ initialData, onComplete, saving, userColle
           type="button"
           aria-expanded={showAll}
           onClick={() => setShowAll(!showAll)}
-          className="mt-3 inline-flex min-h-10 items-center gap-1.5 text-sm text-stone-500 underline-offset-4 hover:underline"
+          className="mt-3 inline-flex min-h-10 items-center gap-1.5 text-sm text-gray-500 underline-offset-4 hover:underline"
         >
           {showAll ? 'Show fewer' : 'More things to explore'}
           <ChevronDown className={'h-3.5 w-3.5 transition ' + (showAll ? 'rotate-180' : '')} />
         </button>
       </fieldset>
-      <details className="border-t border-stone-200 pt-5 dark:border-stone-800">
-        <summary className="cursor-pointer text-sm text-stone-500">
-          Looking for someone specific? <span className="text-stone-400">Optional</span>
+      <details className="border-t border-gray-200 pt-5 dark:border-neutral-800">
+        <summary className="cursor-pointer text-sm text-gray-500">
+          Looking for someone specific? <span className="text-gray-400">Optional</span>
         </summary>
         <fieldset
           disabled={saving}
@@ -155,8 +155,8 @@ export default function StepProfile({ initialData, onComplete, saving, userColle
                 className={
                   'min-h-10 rounded-full border px-4 text-sm ' +
                   (selected
-                    ? 'border-stone-900 bg-stone-900 text-white dark:border-stone-100 dark:bg-stone-100 dark:text-stone-900'
-                    : 'border-stone-200 bg-white text-stone-600 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-300')
+                    ? 'border-gray-900 bg-gray-900 text-white dark:border-neutral-100 dark:bg-neutral-100 dark:text-neutral-900'
+                    : 'border-gray-200 bg-white text-gray-600 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300')
                 }
               >
                 {item.label}

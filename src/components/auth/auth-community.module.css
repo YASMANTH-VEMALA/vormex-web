@@ -1,8 +1,8 @@
 .page {
-  --coral: #df6c53;
+  --coral: #2563eb;
   min-height: 100svh;
   color: #171719;
-  background: #fffdfa;
+  background: #ffffff;
   font-family: var(--font-geist-sans), Arial, sans-serif;
   color-scheme: light;
 }
@@ -111,8 +111,8 @@
     box-shadow 0.2s;
 }
 .inputField:focus-within {
-  border-color: #d9745b;
-  box-shadow: 0 0 0 3px #e47a6020;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px #2563eb33;
 }
 .inputField > svg {
   flex-shrink: 0;
@@ -177,7 +177,7 @@
 .forgot {
   display: inline-block;
   margin-top: 16px;
-  color: #cf5034;
+  color: #2563eb;
   font-size: 14px;
   text-decoration: none;
 }
@@ -197,7 +197,7 @@
   border: 0;
   padding: 0;
   background: transparent;
-  color: #cf5034;
+  color: #2563eb;
   font: inherit;
   cursor: pointer;
 }
@@ -215,7 +215,7 @@
 }
 .legal a {
   text-decoration: underline;
-  color: #b74a33;
+  color: #2563eb;
 }
 .error,
 .success {
@@ -241,9 +241,9 @@
   gap: 24px;
   min-height: 66px;
   padding: 15px 42px;
-  border-top: 1px solid #ede7df;
+  border-top: 1px solid #e5e7eb;
   color: #68717e;
-  background: #fdfaf6;
+  background: #f9fafb;
   font-size: 11px;
 }
 .footer nav {
@@ -258,7 +258,7 @@
   text-decoration: none;
 }
 .footer a:hover {
-  color: #c35439;
+  color: #2563eb;
 }
 .language {
   display: flex;
@@ -279,7 +279,7 @@
 }
 .page button:focus-visible,
 .page a:focus-visible {
-  outline: 3px solid #d97154;
+  outline: 3px solid #2563eb;
   outline-offset: 4px;
 }
 .spinner {

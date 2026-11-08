@@ -113,7 +113,7 @@ export default function StepLearnTeach({ initialData, onComplete, saving }: Prop
           onClick={() => setActiveTab('teach')}
           className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${
             activeTab === 'teach'
-              ? 'bg-white dark:bg-neutral-900 text-purple-600 dark:text-purple-400 shadow-sm'
+              ? 'bg-white dark:bg-neutral-900 text-blue-600 dark:text-blue-400 shadow-sm'
               : 'text-neutral-500 dark:text-neutral-400'
           }`}
         >
@@ -139,7 +139,7 @@ export default function StepLearnTeach({ initialData, onComplete, saving }: Prop
               className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${
                 activeTab === 'learn'
                   ? 'bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300'
-                  : 'bg-purple-100 dark:bg-purple-950/50 text-purple-700 dark:text-purple-300'
+                  : 'bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300'
               }`}
             >
               {t}
@@ -169,7 +169,7 @@ export default function StepLearnTeach({ initialData, onComplete, saving }: Prop
                 isActive
                   ? activeTab === 'learn'
                     ? 'bg-blue-500 text-white shadow-md shadow-blue-500/20'
-                    : 'bg-purple-500 text-white shadow-md shadow-purple-500/20'
+                    : 'bg-blue-500 text-white shadow-md shadow-blue-500/20'
                   : isInLearn || isInTeach
                     ? 'bg-neutral-200 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-300 ring-1 ring-blue-300 dark:ring-blue-700'
                     : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700'
@@ -186,7 +186,7 @@ export default function StepLearnTeach({ initialData, onComplete, saving }: Prop
         disabled={!canContinue || saving}
         className={`w-full py-4 rounded-2xl font-semibold text-white transition-all ${
           canContinue && !saving
-            ? 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 shadow-lg shadow-blue-500/25'
+            ? 'bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-600/25'
             : 'bg-neutral-300 dark:bg-neutral-700 cursor-not-allowed'
         }`}
         whileTap={canContinue ? { scale: 0.98 } : {}}

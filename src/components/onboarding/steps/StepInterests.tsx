@@ -160,7 +160,7 @@ export default function StepInterests({ initialData, onComplete, saving }: Props
     <div className="space-y-6">
       <div className="relative">
         <Search
-          className="pointer-events-none absolute left-4 top-[18px] h-5 w-5 text-stone-400"
+          className="pointer-events-none absolute left-4 top-[18px] h-5 w-5 text-gray-400"
           aria-hidden="true"
         />
         <input
@@ -170,14 +170,14 @@ export default function StepInterests({ initialData, onComplete, saving }: Props
           maxLength={80}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search for something you enjoy"
-          className="min-h-14 w-full rounded-xl border border-stone-200 bg-white pl-12 pr-12 text-base outline-none placeholder:text-stone-400 focus:border-stone-500 focus:ring-4 focus:ring-stone-500/5 dark:border-stone-700 dark:bg-stone-900"
+          className="min-h-14 w-full rounded-xl border border-gray-200 bg-white pl-12 pr-12 text-base outline-none placeholder:text-gray-400 focus:border-gray-500 focus:ring-4 focus:ring-gray-500/5 dark:border-neutral-700 dark:bg-neutral-900"
         />
         {search && (
           <button
             type="button"
             onClick={() => setSearch('')}
             aria-label="Clear search"
-            className="absolute right-2 top-2 flex h-10 w-10 items-center justify-center rounded-lg text-stone-500"
+            className="absolute right-2 top-2 flex h-10 w-10 items-center justify-center rounded-lg text-gray-500"
           >
             <X className="h-4 w-4" />
           </button>
@@ -187,7 +187,7 @@ export default function StepInterests({ initialData, onComplete, saving }: Props
         <fieldset
           disabled={saving}
           aria-label="Browse interest categories"
-          className="flex flex-wrap gap-x-1 gap-y-1 border-b border-stone-200 pb-4 dark:border-stone-800"
+          className="flex flex-wrap gap-x-1 gap-y-1 border-b border-gray-200 pb-4 dark:border-neutral-800"
         >
           {INTEREST_GROUPS.map((group) => (
             <button
@@ -198,8 +198,8 @@ export default function StepInterests({ initialData, onComplete, saving }: Props
               className={
                 'min-h-10 rounded-lg px-3 text-xs font-medium transition sm:text-sm ' +
                 (category === group.label
-                  ? 'bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900'
-                  : 'text-stone-500 hover:bg-stone-100 dark:hover:bg-stone-800')
+                  ? 'bg-gray-900 text-white dark:bg-neutral-100 dark:text-neutral-900'
+                  : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-neutral-800')
               }
             >
               {group.label
@@ -218,13 +218,13 @@ export default function StepInterests({ initialData, onComplete, saving }: Props
         className="min-h-[180px] space-y-5"
       >
         {groups.length === 0 && (
-          <p className="py-4 text-sm text-stone-500">
+          <p className="py-4 text-sm text-gray-500">
             Make it yours. Add this as a new interest below.
           </p>
         )}
         {groups.map((group) => (
           <div key={group.label}>
-            {query && <h2 className="mb-3 text-xs text-stone-500">{group.label}</h2>}
+            {query && <h2 className="mb-3 text-xs text-gray-500">{group.label}</h2>}
             <div className="flex flex-wrap gap-2.5">
               {group.items.map((item) => {
                 const checked = selected.includes(item);
@@ -235,16 +235,16 @@ export default function StepInterests({ initialData, onComplete, saving }: Props
                     aria-pressed={checked}
                     onClick={() => toggle(item)}
                     className={
-                      'inline-flex min-h-12 items-center gap-2 rounded-full border px-4 text-sm font-medium transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-500 ' +
+                      'inline-flex min-h-12 items-center gap-2 rounded-full border px-4 text-sm font-medium transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500 ' +
                       (checked
-                        ? 'border-[#b65b3d] bg-[#fbefe8] text-[#8e442c] dark:border-orange-400 dark:bg-orange-400/10 dark:text-orange-300'
-                        : 'border-stone-200 bg-white text-stone-600 hover:border-stone-400 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-300')
+                        ? 'border-[#2563eb] bg-[#eff6ff] text-[#1d4ed8] dark:border-blue-400 dark:bg-blue-400/10 dark:text-blue-300'
+                        : 'border-gray-200 bg-white text-gray-600 hover:border-gray-400 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300')
                     }
                   >
                     {checked ? (
                       <Check className="h-3.5 w-3.5" />
                     ) : (
-                      <Plus className="h-3.5 w-3.5 text-stone-400" />
+                      <Plus className="h-3.5 w-3.5 text-gray-400" />
                     )}
                     {item}
                   </button>
@@ -260,19 +260,19 @@ export default function StepInterests({ initialData, onComplete, saving }: Props
               setSelected((prev) => [...prev, customLabel]);
               setSearch('');
             }}
-            className="inline-flex min-h-12 items-center gap-2 rounded-full border border-dashed border-stone-400 px-4 text-sm dark:border-stone-600"
+            className="inline-flex min-h-12 items-center gap-2 rounded-full border border-dashed border-gray-400 px-4 text-sm dark:border-neutral-600"
           >
             <Plus className="h-4 w-4" />
             Add “{customLabel}”
           </button>
         )}
       </fieldset>
-      <div aria-live="polite" className="rounded-xl bg-stone-100/80 p-4 dark:bg-stone-900">
+      <div aria-live="polite" className="rounded-xl bg-gray-100/80 p-4 dark:bg-neutral-900">
         <div className="flex items-center justify-between gap-3">
           <p className="text-sm font-medium">
             {selected.length >= 2 ? 'A good start.' : 'Choose at least two'}
           </p>
-          <span className="text-xs text-stone-500">{selected.length} selected</span>
+          <span className="text-xs text-gray-500">{selected.length} selected</span>
         </div>
         {selected.length > 0 ? (
           <div aria-label="Selected interests" className="mt-3 flex flex-wrap gap-2">
@@ -283,23 +283,23 @@ export default function StepInterests({ initialData, onComplete, saving }: Props
                 disabled={saving}
                 aria-label={'Remove ' + item}
                 onClick={() => toggle(item)}
-                className="inline-flex min-h-9 items-center gap-2 rounded-lg bg-white px-3 py-1.5 text-xs text-stone-700 dark:bg-stone-800 dark:text-stone-200"
+                className="inline-flex min-h-9 items-center gap-2 rounded-lg bg-white px-3 py-1.5 text-xs text-gray-700 dark:bg-neutral-800 dark:text-neutral-200"
               >
                 {item}
-                <X className="h-3 w-3 text-stone-400" />
+                <X className="h-3 w-3 text-gray-400" />
               </button>
             ))}
           </div>
         ) : (
-          <p className="mt-1 text-xs leading-5 text-stone-500">
+          <p className="mt-1 text-xs leading-5 text-gray-500">
             Browse a category or search. There’s no wrong combination.
           </p>
         )}
       </div>
       {selected.length > 0 && (
         <details className="text-sm">
-          <summary className="cursor-pointer text-stone-500">
-            Want to share any of these skills? <span className="text-stone-400">Optional</span>
+          <summary className="cursor-pointer text-gray-500">
+            Want to share any of these skills? <span className="text-gray-400">Optional</span>
           </summary>
           <fieldset
             disabled={saving}
@@ -321,8 +321,8 @@ export default function StepInterests({ initialData, onComplete, saving }: Props
                   className={
                     'inline-flex min-h-10 items-center gap-2 rounded-full border px-3 text-xs ' +
                     (checked
-                      ? 'border-stone-900 bg-stone-900 text-white dark:border-stone-100 dark:bg-stone-100 dark:text-stone-900'
-                      : 'border-stone-200 bg-white text-stone-600 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-300')
+                      ? 'border-gray-900 bg-gray-900 text-white dark:border-neutral-100 dark:bg-neutral-100 dark:text-neutral-900'
+                      : 'border-gray-200 bg-white text-gray-600 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300')
                   }
                 >
                   {checked && <Check className="h-3 w-3" />}

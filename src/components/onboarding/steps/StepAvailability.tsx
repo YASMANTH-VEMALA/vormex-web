@@ -141,7 +141,7 @@ export default function StepAvailability({ initialData, onComplete, saving }: Pr
         disabled={!canContinue || saving}
         className={`w-full py-4 rounded-2xl font-semibold text-white transition-all ${
           canContinue && !saving
-            ? 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 shadow-lg shadow-blue-500/25'
+            ? 'bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-600/25'
             : 'bg-neutral-300 dark:bg-neutral-700 cursor-not-allowed'
         }`}
         whileTap={canContinue ? { scale: 0.98 } : {}}

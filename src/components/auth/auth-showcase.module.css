@@ -3,7 +3,7 @@
   display: flex;
   flex-direction: column;
   padding: 36px 48px 0;
-  background: radial-gradient(ellipse at 60% 90%, #ffe9d9 0, transparent 62%), #fdf9f4;
+  background: #ffffff;
   overflow: hidden;
   isolation: isolate;
 }
@@ -33,7 +33,7 @@
 }
 .eyebrow {
   margin: 0 0 8px;
-  color: #d6573b;
+  color: #2563eb;
   font-size: 12px;
   font-weight: 650;
   letter-spacing: 4.8px;
@@ -47,8 +47,8 @@
   white-space: nowrap;
 }
 .heroCopy h1 span {
-  color: #c65a3f;
-  background: linear-gradient(125deg, #fc9270, #ac442e);
+  color: #2563eb;
+  background: linear-gradient(125deg, #60a5fa, #1d4ed8);
   background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -68,9 +68,9 @@
 .photo {
   position: absolute;
   overflow: hidden;
-  border: 7px solid #fdf9f4;
+  border: 7px solid #ffffff;
   border-radius: 34px;
-  background: #efddcb;
+  background: #dbeafe;
 }
 .photo img {
   object-fit: cover;
@@ -135,15 +135,15 @@
   font-family: 'Segoe Print', 'Bradley Hand', cursive;
   font-size: clamp(17px, 1.55vw, 24px);
   line-height: 1.23;
-  color: #c64d2c;
-  background: #ffeadc;
+  color: #1d4ed8;
+  background: #dbeafe;
   font-weight: 600;
 }
 .note i {
   display: block;
   width: 54px;
   height: 12px;
-  border-bottom: 2px solid #dc6547;
+  border-bottom: 2px solid #2563eb;
   transform: rotate(-10deg);
   position: relative;
 }
@@ -153,7 +153,7 @@
   width: 35px;
   left: 11px;
   top: 13px;
-  border-bottom: 2px solid #dc6547;
+  border-bottom: 2px solid #2563eb;
   transform: rotate(-9deg);
 }
 .noteTop {
@@ -188,7 +188,7 @@
   z-index: 5;
   width: 57px;
   height: 55px;
-  color: #eb7051;
+  color: #3b82f6;
   pointer-events: none;
 }
 .sparkTop {

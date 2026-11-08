@@ -21,8 +21,8 @@ export default function OnboardingPage() {
 
   if (loading || !user || user.onboardingCompleted) {
     return (
-      <div className="onboarding-shell min-h-dvh flex items-center justify-center bg-[#fcfaf7] dark:bg-stone-950">
-        <div className="w-8 h-8 border-2 border-stone-700 border-t-transparent rounded-full animate-spin" />
+      <div className="onboarding-shell min-h-dvh flex items-center justify-center bg-gray-50 dark:bg-neutral-950">
+        <div className="w-8 h-8 border-2 border-gray-700 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }

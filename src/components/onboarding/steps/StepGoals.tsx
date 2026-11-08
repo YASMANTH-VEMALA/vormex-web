@@ -141,7 +141,7 @@ export default function StepGoals({ initialData, onComplete, saving }: Props) {
                 isPrimary
                   ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/40 shadow-lg shadow-blue-500/10'
                   : isSecondary
-                    ? 'border-purple-400 bg-purple-50 dark:bg-purple-950/30'
+                    ? 'border-blue-400 bg-blue-50 dark:bg-blue-950/30'
                     : 'border-neutral-200 dark:border-neutral-800 hover:border-neutral-300 dark:hover:border-neutral-700 bg-white dark:bg-neutral-900'
               }`}
             >
@@ -169,7 +169,7 @@ export default function StepGoals({ initialData, onComplete, saving }: Props) {
         disabled={!canContinue || saving}
         className={`w-full py-4 rounded-2xl font-semibold text-white transition-all duration-200 ${
           canContinue && !saving
-            ? 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 shadow-lg shadow-blue-500/25'
+            ? 'bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-600/25'
             : 'bg-neutral-300 dark:bg-neutral-700 cursor-not-allowed'
         }`}
         whileTap={canContinue ? { scale: 0.98 } : {}}
