@@ -53,10 +53,12 @@ export function PeopleFiltersPanel({
   userCollege,
 }: PeopleFiltersPanelProps) {
   return (
-    <div className="space-y-5">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4">
+      <div className="flex items-center justify-between border-b border-gray-100 pb-3 dark:border-neutral-800">
         <h2 className="flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-white">
-          <SlidersHorizontal className="w-4 h-4 text-gray-500 dark:text-neutral-400" />
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400">
+            <SlidersHorizontal className="h-4 w-4" />
+          </span>
           Filters
         </h2>
         {hasActiveFilters && (
@@ -139,7 +141,7 @@ export function PeopleFiltersPanel({
         </FilterSelect>
       )}
 
-      <label className="flex items-center justify-between gap-3 cursor-pointer select-none pt-1">
+      <label className="flex cursor-pointer select-none items-center justify-between gap-3 rounded-xl border border-gray-200 bg-gray-50 p-3 dark:border-neutral-700 dark:bg-neutral-800">
         <span className="flex items-center gap-1.5 text-sm font-medium text-gray-700 dark:text-neutral-300">
           <Briefcase className="w-4 h-4 text-gray-500 dark:text-neutral-400" />
           Open to opportunities

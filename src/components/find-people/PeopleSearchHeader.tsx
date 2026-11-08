@@ -35,27 +35,46 @@ export function PeopleSearchHeader({
   setShowMobileFilters,
   tabItems,
 }: PeopleSearchHeaderProps) {
+  const searchInputRef = React.useRef<HTMLInputElement>(null);
+
   return (
-    <div className="sticky top-0 z-40 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-sm border-b border-gray-200 dark:border-neutral-800 shadow-sm">
-      <div className="max-w-6xl mx-auto px-4 pt-5">
-        {/* Title */}
-        <div className={`${isSearchMode ? 'sr-only' : 'flex'} items-end justify-between gap-4`}>
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
+    <header className="border-b border-gray-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
+      <div className="mx-auto max-w-7xl px-4 pb-4 pt-6 sm:px-6">
+        {/* Title row */}
+        <div className={`${isSearchMode ? 'sr-only' : 'flex'} items-center gap-3`}>
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm shadow-blue-600/25">
+            <svg
+              viewBox="0 0 24 24"
+              className="h-6 w-6"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="10" cy="10" r="6" fill="currentColor" fillOpacity=".2" />
+              <path d="m20 20-4.2-4.2" />
+              <path d="M10 7.5v5M7.5 10h5" />
+            </svg>
+          </span>
+          <div className="min-w-0">
+            <h1 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-2xl">
               Find People
             </h1>
-            <p className="mt-0.5 text-sm text-gray-500 dark:text-neutral-400">
+            <p className="truncate text-sm text-gray-500 dark:text-neutral-400">
               Grow your network — students, creators and builders
             </p>
           </div>
         </div>
 
-        {/* Search Bar (only for All tab) */}
+        {/* Search (All tab only) */}
         {activeTab === 'all' && (
-          <div className="mt-4 flex items-center gap-2">
+          <div className={`${isSearchMode ? '' : 'mt-5'} flex items-center gap-2`}>
             <div className="relative flex-1">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
               <input
+                ref={searchInputRef}
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -71,39 +90,51 @@ export function PeopleSearchHeader({
                   }
                 }}
                 placeholder="Search by name, username, college, skills..."
-                className="w-full pl-11 pr-10 py-2.5 rounded-full border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-sm text-gray-900 dark:text-white placeholder-gray-500 outline-none shadow-sm transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                aria-label="Search people"
+                className="h-12 w-full rounded-xl border border-gray-200 bg-gray-50 pl-12 pr-24 text-sm text-gray-900 outline-none transition placeholder:text-gray-500 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white dark:focus:bg-neutral-900"
               />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full text-gray-400 hover:bg-gray-100 dark:hover:bg-neutral-800 hover:text-gray-600"
-                  aria-label="Clear search"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              )}
-              {loading && isAuthoritativeSearch && (
-                <Loader2
-                  className="absolute right-11 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-blue-600"
-                  aria-label="Searching"
-                />
-              )}
+              <div className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center gap-1.5">
+                {loading && isAuthoritativeSearch && (
+                  <Loader2
+                    className="h-4 w-4 animate-spin text-blue-600"
+                    aria-label="Searching"
+                  />
+                )}
+                {searchQuery ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchQuery('');
+                      searchInputRef.current?.focus();
+                    }}
+                    className="rounded-full p-1.5 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-neutral-700"
+                    aria-label="Clear search"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                ) : (
+                  <kbd className="hidden rounded-md border border-gray-200 bg-white px-1.5 py-0.5 text-[10px] font-medium text-gray-400 dark:border-neutral-700 dark:bg-neutral-900 sm:block">
+                    Esc to clear
+                  </kbd>
+                )}
+              </div>
             </div>
 
             {/* Mobile filter trigger */}
             {!isSearchMode && (
               <button
+                type="button"
                 onClick={() => setShowMobileFilters(true)}
-                className={`lg:hidden relative flex items-center gap-2 px-4 py-2.5 rounded-full border text-sm font-semibold shadow-sm transition-colors ${
+                className={`relative flex h-12 items-center gap-2 rounded-xl border px-4 text-sm font-semibold transition-colors lg:hidden ${
                   hasActiveFilters
-                    ? 'border-blue-600 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400'
-                    : 'border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-gray-700 dark:text-neutral-300 hover:bg-gray-50 dark:hover:bg-neutral-800'
+                    ? 'border-blue-600 bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400'
+                    : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-800'
                 }`}
               >
-                <SlidersHorizontal className="w-4 h-4" />
-                Filters
+                <SlidersHorizontal className="h-4 w-4" />
+                <span className="hidden sm:inline">Filters</span>
                 {activeFilterCount > 0 && (
-                  <span className="flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-blue-600 text-white text-[10px] font-bold">
+                  <span className="flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-blue-600 px-1 text-[10px] font-bold text-white">
                     {activeFilterCount}
                   </span>
                 )}
@@ -112,32 +143,37 @@ export function PeopleSearchHeader({
           </div>
         )}
 
-        {/* Tabs — underline style */}
+        {/* Tabs — pill chips */}
         {!isSearchMode && (
           <nav
-            className="mt-3 -mb-px flex gap-1 overflow-x-auto scrollbar-hide"
+            className="scrollbar-hide -mx-1 mt-4 flex gap-2 overflow-x-auto px-1 pb-1"
             aria-label="Find people tabs"
           >
-            {tabItems.map(({ id, label, Icon }) => (
-              <button
-                key={id}
-                onClick={() => {
-                  setSectionError(null);
-                  setActiveTab(id);
-                }}
-                className={`flex items-center gap-2 px-4 py-3 border-b-2 text-sm font-medium whitespace-nowrap transition-colors ${
-                  activeTab === id
-                    ? 'border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400'
-                    : 'border-transparent text-gray-500 dark:text-neutral-400 hover:text-gray-800 dark:hover:text-neutral-200 hover:border-gray-300 dark:hover:border-neutral-600'
-                }`}
-              >
-                <Icon className="w-4 h-4" />
-                {label}
-              </button>
-            ))}
+            {tabItems.map(({ id, label, Icon }) => {
+              const active = activeTab === id;
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  aria-current={active ? 'page' : undefined}
+                  onClick={() => {
+                    setSectionError(null);
+                    setActiveTab(id);
+                  }}
+                  className={`flex shrink-0 items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors ${
+                    active
+                      ? 'border-blue-600 bg-blue-600 text-white shadow-sm shadow-blue-600/25'
+                      : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-gray-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-800'
+                  }`}
+                >
+                  <Icon className="h-4 w-4" />
+                  {label}
+                </button>
+              );
+            })}
           </nav>
         )}
       </div>
-    </div>
+    </header>
   );
 }

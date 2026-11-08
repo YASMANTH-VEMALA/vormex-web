@@ -49,18 +49,18 @@ export function FilterSelect({
 }: FilterSelectProps) {
   return (
     <div>
-      <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-neutral-400 mb-1.5">
-        <Icon className="w-3.5 h-3.5" />
+      <label className="mb-1.5 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-neutral-400">
+        <Icon className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
         {label}
       </label>
       <div className="relative">
         <select
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className={`w-full appearance-none pl-3 pr-9 py-2 rounded-lg border text-sm bg-white dark:bg-neutral-900 outline-none transition-colors focus:border-blue-500 focus:ring-1 focus:ring-blue-500 ${
+          className={`h-10 w-full appearance-none rounded-xl border bg-gray-50 pl-3 pr-9 text-sm outline-none transition-colors focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20 dark:bg-neutral-800 dark:focus:bg-neutral-900 ${
             value
-              ? 'border-blue-500 text-gray-900 dark:text-white font-medium'
-              : 'border-gray-300 dark:border-neutral-700 text-gray-700 dark:text-neutral-300'
+              ? 'border-blue-500 bg-blue-50/60 font-medium text-gray-900 dark:bg-blue-950/30 dark:text-white'
+              : 'border-gray-200 text-gray-700 dark:border-neutral-700 dark:text-neutral-300'
           }`}
         >
           <option value="">{placeholder}</option>

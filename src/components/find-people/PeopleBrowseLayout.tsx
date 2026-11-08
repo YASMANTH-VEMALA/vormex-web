@@ -123,11 +123,11 @@ export function PeopleBrowseLayout({
   user,
 }: PeopleBrowseLayoutProps) {
   return (
-    <div className="max-w-6xl mx-auto px-4 py-6 flex items-start gap-6">
+    <div className="mx-auto flex max-w-7xl items-start gap-6 px-4 py-6 sm:px-6">
       {/* Desktop filter sidebar */}
       {showSidebar && (
-        <aside className="hidden lg:block w-64 shrink-0 sticky top-[200px]">
-          <div className="bg-white dark:bg-neutral-900 rounded-xl border border-gray-200 dark:border-neutral-800 shadow-sm p-4">
+        <aside className="sticky top-4 hidden w-72 shrink-0 lg:block">
+          <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
             <FilterPanel {...filterPanelProps} />
           </div>
         </aside>
@@ -329,7 +329,7 @@ export function PeopleBrowseLayout({
 
         {/* Skeleton Loading */}
         {isGridTab && isGridLoading && (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {Array.from({ length: 6 }).map((_, i) => (
               <PersonCardSkeleton key={i} />
             ))}
@@ -410,7 +410,7 @@ export function PeopleBrowseLayout({
 
         {/* People Grid */}
         {isGridTab && !isGridLoading && displayedPeople.length > 0 && (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {displayedPeople.map((person, index) => (
               <div
                 key={person.id}

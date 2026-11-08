@@ -190,19 +190,6 @@ export function FeedTimelineView({
 
           {/* ── Center: composer, discovery, posts ── */}
           <div className="min-w-0">
-            <div className="flex items-center justify-between px-4 pb-1 pt-6 lg:px-0">
-              <div>
-                <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-blue-700 dark:text-blue-300">
-                  Your community
-                </p>
-                <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
-                  A little closer, every day.
-                </h1>
-                <p className="mt-1 text-sm text-gray-500 dark:text-neutral-400">
-                  Ideas, updates, and people worth connecting with.
-                </p>
-              </div>
-            </div>
             {user && (
               <>
                 {/*

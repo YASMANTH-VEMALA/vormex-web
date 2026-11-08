@@ -131,11 +131,11 @@ test('Find uses indexed cancellable search and Instagram rows', () => {
   assert.match(find, /sm:grid-cols-2/);
   // Cards stretch to their grid row instead of a fixed aspect ratio, which used
   // to squash the handle and headline of anyone with longer profile text.
-  assert.match(card, /h-full min-h-\[22rem\]/);
+  assert.match(card, /relative flex h-full min-w-0 flex-col/);
   assert.doesNotMatch(card, /aspect-\[\d+\/\d+\]/);
   assert.match(card, /bannerImageUrl/);
   assert.match(card, /mutualConnections/);
   assert.match(card, /visibleTags/);
   assert.match(card, /truncate/);
-  assert.match(skeleton, /h-full min-h-\[22rem\]/);
+  assert.match(skeleton, /h-full min-h-\[18rem\]/);
 });

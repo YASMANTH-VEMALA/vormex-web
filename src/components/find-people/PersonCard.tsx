@@ -30,7 +30,7 @@ function ProfileBanner({ imageSrc }: { imageSrc?: string | null }) {
   const failed = Boolean(resolvedSrc && failedSrc === resolvedSrc);
 
   return (
-    <div className="relative h-20 shrink-0 overflow-hidden bg-gradient-to-r from-slate-100 via-gray-50 to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+    <div className="relative h-16 shrink-0 overflow-hidden bg-gradient-to-br from-blue-100 via-blue-50 to-gray-100 dark:from-blue-950 dark:via-neutral-800 dark:to-neutral-900">
       {resolvedSrc && !failed && (
         <img
           src={resolvedSrc}
@@ -61,48 +61,51 @@ export function PersonCard({
     <motion.article
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      // Height comes from the content, floored so sparse cards still read as
-      // cards. A fixed aspect ratio used to squash the handle and headline
-      // whenever a person had a long name, bio or college.
-      className="relative flex h-full min-h-[22rem] min-w-0 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900"
+      className="group/card relative flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900 dark:hover:border-blue-900"
     >
       <ProfileBanner imageSrc={person.bannerImageUrl} />
 
       {badgeLabel && (
-        <span className="absolute left-2 top-2 z-10 max-w-[55%] truncate rounded-full bg-white/90 px-2.5 py-1 text-[10px] font-semibold text-blue-700 shadow-sm backdrop-blur dark:bg-neutral-950/80 dark:text-blue-300">
+        <span className="absolute left-3 top-3 z-10 max-w-[60%] truncate rounded-full bg-white/90 px-2.5 py-1 text-[10px] font-semibold text-blue-700 shadow-sm backdrop-blur dark:bg-neutral-950/80 dark:text-blue-300">
           {badgeLabel}
         </span>
       )}
 
-      <div className="z-10 flex h-24 shrink-0 justify-center -mt-12">
-        <ProfileLink
-          profileId={profileId}
-          onClick={() => onProfileIntent?.(person)}
-          className="relative h-24 w-24 shrink-0 rounded-full"
-          aria-label={`Open ${displayName}'s profile`}
-        >
-          <UserAvatar
-            imageSrc={person.profileImage}
-            name={displayName}
-            className="h-24 w-24 bg-gray-100 text-2xl font-semibold text-gray-500 ring-4 ring-white shadow-sm dark:bg-neutral-800 dark:text-neutral-400 dark:ring-neutral-900"
-            fallbackClassName="text-2xl"
-          />
-          {person.isOnline && (
-            <span
-              className="absolute bottom-1 right-1 h-5 w-5 rounded-full bg-emerald-500 ring-[3px] ring-white dark:ring-neutral-900"
-              title="Online"
+      <div className="flex min-h-0 flex-1 flex-col px-4 pb-4">
+        <div className="-mt-8 flex items-end justify-between gap-3">
+          <ProfileLink
+            profileId={profileId}
+            onClick={() => onProfileIntent?.(person)}
+            className="relative z-10 h-16 w-16 shrink-0 rounded-full"
+            aria-label={`Open ${displayName}'s profile`}
+          >
+            <UserAvatar
+              imageSrc={person.profileImage}
+              name={displayName}
+              className="h-16 w-16 bg-gray-100 text-xl font-semibold text-gray-500 shadow-sm ring-4 ring-white dark:bg-neutral-800 dark:text-neutral-400 dark:ring-neutral-900"
+              fallbackClassName="text-xl"
             />
+            {person.isOnline && (
+              <span
+                className="absolute bottom-0.5 right-0.5 h-4 w-4 rounded-full bg-emerald-500 ring-[3px] ring-white dark:ring-neutral-900"
+                title="Online"
+              />
+            )}
+          </ProfileLink>
+          {person.mutualConnections != null && person.mutualConnections > 0 && (
+            <span className="mb-1 inline-flex max-w-[60%] items-center gap-1 rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
+              <UsersRound className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+              <span className="truncate">{person.mutualConnections} mutual</span>
+            </span>
           )}
-        </ProfileLink>
-      </div>
+        </div>
 
-      <div className="flex min-h-0 flex-1 flex-col items-center px-4 pb-4 pt-3 text-center sm:px-5">
         <ProfileLink
           profileId={profileId}
           onClick={() => onProfileIntent?.(person)}
-          className="group/name flex min-w-0 max-w-full shrink-0 items-center justify-center gap-1.5"
+          className="group/name mt-3 flex min-w-0 max-w-full items-center gap-1.5"
         >
-          <span className="min-w-0 truncate text-base font-bold text-gray-950 group-hover/name:underline dark:text-white sm:text-lg">
+          <span className="min-w-0 truncate text-base font-bold text-gray-900 group-hover/name:text-blue-600 dark:text-white dark:group-hover/name:text-blue-400">
             {displayName}
           </span>
           <VerificationBadge
@@ -113,50 +116,38 @@ export function PersonCard({
         </ProfileLink>
 
         {handle && (
-          <p className="max-w-full shrink-0 truncate text-xs text-gray-500 dark:text-neutral-400">
-            {handle}
-          </p>
+          <p className="max-w-full truncate text-xs text-gray-500 dark:text-neutral-400">{handle}</p>
         )}
 
         {headline ? (
-          <p className="mt-2 line-clamp-2 shrink-0 text-sm leading-5 text-gray-700 dark:text-neutral-300 sm:text-base sm:leading-6">
+          <p className="mt-2 line-clamp-2 text-sm leading-5 text-gray-700 dark:text-neutral-300">
             {headline}
           </p>
         ) : null}
 
         {education && (
-          <div className="mt-2 flex max-w-full shrink-0 items-center justify-center gap-1.5 text-gray-500 dark:text-neutral-400">
+          <div className="mt-2 flex max-w-full items-center gap-1.5 text-gray-500 dark:text-neutral-400">
             <GraduationCap className="h-4 w-4 shrink-0" aria-hidden="true" />
-            <span className="truncate text-xs font-medium sm:text-sm">{education}</span>
+            <span className="truncate text-xs font-medium">{education}</span>
           </div>
         )}
 
         {visibleTags.length > 0 && (
-          <div className="mt-3 flex w-full min-w-0 shrink-0 flex-wrap items-center justify-center gap-1.5">
+          <div className="mt-3 flex w-full min-w-0 flex-wrap items-center gap-1.5">
             {visibleTags.map((tag) => (
               <span
                 key={tag}
-                className="max-w-full truncate rounded-lg bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700 dark:bg-neutral-800 dark:text-neutral-200"
+                className="max-w-full truncate rounded-md bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700 dark:bg-neutral-800 dark:text-neutral-200"
                 title={tag}
               >
                 {tag}
               </span>
             ))}
             {remainingTags > 0 && (
-              <span className="shrink-0 rounded-lg bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-600 dark:bg-neutral-800 dark:text-neutral-300">
+              <span className="shrink-0 rounded-md bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-neutral-800 dark:text-neutral-300">
                 +{remainingTags}
               </span>
             )}
-          </div>
-        )}
-
-        {person.mutualConnections != null && person.mutualConnections > 0 && (
-          <div className="mt-2.5 flex max-w-full shrink-0 items-center justify-center gap-1.5 text-gray-500 dark:text-neutral-400">
-            <UsersRound className="h-4 w-4 shrink-0" aria-hidden="true" />
-            <span className="truncate text-xs sm:text-sm">
-              {person.mutualConnections} mutual{' '}
-              {person.mutualConnections === 1 ? 'connection' : 'connections'}
-            </span>
           </div>
         )}
 
