@@ -7,7 +7,9 @@
   },
   "scripts": {
     "dev": "next dev",
+    "prebuild": "node --import tsx scripts/check-deployment.mjs --if-production",
     "build": "next build",
+    "check:deployment": "node --import tsx scripts/check-deployment.mjs",
     "start": "next start",
     "lint": "eslint",
     "lint:focused": "eslint src/proxy.ts src/lib/routing/authProxy.ts src/lib/api/client.ts src/lib/api/request.ts src/lib/api/accountability.ts src/lib/api/circles.ts src/app/accountability/page.tsx src/hooks/useVariableRewards.ts tests/*.test.ts",
