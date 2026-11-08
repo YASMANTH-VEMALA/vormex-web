@@ -26,8 +26,8 @@ const INDUSTRIES = [
     id: 'ai',
     name: 'AI/ML',
     icon: Cpu,
-    color: 'text-purple-500',
-    bg: 'bg-purple-100 dark:bg-purple-900/30',
+    color: 'text-blue-500',
+    bg: 'bg-blue-100 dark:bg-blue-900/30',
   },
   {
     id: 'security',

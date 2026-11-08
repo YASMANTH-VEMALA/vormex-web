@@ -5,18 +5,7 @@ import { GitHubIntegration, MentionsDashboard } from '@/components/settings';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import { getFeedTheme, setFeedTheme } from '@/lib/utils/feedTheme';
 import { motion } from 'framer-motion';
-import {
-  ChevronRight,
-  Coins,
-  Layout,
-  Lock,
-  LogOut,
-  Moon,
-  Settings,
-  Sun,
-  Trash2,
-  Zap,
-} from 'lucide-react';
+import { ChevronLeft, ChevronRight, Layout, Lock, Moon, Sun, Zap } from 'lucide-react';
 import Link from 'next/link';
 import type * as React from 'react';
 
@@ -49,185 +38,216 @@ export function MoreDashboardView({
 }: MoreDashboardViewProps) {
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 pb-24">
+      <div className="min-h-screen bg-white pb-28 dark:bg-neutral-950">
         {/* Header */}
-        <div className="bg-white dark:bg-neutral-900 border-b border-gray-200 dark:border-neutral-800 sticky top-0 z-10">
-          <div className="max-w-2xl mx-auto px-4 py-4">
-            <div className="flex items-center gap-3">
-              {activeSection !== 'main' && (
-                <button
-                  onClick={() => setActiveSection('main')}
-                  className="p-2 -ml-2 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-full transition-colors"
-                >
-                  <ChevronRight className="w-5 h-5 text-gray-600 dark:text-neutral-400 rotate-180" />
-                </button>
-              )}
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-gray-100 dark:bg-neutral-800 rounded-full">
-                  <Settings className="w-5 h-5 text-gray-600 dark:text-neutral-400" />
-                </div>
-                <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-                  {activeSection === 'main' && 'Settings & More'}
-                  {activeSection === 'integrations' && 'Connected Apps'}
-                  {activeSection === 'mentions' && 'Mentions'}
-                  {activeSection === 'appearance' && 'Appearance'}
-                </h1>
-              </div>
-            </div>
+        <div className="mx-auto max-w-xl px-4 pt-6">
+          <div className="flex items-center gap-2">
+            {activeSection !== 'main' && (
+              <button
+                onClick={() => setActiveSection('main')}
+                aria-label="Back"
+                className="-ml-2 inline-flex h-9 w-9 items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-neutral-800"
+              >
+                <ChevronLeft className="h-6 w-6" />
+              </button>
+            )}
+            <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+              {activeSection === 'main' && 'Settings'}
+              {activeSection === 'integrations' && 'Connected apps'}
+              {activeSection === 'mentions' && 'Mentions'}
+              {activeSection === 'appearance' && 'Appearance'}
+            </h1>
           </div>
         </div>
 
         {/* Content */}
-        <div className="max-w-2xl mx-auto px-4 py-6">
+        <div className="mx-auto max-w-xl px-4 py-4">
           {activeSection === 'main' && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
-              <DownloadAppCard />
-              {/* XP Balance - live spendable XP */}
-              <div className="flex items-center justify-between bg-gradient-to-r from-amber-500/20 to-yellow-500/20 dark:from-amber-600/30 dark:to-yellow-600/30 rounded-xl p-4 border border-amber-200/50 dark:border-amber-800/50">
+              {/* Account summary */}
+              {user && (
                 <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-xl bg-amber-100 dark:bg-amber-900/50">
-                    <Coins className="w-6 h-6 text-amber-600 dark:text-amber-400" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
-                      XP Balance
+                  <UserAvatar
+                    imageSrc={user.profileImage}
+                    name={user.name}
+                    className="h-12 w-12 bg-gray-200 text-lg font-semibold text-gray-700"
+                    fallbackClassName="text-lg"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-gray-900 dark:text-white">
+                      {user.name}
                     </p>
-                    <p className="text-2xl font-bold text-amber-900 dark:text-amber-100 tabular-nums">
-                      {xpBalance.toLocaleString()}
+                    <p className="truncate text-sm text-gray-500 dark:text-neutral-400">
+                      @{user.username}
                     </p>
                   </div>
+                  <Link
+                    href="/profile"
+                    className="text-sm font-semibold text-blue-600 hover:text-blue-800 dark:text-blue-400"
+                  >
+                    View profile
+                  </Link>
                 </div>
+              )}
+
+              <div className="flex items-center justify-between text-sm">
+                <p className="text-gray-500 dark:text-neutral-400">
+                  XP balance{' '}
+                  <span className="font-semibold tabular-nums text-gray-900 dark:text-white">
+                    {xpBalance.toLocaleString()}
+                  </span>
+                </p>
                 <Link
                   href="/store"
-                  className="text-sm font-medium text-amber-700 dark:text-amber-300 hover:underline"
+                  className="font-semibold text-blue-600 hover:text-blue-800 dark:text-blue-400"
                 >
                   Store
                 </Link>
               </div>
 
-              {/* User Card */}
-              {user && (
-                <div className="bg-white dark:bg-neutral-900 rounded-xl p-4 border border-gray-200 dark:border-neutral-800">
-                  <div className="flex items-center gap-4">
-                    <UserAvatar
-                      imageSrc={user.profileImage}
-                      name={user.name}
-                      className="h-14 w-14 bg-gradient-to-br from-blue-400 to-purple-500 text-xl font-bold text-white"
-                      fallbackClassName="text-xl"
-                    />
-                    <div className="flex-1">
-                      <h2 className="font-semibold text-gray-900 dark:text-white">{user.name}</h2>
-                      <p className="text-sm text-gray-500 dark:text-neutral-400">
-                        @{user.username}
-                      </p>
+              {/* Menu sections */}
+              {(() => {
+                const SECTIONS: { title: string; ids: string[] }[] = [
+                  {
+                    title: 'How you use Vormex',
+                    ids: ['appearance', 'notifications', 'integrations', 'mentions'],
+                  },
+                  {
+                    title: 'Privacy and safety',
+                    ids: ['discovery-privacy', 'privacy', 'blocked'],
+                  },
+                  {
+                    title: 'Your account',
+                    ids: ['profile', 'premium', 'saved', 'connections', 'rewards', 'badges', 'referrals'],
+                  },
+                  {
+                    title: 'Learn and grow',
+                    ids: [
+                      'vormex-ai',
+                      'courses',
+                      'learning',
+                      'skill-passport',
+                      'skill-swap',
+                      'accountability',
+                      'games',
+                      'talk',
+                    ],
+                  },
+                  {
+                    title: 'Community and opportunities',
+                    ids: [
+                      'hackathons',
+                      'events',
+                      'college-communities',
+                      'jobs',
+                      'challenges',
+                      'interviews',
+                    ],
+                  },
+                  { title: 'More info and support', ids: ['help', 'terms', 'report'] },
+                ];
+                const placed = new Set(SECTIONS.flatMap((section) => section.ids));
+                const leftovers = menuItems.filter((item) => !placed.has(item.id));
+                const sections = [
+                  ...SECTIONS.map((section) => ({
+                    title: section.title,
+                    items: section.ids
+                      .map((id) => menuItems.find((item) => item.id === id))
+                      .filter((item): item is (typeof menuItems)[number] => Boolean(item)),
+                  })),
+                  ...(leftovers.length ? [{ title: 'More', items: leftovers }] : []),
+                ].filter((section) => section.items.length > 0);
+
+                return sections.map((section) => (
+                  <section key={section.title} aria-label={section.title}>
+                    <h2 className="px-3 pb-1 text-xs font-semibold text-gray-500 dark:text-neutral-400">
+                      {section.title}
+                    </h2>
+                    <div>
+                      {section.items.map((item) => {
+                        const Icon = item.icon;
+                        const content = (
+                          <div
+                            className={`flex items-center gap-4 rounded-lg px-3 py-3 ${
+                              item.locked
+                                ? 'cursor-not-allowed opacity-50'
+                                : 'hover:bg-gray-100 dark:hover:bg-neutral-900'
+                            }`}
+                          >
+                            <Icon className="h-6 w-6 shrink-0 text-gray-900 [stroke-width:1.5] dark:text-white" />
+                            <div className="min-w-0 flex-1">
+                              <span className="block text-sm text-gray-900 dark:text-white">
+                                {item.label}
+                              </span>
+                              {item.subtext && (
+                                <span className="block truncate text-xs text-gray-500 dark:text-neutral-400">
+                                  {item.subtext}
+                                </span>
+                              )}
+                            </div>
+                            {item.badge && item.badge > 0 ? (
+                              <span className="rounded-full bg-blue-600 px-2 py-0.5 text-xs font-semibold text-white">
+                                {item.badge > 99 ? '99+' : item.badge}
+                              </span>
+                            ) : null}
+                            {item.locked ? (
+                              <Lock
+                                className="h-4 w-4 text-gray-400"
+                                aria-label="Locked"
+                                strokeWidth={1.5}
+                              />
+                            ) : (
+                              <ChevronRight
+                                className="h-4 w-4 text-gray-400 dark:text-neutral-600"
+                                strokeWidth={1.5}
+                              />
+                            )}
+                          </div>
+                        );
+
+                        if (item.locked) {
+                          return <div key={item.id}>{content}</div>;
+                        }
+                        if (item.onClick) {
+                          return (
+                            <button
+                              key={item.id}
+                              onClick={item.onClick}
+                              className="block w-full text-left"
+                            >
+                              {content}
+                            </button>
+                          );
+                        }
+                        return (
+                          <Link key={item.id} href={item.href!} className="block">
+                            {content}
+                          </Link>
+                        );
+                      })}
                     </div>
-                    <Link
-                      href="/profile"
-                      className="text-blue-600 dark:text-blue-400 text-sm font-medium hover:underline"
-                    >
-                      View Profile
-                    </Link>
-                  </div>
-                </div>
-              )}
+                  </section>
+                ));
+              })()}
 
-              {/* Menu Items */}
-              <div className="bg-white dark:bg-neutral-900 rounded-xl border border-gray-200 dark:border-neutral-800 overflow-hidden">
-                {menuItems.map((item, index) => {
-                  const Icon = item.icon;
-                  const content = (
-                    <div
-                      className={`flex items-center gap-4 px-4 py-3.5 transition-colors ${
-                        item.locked
-                          ? 'opacity-60 cursor-not-allowed bg-gray-50/50 dark:bg-neutral-800/30'
-                          : 'hover:bg-gray-50 dark:hover:bg-neutral-800/50'
-                      } ${index > 0 ? 'border-t border-gray-100 dark:border-neutral-800' : ''}`}
-                    >
-                      <div className={`${item.color} relative`}>
-                        <Icon className="w-5 h-5" />
-                        {/* Badge indicator for pending items */}
-                        {item.badge && item.badge > 0 && (
-                          <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] flex items-center justify-center px-1 text-[10px] font-bold bg-red-500 text-white rounded-full">
-                            {item.badge > 99 ? '99+' : item.badge}
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex-1">
-                        <span
-                          className={`block text-gray-900 dark:text-white ${
-                            item.locked ? 'text-gray-500 dark:text-gray-500' : ''
-                          }`}
-                        >
-                          {item.label}
-                        </span>
-                        {item.subtext && (
-                          <span className="block text-xs text-amber-600 dark:text-amber-500 font-medium mt-0.5">
-                            {item.subtext}
-                          </span>
-                        )}
-                      </div>
-                      {item.badge && item.badge > 0 && (
-                        <span className="px-2 py-0.5 text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full">
-                          {item.badge} new
-                        </span>
-                      )}
-                      {item.locked ? (
-                        <Lock className="w-4 h-4 text-gray-400" />
-                      ) : (
-                        <ChevronRight className="w-5 h-5 text-gray-400 dark:text-neutral-600" />
-                      )}
-                    </div>
-                  );
+              <DownloadAppCard />
 
-                  if (item.locked) {
-                    return <div key={item.id}>{content}</div>;
-                  }
-
-                  if (item.onClick) {
-                    return (
-                      <button key={item.id} onClick={item.onClick} className="w-full text-left">
-                        {content}
-                      </button>
-                    );
-                  }
-
-                  return (
-                    <Link key={item.id} href={item.href!}>
-                      {content}
-                    </Link>
-                  );
-                })}
-              </div>
-
-              {/* Danger Zone */}
-              <div className="bg-white dark:bg-neutral-900 rounded-xl border border-gray-200 dark:border-neutral-800 overflow-hidden">
-                <Link
-                  href="/vormex-delete-account"
-                  className="w-full flex items-center gap-4 px-4 py-3.5 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors border-b border-gray-100 dark:border-neutral-800"
-                >
-                  <Trash2 className="w-5 h-5 text-red-500" />
-                  <div className="flex-1 text-left">
-                    <span className="block text-red-600 dark:text-red-400 font-medium">
-                      Delete Account
-                    </span>
-                    <span className="block text-xs text-red-500/80 dark:text-red-400/80 mt-0.5">
-                      Request account and data deletion
-                    </span>
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-red-300 dark:text-red-700" />
-                </Link>
+              {/* Sign out and delete */}
+              <div className="border-t border-gray-200 pt-4 dark:border-neutral-800">
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center gap-4 px-4 py-3.5 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                  className="block w-full rounded-lg px-3 py-3 text-left text-sm font-semibold text-red-600 hover:bg-gray-100 dark:text-red-400 dark:hover:bg-neutral-900"
                 >
-                  <LogOut className="w-5 h-5 text-red-500" />
-                  <span className="flex-1 text-left text-red-600 dark:text-red-400 font-medium">
-                    Log Out
-                  </span>
+                  Log out
                 </button>
+                <Link
+                  href="/vormex-delete-account"
+                  className="block rounded-lg px-3 py-3 text-sm text-red-600 hover:bg-gray-100 dark:text-red-400 dark:hover:bg-neutral-900"
+                >
+                  Delete account
+                </Link>
               </div>
 
-              {/* Version */}
               <p className="text-center text-xs text-gray-400 dark:text-neutral-600">
                 Vormex v1.0.0
               </p>

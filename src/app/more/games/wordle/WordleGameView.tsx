@@ -57,15 +57,15 @@ export function WordleGameView({
 }: WordleGameViewProps) {
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen bg-white dark:bg-gray-900">
         {/* Header */}
-        <div className="sticky top-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200 dark:border-gray-800">
+        <div className="">
           <div className="max-w-2xl mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <Link
                   href="/more/games"
-                  className="p-2 -ml-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  className="p-2 -ml-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                 >
                   <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                 </Link>
@@ -77,7 +77,7 @@ export function WordleGameView({
 
               <button
                 onClick={() => setShowHelp(true)}
-                className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               >
                 <HelpCircle className="w-5 h-5 text-gray-600 dark:text-gray-400" />
               </button>
@@ -117,7 +117,7 @@ export function WordleGameView({
               </h2>
               <button
                 onClick={fetchWordle}
-                className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-medium transition-colors"
+                className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors"
               >
                 Try Again
               </button>
@@ -134,7 +134,7 @@ export function WordleGameView({
               <p className="text-gray-500 mb-6">Come back tomorrow for a new word.</p>
               <Link
                 href="/more/games"
-                className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-medium transition-colors inline-block"
+                className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors inline-block"
               >
                 Try Other Games
               </Link>
@@ -152,7 +152,7 @@ export function WordleGameView({
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className={`p-6 rounded-xl text-center ${
+                  className={`p-6 rounded-lg text-center ${
                     gameState === 'won'
                       ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800'
                       : 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800'
@@ -168,8 +168,8 @@ export function WordleGameView({
                         {guesses.length === 1 ? 'try' : 'tries'}!
                       </p>
                       <div className="flex items-center justify-center gap-2 mb-4">
-                        <Zap className="w-5 h-5 text-purple-500" />
-                        <span className="text-lg font-semibold text-purple-600">
+                        <Zap className="w-5 h-5 text-blue-500" />
+                        <span className="text-lg font-semibold text-blue-600">
                           +{xpEarned} XP
                         </span>
                       </div>
@@ -251,7 +251,7 @@ export function WordleGameView({
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}
                 onClick={(e) => e.stopPropagation()}
-                className="w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl p-6"
+                className="w-full max-w-md bg-white dark:bg-gray-800 rounded-lg p-6"
               >
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-xl font-bold text-gray-900 dark:text-white">How to Play</h2>
@@ -279,7 +279,7 @@ export function WordleGameView({
                     </div>
 
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-amber-500 rounded flex items-center justify-center text-white font-bold">
+                      <div className="w-10 h-10 bg-blue-600 rounded flex items-center justify-center text-white font-bold">
                         E
                       </div>
                       <span>Letter is in the word but wrong spot</span>

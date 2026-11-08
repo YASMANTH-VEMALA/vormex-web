@@ -186,12 +186,12 @@ export default function ConnectionsPage() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -10 }}
-        className="bg-white dark:bg-neutral-900 rounded-xl p-4 border border-gray-200 dark:border-neutral-800"
+        className="py-4 border-b border-gray-100 dark:border-neutral-800"
       >
         <div className="flex items-start gap-3">
           {/* Avatar */}
           <Link href={profileUrl} className="cursor-pointer">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center overflow-hidden flex-shrink-0 hover:opacity-80 transition-opacity">
+            <div className="w-12 h-12 rounded-full bg-blue-400 flex items-center justify-center overflow-hidden flex-shrink-0 hover:opacity-80 transition-opacity">
               {connection.user.profileImage ? (
                 <img
                   src={connection.user.profileImage}
@@ -334,9 +334,9 @@ export default function ConnectionsPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50 dark:bg-neutral-950">
+      <div className="min-h-screen bg-white dark:bg-neutral-950">
         {/* Header */}
-        <div className="bg-white dark:bg-neutral-900 border-b border-gray-200 dark:border-neutral-800 sticky top-0 z-10">
+        <div className="">
           <div className="max-w-2xl mx-auto px-4 py-4">
             <div className="flex items-center gap-3">
               <button
@@ -397,7 +397,7 @@ export default function ConnectionsPage() {
                 placeholder="Search connections..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 bg-gray-100 dark:bg-neutral-800 border border-transparent focus:border-blue-500 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 outline-none transition-colors"
+                className="w-full pl-10 pr-4 py-2.5 bg-gray-100 dark:bg-neutral-800 border border-transparent focus:border-blue-500 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 outline-none transition-colors"
               />
             </div>
           </div>

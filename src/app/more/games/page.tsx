@@ -7,24 +7,7 @@ import {
   useLiveStreaks,
   useLiveWalletXpBalance,
 } from '@/hooks/useLiveGamification';
-import { motion } from 'framer-motion';
-import {
-  ArrowLeft,
-  Brain,
-  Code,
-  Flame,
-  Gamepad2,
-  Gift,
-  Keyboard,
-  Medal,
-  Sparkles,
-  Star,
-  Target,
-  TrendingUp,
-  Trophy,
-  Users,
-  Zap,
-} from 'lucide-react';
+import { Brain, ChevronLeft, Code, Keyboard, Target, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
 
 interface GameCard {
@@ -70,8 +53,8 @@ export default function GamesPage() {
       description: 'Test your tech knowledge with daily questions',
       icon: Brain,
       href: '/more/games/trivia',
-      color: 'text-purple-500',
-      bgGradient: 'from-purple-500/20 to-pink-500/20',
+      color: 'text-blue-500',
+      bgGradient: 'bg-blue-500/10',
       xpReward: '10-50 XP',
       difficulty: 'Varies',
       badge: 'Daily',
@@ -83,7 +66,7 @@ export default function GamesPage() {
       icon: Target,
       href: '/more/games/wordle',
       color: 'text-green-500',
-      bgGradient: 'from-green-500/20 to-emerald-500/20',
+      bgGradient: 'bg-green-500/10',
       xpReward: '20-100 XP',
       difficulty: 'Medium',
       badge: 'Daily',
@@ -95,7 +78,7 @@ export default function GamesPage() {
       icon: Keyboard,
       href: '/more/games/typing',
       color: 'text-blue-500',
-      bgGradient: 'from-blue-500/20 to-cyan-500/20',
+      bgGradient: 'bg-blue-500/10',
       xpReward: '15-75 XP',
       difficulty: 'All Levels',
       badge: 'Multiplayer',
@@ -107,7 +90,7 @@ export default function GamesPage() {
       icon: Code,
       href: '/more/games/coding',
       color: 'text-orange-500',
-      bgGradient: 'from-orange-500/20 to-amber-500/20',
+      bgGradient: 'bg-orange-500/10',
       xpReward: '50-200 XP',
       difficulty: 'Hard',
     },
@@ -118,7 +101,7 @@ export default function GamesPage() {
       icon: TrendingUp,
       href: '/more/games/startup',
       color: 'text-rose-500',
-      bgGradient: 'from-rose-500/20 to-red-500/20',
+      bgGradient: 'bg-rose-500/10',
       xpReward: '10-500 XP',
       difficulty: 'Strategy',
       badge: 'New',
@@ -127,260 +110,145 @@ export default function GamesPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        {/* Header */}
-        <div className="sticky top-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200 dark:border-gray-800">
-          <div className="max-w-2xl mx-auto px-4 py-4">
-            <div className="flex items-center gap-4">
-              <Link
-                href="/more"
-                className="p-2 -ml-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              >
-                <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-              </Link>
-              <div className="flex-1">
-                <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                  <Gamepad2 className="w-6 h-6 text-purple-500" />
-                  Games & XP
-                </h1>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Play games, grow your XP balance, climb leaderboards
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
-          {/* XP Stats Card */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-600 to-pink-600 p-6 text-white"
-          >
-            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-            <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2" />
-
-            <div className="relative z-10">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-purple-100 text-sm font-medium">XP Balance</p>
-                  <p className="text-4xl font-bold mt-1">
-                    {isLoading ? '...' : xpBalance.toLocaleString()}
-                  </p>
-                </div>
-                <div className="p-4 bg-white/20 rounded-2xl backdrop-blur-sm">
-                  <Zap className="w-8 h-8" />
-                </div>
-              </div>
-
-              <div className="mt-4 flex items-center gap-6">
-                <div className="flex items-center gap-2">
-                  <Flame className="w-5 h-5 text-orange-300" />
-                  <span className="text-sm">
-                    <span className="font-semibold">{activeStreak}</span> Active Streak
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Medal className="w-5 h-5 text-yellow-300" />
-                  <span className="text-sm">
-                    <span className="font-semibold">{games.length}</span> Games Available
-                  </span>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Quick Actions */}
-          <div className="grid grid-cols-2 gap-3">
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.1 }}
-              className="p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700"
+      <div className="min-h-screen bg-white pb-28 dark:bg-neutral-950">
+        <div className="mx-auto max-w-xl px-4 pt-6">
+          {/* Header */}
+          <div className="flex items-center gap-2">
+            <Link
+              href="/more"
+              aria-label="Back to settings"
+              className="-ml-2 inline-flex h-9 w-9 items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-neutral-800"
             >
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                  <Star className="w-5 h-5 text-green-600 dark:text-green-400" />
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Games Played</p>
-                  <p className="font-semibold text-gray-900 dark:text-white">{totalGamesPlayed}</p>
-                </div>
-              </div>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.1 }}
-              className="p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700"
-            >
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
-                  <Gift className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Game XP Earned</p>
-                  <p className="font-semibold text-gray-900 dark:text-white">
-                    {totalGameXpEarned.toLocaleString()} XP
-                  </p>
-                </div>
-              </div>
-            </motion.div>
+              <ChevronLeft className="h-6 w-6" />
+            </Link>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-white">Games & XP</h1>
           </div>
+          <p className="mt-3 text-sm text-gray-500 dark:text-neutral-400">
+            Play games, grow your XP balance and climb the leaderboard.
+          </p>
 
-          {/* Games Grid */}
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-purple-500" />
-              Play & Earn
+          {/* Stats */}
+          <dl className="mt-6 grid grid-cols-2 gap-y-5 sm:grid-cols-4">
+            <div>
+              <dt className="text-xs text-gray-500 dark:text-neutral-400">XP balance</dt>
+              <dd className="mt-0.5 text-xl font-bold tabular-nums text-gray-900 dark:text-white">
+                {isLoading ? '...' : xpBalance.toLocaleString()}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-xs text-gray-500 dark:text-neutral-400">Active streak</dt>
+              <dd className="mt-0.5 text-xl font-bold tabular-nums text-gray-900 dark:text-white">
+                {activeStreak}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-xs text-gray-500 dark:text-neutral-400">Games played</dt>
+              <dd className="mt-0.5 text-xl font-bold tabular-nums text-gray-900 dark:text-white">
+                {totalGamesPlayed}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-xs text-gray-500 dark:text-neutral-400">Game XP earned</dt>
+              <dd className="mt-0.5 text-xl font-bold tabular-nums text-gray-900 dark:text-white">
+                {totalGameXpEarned.toLocaleString()}
+              </dd>
+            </div>
+          </dl>
+
+          {/* Games */}
+          <section aria-label="Games" className="mt-8">
+            <h2 className="pb-1 text-xs font-semibold text-gray-500 dark:text-neutral-400">
+              Play and earn
             </h2>
-            <div className="space-y-3">
-              {games.map((game, index) => (
-                <motion.div
-                  key={game.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                >
+            <ul className="divide-y divide-gray-100 dark:divide-neutral-800">
+              {games.map((game) => (
+                <li key={game.id}>
                   <Link
                     href={game.href}
-                    className="block p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-purple-500/50 dark:hover:border-purple-500/50 transition-all hover:shadow-lg group"
+                    className="flex items-center gap-4 py-3.5 hover:bg-gray-50 dark:hover:bg-neutral-900"
                   >
-                    <div className="flex items-center gap-4">
-                      <div className={`p-3 rounded-xl bg-gradient-to-br ${game.bgGradient}`}>
-                        <game.icon className={`w-6 h-6 ${game.color}`} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-semibold text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
-                            {game.title}
-                          </h3>
-                          {game.badge && (
-                            <span
-                              className={`px-2 py-0.5 text-xs font-medium rounded-full ${
-                                game.badge === 'New'
-                                  ? 'bg-rose-100 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400'
-                                  : game.badge === 'Daily'
-                                    ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'
-                                    : 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'
-                              }`}
-                            >
-                              {game.badge}
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
-                          {game.description}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm font-medium text-purple-600 dark:text-purple-400">
-                          {game.xpReward}
-                        </p>
-                        <p className="text-xs text-gray-400">{game.difficulty}</p>
-                      </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                        {game.title}
+                        {game.badge && (
+                          <span className="ml-2 text-xs font-semibold text-blue-600 dark:text-blue-400">
+                            {game.badge}
+                          </span>
+                        )}
+                      </p>
+                      <p className="mt-0.5 truncate text-xs text-gray-500 dark:text-neutral-400">
+                        {game.description}
+                      </p>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                        {game.xpReward}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-neutral-400">
+                        {game.difficulty}
+                      </p>
                     </div>
                   </Link>
-                </motion.div>
+                </li>
               ))}
-            </div>
-          </div>
+            </ul>
+          </section>
 
-          {/* Leaderboard Preview */}
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-              <Trophy className="w-5 h-5 text-amber-500" />
-              Top Players
+          {/* Leaderboard */}
+          <section aria-label="Top players" className="mt-8">
+            <h2 className="pb-1 text-xs font-semibold text-gray-500 dark:text-neutral-400">
+              Top players
             </h2>
-            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-              {isLoading ? (
-                <div className="p-8 text-center text-gray-500">Loading...</div>
-              ) : leaderboard.length === 0 ? (
-                <div className="p-8 text-center">
-                  <Users className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-                  <p className="text-gray-500 dark:text-gray-400">Be the first to earn XP!</p>
-                </div>
-              ) : (
-                <div className="divide-y divide-gray-100 dark:divide-gray-700">
-                  {leaderboard.map((entry, index) => (
-                    <div
-                      key={entry.user.id}
-                      className="flex items-center gap-4 p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
-                    >
-                      <div
-                        className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                          index === 0
-                            ? 'bg-amber-100 text-amber-600 dark:bg-amber-900/30'
-                            : index === 1
-                              ? 'bg-gray-200 text-gray-600 dark:bg-gray-600 dark:text-gray-300'
-                              : index === 2
-                                ? 'bg-orange-100 text-orange-600 dark:bg-orange-900/30'
-                                : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400'
-                        }`}
-                      >
-                        {index + 1}
-                      </div>
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-semibold">
-                        {entry.user.name?.charAt(0).toUpperCase() ||
-                          entry.user.username?.charAt(0).toUpperCase() ||
-                          '?'}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-gray-900 dark:text-white truncate">
-                          {entry.user.name || entry.user.username || 'Anonymous'}
-                        </p>
-                        <p className="text-xs text-gray-500">{entry.gamesPlayed} games played</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-semibold text-purple-600 dark:text-purple-400">
-                          {entry.xp.toLocaleString()} XP
-                        </p>
-                      </div>
+            {isLoading ? (
+              <p className="py-6 text-sm text-gray-500">Loading...</p>
+            ) : leaderboard.length === 0 ? (
+              <p className="py-6 text-sm text-gray-500 dark:text-neutral-400">
+                Be the first to earn XP.
+              </p>
+            ) : (
+              <ol className="divide-y divide-gray-100 dark:divide-neutral-800">
+                {leaderboard.map((entry, index) => (
+                  <li key={entry.user.id} className="flex items-center gap-4 py-3">
+                    <span className="w-5 text-sm tabular-nums text-gray-500 dark:text-neutral-400">
+                      {index + 1}
+                    </span>
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-200 text-sm font-semibold text-gray-700 dark:bg-neutral-800 dark:text-neutral-200">
+                      {entry.user.name?.charAt(0).toUpperCase() ||
+                        entry.user.username?.charAt(0).toUpperCase() ||
+                        '?'}
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold text-gray-900 dark:text-white">
+                        {entry.user.name || entry.user.username || 'Anonymous'}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-neutral-400">
+                        {entry.gamesPlayed} games played
+                      </p>
+                    </div>
+                    <p className="text-sm font-semibold tabular-nums text-gray-900 dark:text-white">
+                      {entry.xp.toLocaleString()} XP
+                    </p>
+                  </li>
+                ))}
+              </ol>
+            )}
+          </section>
 
-          {/* How XP Works */}
-          <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-800/50 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-            <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-              <Zap className="w-5 h-5 text-purple-500" />
-              How XP Balance Works
-            </h3>
-            <div className="space-y-3 text-sm text-gray-600 dark:text-gray-300">
-              <div className="flex items-start gap-3">
-                <div className="w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <span className="text-xs font-bold text-purple-600 dark:text-purple-400">1</span>
-                </div>
-                <p>Play daily games to add spendable XP into your XP Balance.</p>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <span className="text-xs font-bold text-purple-600 dark:text-purple-400">2</span>
-                </div>
-                <p>Your XP Balance is what the store and streak protection spend.</p>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <span className="text-xs font-bold text-purple-600 dark:text-purple-400">3</span>
-                </div>
-                <p>Profile levels use separate Level XP tied to your overall activity.</p>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <span className="text-xs font-bold text-purple-600 dark:text-purple-400">4</span>
-                </div>
-                <p>
-                  Leaderboards here rank game XP earned, so you can compete without affecting
-                  profile level pacing.
-                </p>
-              </div>
-            </div>
-          </div>
+          {/* How it works */}
+          <section aria-label="How XP works" className="mt-8">
+            <h2 className="pb-1 text-xs font-semibold text-gray-500 dark:text-neutral-400">
+              How XP balance works
+            </h2>
+            <ul className="space-y-2 text-sm text-gray-600 dark:text-neutral-300">
+              <li>Play daily games to add spendable XP to your balance.</li>
+              <li>Your balance is what the store and streak protection spend.</li>
+              <li>Profile levels use separate Level XP tied to your overall activity.</li>
+              <li>
+                Leaderboards rank game XP earned, so you can compete without affecting profile
+                level pacing.
+              </li>
+            </ul>
+          </section>
         </div>
       </div>
     </ProtectedRoute>

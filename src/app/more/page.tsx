@@ -18,23 +18,20 @@ import {
   Code,
   Crown,
   FileText,
-  Film,
   Flag,
   Gamepad2,
   Gift,
   Github,
   GraduationCap,
-  Group,
   HelpCircle,
-  MapPin,
   MessageSquare,
   Palette,
   Shield,
-  ShoppingBag,
   Trophy,
   User,
   UserPlus,
   Users,
+  UserX,
   Zap,
 } from 'lucide-react';
 import Image from 'next/image';
@@ -95,7 +92,7 @@ export default function MorePage() {
       id: 'profile',
       label: 'Edit Profile',
       icon: User,
-      href: '/profile',
+      href: '/profile/edit',
       color: 'text-blue-500',
     },
     {
@@ -122,13 +119,6 @@ export default function MorePage() {
       color: 'text-blue-600',
     },
     {
-      id: 'reels',
-      label: 'Reels',
-      icon: Film,
-      href: '/reels',
-      color: 'text-pink-500',
-    },
-    {
       id: 'connections',
       label: 'Connection Requests',
       icon: UserPlus,
@@ -137,18 +127,19 @@ export default function MorePage() {
       badge: pendingConnectionsCount > 0 ? pendingConnectionsCount : undefined,
     },
     {
+      id: 'rewards',
+      label: 'Rewards',
+      icon: Trophy,
+      href: '/more/rewards',
+      color: 'text-orange-500',
+      subtext: 'Streaks, progress and the XP store',
+    },
+    {
       id: 'courses',
       label: 'Video Courses',
       icon: GraduationCap,
       href: '/courses',
       color: 'text-orange-500',
-    },
-    {
-      id: 'groups',
-      label: 'Groups',
-      icon: Group,
-      href: '/groups',
-      color: 'text-indigo-500',
     },
     {
       id: 'events',
@@ -178,7 +169,7 @@ export default function MorePage() {
       label: 'Skill Swap',
       icon: Zap,
       href: '/skill-swap',
-      color: 'text-violet-500',
+      color: 'text-blue-500',
       subtext: 'Learn or teach with peers',
     },
     {
@@ -186,7 +177,7 @@ export default function MorePage() {
       label: 'College Communities',
       icon: GraduationCap,
       href: '/college-communities',
-      color: 'text-indigo-500',
+      color: 'text-blue-500',
       subtext: 'Join verified campus spaces',
     },
     {
@@ -196,14 +187,6 @@ export default function MorePage() {
       href: '/talk',
       color: 'text-sky-500',
       subtext: 'Find people with AI search',
-    },
-    {
-      id: 'progress',
-      label: 'Progress',
-      icon: Trophy,
-      href: '/progress',
-      color: 'text-orange-500',
-      subtext: 'XP, Coins, levels, and streaks',
     },
     {
       id: 'accountability',
@@ -217,22 +200,8 @@ export default function MorePage() {
       label: 'Games & XP',
       icon: Gamepad2,
       href: '/more/games',
-      color: 'text-purple-600',
+      color: 'text-blue-600',
       locked: true,
-    },
-    {
-      id: 'streaks',
-      label: 'Streaks',
-      icon: Zap,
-      href: '/streaks',
-      color: 'text-orange-500',
-    },
-    {
-      id: 'nearby',
-      label: 'Find Nearby People',
-      icon: MapPin,
-      href: '/find-people?tab=nearby',
-      color: 'text-green-500',
     },
     {
       id: 'integrations',
@@ -246,7 +215,7 @@ export default function MorePage() {
       label: 'Your Mentions',
       icon: AtSign,
       onClick: () => setActiveSection('mentions'),
-      color: 'text-purple-500',
+      color: 'text-blue-500',
     },
     {
       id: 'discovery-privacy',
@@ -254,6 +223,13 @@ export default function MorePage() {
       icon: Shield,
       href: '/settings/discovery',
       color: 'text-blue-500',
+    },
+    {
+      id: 'blocked',
+      label: 'Blocked accounts',
+      icon: UserX,
+      href: '/more/safety#blocked',
+      color: 'text-red-500',
     },
     {
       id: 'privacy',
@@ -278,9 +254,9 @@ export default function MorePage() {
     },
     {
       id: 'report',
-      label: 'Report a Problem',
+      label: 'Report a problem',
       icon: Flag,
-      href: '#',
+      href: '/support',
       color: 'text-orange-500',
     },
 
@@ -292,13 +268,6 @@ export default function MorePage() {
       href: '/badges',
       color: 'text-amber-500',
       locked: true,
-    },
-    {
-      id: 'store',
-      label: 'XP Store',
-      icon: ShoppingBag,
-      href: '/store',
-      color: 'text-emerald-500',
     },
     {
       id: 'referrals',
@@ -313,7 +282,7 @@ export default function MorePage() {
       label: 'Job Board',
       icon: Briefcase,
       href: '/jobs',
-      color: 'text-indigo-500',
+      color: 'text-blue-500',
       locked: true,
       subtext: 'Need more users to unlock this',
     },
@@ -322,7 +291,7 @@ export default function MorePage() {
       label: 'Coding Challenges',
       icon: Code,
       href: '/challenges',
-      color: 'text-violet-500',
+      color: 'text-blue-500',
       locked: true,
     },
     {
@@ -345,16 +314,15 @@ export default function MorePage() {
       id: 'notifications',
       label: 'Notification Settings',
       icon: Bell,
-      href: '/notifications',
+      href: '/notifications/settings',
       color: 'text-yellow-500',
-      locked: true,
     },
     {
       id: 'appearance',
       label: 'Appearance',
       icon: Palette,
       onClick: () => setActiveSection('appearance'),
-      color: 'text-pink-500',
+      color: 'text-rose-500',
     },
   ];
 
@@ -363,7 +331,7 @@ export default function MorePage() {
       activeSection={activeSection}
       handleLogout={handleLogout}
       isDark={isDark}
-      menuItems={menuItems}
+      menuItems={menuItems.filter((item) => !item.locked)}
       router={router}
       setActiveSection={setActiveSection}
       setIsDark={setIsDark}

@@ -83,15 +83,15 @@ export function StartupGameView({
 }: StartupGameViewProps) {
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen bg-white dark:bg-gray-900">
         {/* Header */}
-        <div className="sticky top-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200 dark:border-gray-800">
-          <div className="max-w-3xl mx-auto px-4 py-4">
+        <div className="">
+          <div className="max-w-2xl mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <Link
                   href="/more/games"
-                  className="p-2 -ml-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  className="p-2 -ml-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                 >
                   <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                 </Link>
@@ -102,9 +102,9 @@ export function StartupGameView({
               </div>
 
               {totalXpEarned > 0 && (
-                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-100 dark:bg-purple-900/30 rounded-full">
-                  <Zap className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                  <span className="text-sm font-semibold text-purple-600 dark:text-purple-400">
+                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-full">
+                  <Zap className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">
                     {totalXpEarned} XP
                   </span>
                 </div>
@@ -113,7 +113,7 @@ export function StartupGameView({
           </div>
         </div>
 
-        <div className="max-w-3xl mx-auto px-4 py-6">
+        <div className="max-w-2xl mx-auto px-4 py-6">
           <AnimatePresence mode="wait">
             {/* Setup Phase */}
             {gamePhase === 'setup' && (
@@ -142,7 +142,7 @@ export function StartupGameView({
                     value={startupName}
                     onChange={(e) => setStartupName(e.target.value)}
                     placeholder="Enter your startup name..."
-                    className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all"
+                    className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all"
                   />
                 </div>
 
@@ -156,7 +156,7 @@ export function StartupGameView({
                       <button
                         key={industry.id}
                         onClick={() => setSelectedIndustry(industry.id)}
-                        className={`p-4 rounded-xl border-2 transition-all ${
+                        className={`p-4 rounded-lg border-2 transition-all ${
                           selectedIndustry === industry.id
                             ? 'border-rose-500 bg-rose-50 dark:bg-rose-900/20'
                             : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-gray-300'
@@ -177,7 +177,7 @@ export function StartupGameView({
                 <button
                   onClick={startGame}
                   disabled={!selectedIndustry || !startupName.trim()}
-                  className="w-full py-4 bg-rose-600 hover:bg-rose-700 disabled:bg-gray-400 text-white rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
+                  className="w-full py-4 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-semibold transition-colors flex items-center justify-center gap-2"
                 >
                   <Rocket className="w-5 h-5" />
                   Launch Startup
@@ -209,7 +209,7 @@ export function StartupGameView({
                 className="space-y-4"
               >
                 <div
-                  className={`p-6 rounded-xl border-2 ${
+                  className={`p-6 rounded-lg border-2 ${
                     currentEvent.type === 'opportunity'
                       ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
                       : currentEvent.type === 'challenge'
@@ -238,13 +238,13 @@ export function StartupGameView({
                       <button
                         key={choice.id}
                         onClick={() => handleEventChoice(choice)}
-                        className="w-full p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-rose-500 transition-all text-left"
+                        className="w-full p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-rose-500 transition-all text-left"
                       >
                         <div className="flex items-center justify-between">
                           <span className="font-medium text-gray-900 dark:text-white">
                             {choice.text}
                           </span>
-                          <span className="text-sm text-purple-600">+{choice.xpReward} XP</span>
+                          <span className="text-sm text-blue-600">+{choice.xpReward} XP</span>
                         </div>
                       </button>
                     ))}
@@ -276,16 +276,16 @@ export function StartupGameView({
                   {achievedMilestone.title}
                 </h3>
                 <p className="text-gray-500 mb-6">{achievedMilestone.description}</p>
-                <div className="inline-flex items-center gap-2 px-4 py-2 bg-purple-100 dark:bg-purple-900/30 rounded-full mb-6">
-                  <Zap className="w-5 h-5 text-purple-600" />
-                  <span className="font-semibold text-purple-600">
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 dark:bg-blue-900/30 rounded-full mb-6">
+                  <Zap className="w-5 h-5 text-blue-600" />
+                  <span className="font-semibold text-blue-600">
                     +{achievedMilestone.xpReward} XP
                   </span>
                 </div>
                 <br />
                 <button
                   onClick={continueMilestone}
-                  className="px-6 py-3 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-semibold transition-colors"
+                  className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors"
                 >
                   Continue
                 </button>
@@ -301,7 +301,7 @@ export function StartupGameView({
                 exit={{ opacity: 0, scale: 0.9 }}
                 className="text-center py-10"
               >
-                <div className="w-20 h-20 bg-gradient-to-br from-rose-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                <div className="w-20 h-20 bg-rose-500 rounded-full flex items-center justify-center mx-auto mb-6">
                   <Building2 className="w-10 h-10 text-white" />
                 </div>
 
@@ -314,26 +314,26 @@ export function StartupGameView({
                 </p>
 
                 <div className="grid grid-cols-2 gap-4 mb-8 max-w-md mx-auto">
-                  <div className="p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
+                  <div className="py-4 border-b border-gray-100 dark:border-neutral-800">
                     <p className="text-2xl font-bold text-gray-900 dark:text-white">
                       {formatMoney(startup.valuation)}
                     </p>
                     <p className="text-sm text-gray-500">Final Valuation</p>
                   </div>
-                  <div className="p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
+                  <div className="py-4 border-b border-gray-100 dark:border-neutral-800">
                     <p className="text-2xl font-bold text-gray-900 dark:text-white">
                       {formatNumber(startup.users)}
                     </p>
                     <p className="text-sm text-gray-500">Total Users</p>
                   </div>
-                  <div className="p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
+                  <div className="py-4 border-b border-gray-100 dark:border-neutral-800">
                     <p className="text-2xl font-bold text-gray-900 dark:text-white">
                       {milestones.filter((m) => m.achieved).length}/{milestones.length}
                     </p>
                     <p className="text-sm text-gray-500">Milestones</p>
                   </div>
-                  <div className="p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-                    <p className="text-2xl font-bold text-purple-600">+{totalXpEarned}</p>
+                  <div className="py-4 border-b border-gray-100 dark:border-neutral-800">
+                    <p className="text-2xl font-bold text-blue-600">+{totalXpEarned}</p>
                     <p className="text-sm text-gray-500">XP Earned</p>
                   </div>
                 </div>
@@ -341,14 +341,14 @@ export function StartupGameView({
                 <div className="flex gap-3 justify-center">
                   <button
                     onClick={resetGame}
-                    className="px-6 py-3 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-900 dark:text-white rounded-xl font-medium transition-colors flex items-center gap-2"
+                    className="px-6 py-3 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-900 dark:text-white rounded-lg font-medium transition-colors flex items-center gap-2"
                   >
                     <RotateCcw className="w-5 h-5" />
                     Play Again
                   </button>
                   <Link
                     href="/more/games"
-                    className="px-6 py-3 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-medium transition-colors"
+                    className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
                   >
                     Back to Games
                   </Link>

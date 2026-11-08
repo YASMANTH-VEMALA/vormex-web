@@ -75,15 +75,15 @@ export function TypingGameView({
 }: TypingGameViewProps) {
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen bg-white dark:bg-gray-900">
         {/* Header */}
-        <div className="sticky top-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200 dark:border-gray-800">
-          <div className="max-w-3xl mx-auto px-4 py-4">
+        <div className="">
+          <div className="max-w-2xl mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <Link
                   href="/more/games"
-                  className="p-2 -ml-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  className="p-2 -ml-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                 >
                   <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                 </Link>
@@ -94,9 +94,9 @@ export function TypingGameView({
               </div>
 
               {xpEarned > 0 && (
-                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-100 dark:bg-purple-900/30 rounded-full">
-                  <Zap className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                  <span className="text-sm font-semibold text-purple-600 dark:text-purple-400">
+                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-full">
+                  <Zap className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">
                     +{xpEarned} XP
                   </span>
                 </div>
@@ -105,7 +105,7 @@ export function TypingGameView({
           </div>
         </div>
 
-        <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
+        <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
           {/* Difficulty Selector */}
           <div className="flex items-center justify-center gap-2">
             {(['EASY', 'MEDIUM', 'HARD'] as const).map((diff) => (
@@ -115,7 +115,7 @@ export function TypingGameView({
                   setDifficulty(diff);
                   setCurrentTextIndex(0);
                 }}
-                className={`px-4 py-2 rounded-xl font-medium transition-all border ${
+                className={`px-4 py-2 rounded-lg font-medium transition-all border ${
                   difficulty === diff
                     ? getDifficultyColor(diff)
                     : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-gray-300'
@@ -143,7 +143,7 @@ export function TypingGameView({
               </h2>
               <button
                 onClick={fetchTexts}
-                className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition-colors"
+                className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
               >
                 Try Again
               </button>
@@ -158,7 +158,7 @@ export function TypingGameView({
               className="space-y-6"
             >
               {/* Text Preview */}
-              <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6">
+              <div className="py-6 border-b border-gray-100 dark:border-neutral-800">
                 <div className="flex items-center justify-between mb-4">
                   <span
                     className={`px-3 py-1 text-xs font-semibold rounded-full border ${getDifficultyColor(currentText.difficulty)}`}
@@ -178,7 +178,7 @@ export function TypingGameView({
               {/* Start Button */}
               <button
                 onClick={startGame}
-                className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
+                className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors flex items-center justify-center gap-2"
               >
                 <Play className="w-5 h-5" />
                 Start Typing
@@ -221,7 +221,7 @@ export function TypingGameView({
               </div>
 
               {/* Typing Area */}
-              <div className="bg-white dark:bg-gray-800 rounded-2xl border-2 border-blue-500 p-6 cursor-text">
+              <div className="bg-white dark:bg-gray-800 rounded-lg border-2 border-blue-500 p-6 cursor-text">
                 <p className="font-mono text-lg leading-relaxed select-none">
                   {currentText.content.split('').map((char, index) => {
                     let className = 'text-gray-400 dark:text-gray-500';
@@ -289,7 +289,7 @@ export function TypingGameView({
               className="space-y-6"
             >
               {/* Results */}
-              <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 text-center">
+              <div className="py-6 text-center border-b border-gray-100 dark:border-neutral-800">
                 <div className="mb-6">
                   <Trophy className="w-16 h-16 text-amber-500 mx-auto mb-4" />
                   <h2 className={`text-2xl font-bold ${getWpmRating(stats.wpm).color}`}>
@@ -298,7 +298,7 @@ export function TypingGameView({
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 mb-6">
-                  <div className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                  <div className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
                     <div className="flex items-center justify-center gap-2 mb-2">
                       <Gauge className="w-5 h-5 text-blue-500" />
                       <span className="text-sm text-gray-500">Speed</span>
@@ -307,7 +307,7 @@ export function TypingGameView({
                     <p className="text-sm text-gray-500">WPM</p>
                   </div>
 
-                  <div className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                  <div className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
                     <div className="flex items-center justify-center gap-2 mb-2">
                       <Target className="w-5 h-5 text-green-500" />
                       <span className="text-sm text-gray-500">Accuracy</span>
@@ -333,9 +333,9 @@ export function TypingGameView({
                 </div>
 
                 {xpEarned > 0 && (
-                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-purple-100 dark:bg-purple-900/30 rounded-full mb-6">
-                    <Zap className="w-5 h-5 text-purple-600" />
-                    <span className="font-semibold text-purple-600">+{xpEarned} XP Earned!</span>
+                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 dark:bg-blue-900/30 rounded-full mb-6">
+                    <Zap className="w-5 h-5 text-blue-600" />
+                    <span className="font-semibold text-blue-600">+{xpEarned} XP Earned!</span>
                   </div>
                 )}
               </div>
@@ -344,14 +344,14 @@ export function TypingGameView({
               <div className="flex gap-3">
                 <button
                   onClick={resetGame}
-                  className="flex-1 py-3 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-900 dark:text-white rounded-xl font-medium transition-colors flex items-center justify-center gap-2"
+                  className="flex-1 py-3 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-900 dark:text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
                 >
                   <RotateCcw className="w-5 h-5" />
                   Try Again
                 </button>
                 <button
                   onClick={nextText}
-                  className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition-colors flex items-center justify-center gap-2"
+                  className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
                 >
                   Next Text
                   <Keyboard className="w-5 h-5" />

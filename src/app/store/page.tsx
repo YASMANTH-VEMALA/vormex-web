@@ -11,38 +11,12 @@ import { invalidateGamificationQueries, useLiveWalletXpBalance } from '@/hooks/u
 import * as storeAPI from '@/lib/api/store';
 import { useQueryClient } from '@tanstack/react-query';
 import { AnimatePresence, motion } from 'framer-motion';
-import {
-  Check,
-  ChevronLeft,
-  Clock,
-  Coins,
-  Crown,
-  Gift,
-  MessageCircle,
-  Package,
-  Palette,
-  ShoppingBag,
-  ShoppingCart,
-  Sparkles,
-  Star,
-  X,
-  Zap,
-} from 'lucide-react';
+import { ChevronLeft, X } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 
 const CATEGORY_ORDER = ['chat_customization', 'theme', 'frame', 'effect', 'badge', 'donation'];
-
-const categoryIcons: Record<string, React.ReactNode> = {
-  all: <ShoppingBag className="w-4 h-4" />,
-  chat_customization: <MessageCircle className="w-4 h-4" />,
-  theme: <Palette className="w-4 h-4" />,
-  frame: <Crown className="w-4 h-4" />,
-  effect: <Zap className="w-4 h-4" />,
-  badge: <Star className="w-4 h-4" />,
-  donation: <Sparkles className="w-4 h-4" />,
-};
 
 function getCategoryLabel(category: string): string {
   if (category === 'chat_customization') return 'Chat Customization';
@@ -151,43 +125,20 @@ function StorePage() {
     return metadata.priceInr;
   };
 
-  const getItemIcon = (type: string, category?: string) => {
-    if (category === 'chat_customization') return <MessageCircle className="w-6 h-6" />;
-
-    switch (type) {
-      case 'profile_theme':
-      case 'card_style':
-      case 'chat_theme_pack':
-        return <Palette className="w-6 h-6" />;
-      case 'profile_frame':
-        return <Crown className="w-6 h-6" />;
-      case 'exclusive_badge':
-        return <Star className="w-6 h-6" />;
-      case 'name_effect':
-      case 'message_effect_pack':
-      case 'chat_reaction_pack':
-        return <Zap className="w-6 h-6" />;
-      case 'donation':
-        return <Sparkles className="w-6 h-6" />;
-      default:
-        return <Gift className="w-6 h-6" />;
-    }
-  };
-
   const isPurchased = (itemId: string) => {
     return purchases.some((p) => p.itemId === itemId);
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 flex items-center justify-center">
+      <div className="min-h-screen bg-white dark:bg-neutral-950 flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-neutral-600"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 pb-20">
+    <div className="min-h-screen bg-white dark:bg-neutral-950 pb-20">
       {/* Toast */}
       <AnimatePresence>
         {toast.show && (
@@ -195,10 +146,9 @@ function StorePage() {
             initial={{ opacity: 0, y: -50 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -50 }}
-            className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-lg text-sm font-medium ${
-              toast.type === 'success'
-                ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400'
-                : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400'
+            role="status"
+            className={`fixed left-1/2 top-4 z-50 -translate-x-1/2 rounded-lg px-4 py-2.5 text-sm font-medium text-white ${
+              toast.type === 'success' ? 'bg-gray-900 dark:bg-neutral-700' : 'bg-red-600'
             }`}
           >
             {toast.message}
@@ -220,80 +170,69 @@ function StorePage() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white dark:bg-neutral-900 rounded-xl p-5 max-w-sm w-full border border-gray-200 dark:border-neutral-800"
+              className="w-full max-w-sm rounded-xl bg-white p-5 dark:bg-neutral-900"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex justify-between items-start mb-4">
-                <div className="w-12 h-12 rounded-lg bg-gray-100 dark:bg-neutral-800 flex items-center justify-center text-gray-600 dark:text-gray-400">
-                  {getItemIcon(selectedItem.type, selectedItem.category)}
-                </div>
+              <div className="mb-3 flex items-start justify-between gap-3">
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                  {selectedItem.name}
+                </h3>
                 <button
                   onClick={() => setSelectedItem(null)}
-                  className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors"
+                  aria-label="Close"
+                  className="-mr-1.5 -mt-1 rounded-full p-1.5 hover:bg-gray-100 dark:hover:bg-neutral-800"
                 >
-                  <X className="w-4 h-4 text-gray-500" />
+                  <X className="h-5 w-5 text-gray-500" />
                 </button>
               </div>
-
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
-                {selectedItem.name}
-              </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              <p className="mb-4 text-sm text-gray-600 dark:text-neutral-400">
                 {selectedItem.description || 'No description available.'}
               </p>
 
-              {getInrPrice(selectedItem) !== null && (
-                <div className="flex items-center gap-2 mb-3 p-2 rounded-lg bg-amber-100/70 dark:bg-amber-900/20 text-amber-800 dark:text-amber-300">
-                  <span className="text-xs font-semibold uppercase tracking-wide">Cash Pack</span>
-                  <span className="text-sm font-bold">₹{getInrPrice(selectedItem)}</span>
+              <dl className="mb-5 divide-y divide-gray-100 text-sm dark:divide-neutral-800">
+                <div className="flex justify-between py-2.5">
+                  <dt className="text-gray-500 dark:text-neutral-400">Price</dt>
+                  <dd className="font-semibold tabular-nums text-gray-900 dark:text-white">
+                    {getItemCost(selectedItem).toLocaleString()} XP
+                  </dd>
                 </div>
-              )}
-
-              <div className="flex items-center gap-2 mb-4 p-3 rounded-lg bg-gray-100 dark:bg-neutral-800">
-                <Coins className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-                <span className="text-sm font-medium text-gray-900 dark:text-white">
-                  {getItemCost(selectedItem).toLocaleString()} XP
-                </span>
-              </div>
-
-              {selectedItem.stock !== undefined && selectedItem.stock !== null && (
-                <div className="flex items-center gap-2 mb-4 text-xs text-gray-500">
-                  <Package className="w-3.5 h-3.5" />
-                  <span>{selectedItem.stock} remaining in stock</span>
+                {getInrPrice(selectedItem) !== null && (
+                  <div className="flex justify-between py-2.5">
+                    <dt className="text-gray-500 dark:text-neutral-400">Cash price</dt>
+                    <dd className="font-semibold text-gray-900 dark:text-white">
+                      ₹{getInrPrice(selectedItem)}
+                    </dd>
+                  </div>
+                )}
+                <div className="flex justify-between py-2.5">
+                  <dt className="text-gray-500 dark:text-neutral-400">Your balance</dt>
+                  <dd className="tabular-nums text-gray-900 dark:text-white">
+                    {xpBalance.toLocaleString()} XP
+                  </dd>
                 </div>
-              )}
+                {selectedItem.stock !== undefined && selectedItem.stock !== null && (
+                  <div className="flex justify-between py-2.5">
+                    <dt className="text-gray-500 dark:text-neutral-400">In stock</dt>
+                    <dd className="text-gray-900 dark:text-white">{selectedItem.stock}</dd>
+                  </div>
+                )}
+              </dl>
 
               {isPurchased(selectedItem.id) ? (
-                <div className="w-full py-2.5 rounded-lg bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-sm font-medium text-center flex items-center justify-center gap-2">
-                  <Check className="w-4 h-4" />
-                  Already Owned
-                </div>
+                <p className="py-2 text-center text-sm font-semibold text-emerald-600 dark:text-emerald-400">
+                  You own this item
+                </p>
               ) : (
                 <button
                   onClick={() => handlePurchase(selectedItem)}
                   disabled={purchasing === selectedItem.id || xpBalance < getItemCost(selectedItem)}
-                  className={`w-full py-2.5 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 ${
-                    xpBalance >= getItemCost(selectedItem)
-                      ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100'
-                      : 'bg-gray-200 dark:bg-neutral-800 text-gray-500 cursor-not-allowed'
-                  }`}
+                  className="h-10 w-full rounded-lg bg-blue-600 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 dark:disabled:bg-neutral-800"
                 >
-                  {purchasing === selectedItem.id ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-current"></div>
-                      Purchasing...
-                    </>
-                  ) : xpBalance < getItemCost(selectedItem) ? (
-                    <>
-                      <Coins className="w-4 h-4" />
-                      Need {(getItemCost(selectedItem) - xpBalance).toLocaleString()} more XP
-                    </>
-                  ) : (
-                    <>
-                      <ShoppingCart className="w-4 h-4" />
-                      Purchase Now
-                    </>
-                  )}
+                  {purchasing === selectedItem.id
+                    ? 'Purchasing...'
+                    : xpBalance < getItemCost(selectedItem)
+                      ? `Need ${(getItemCost(selectedItem) - xpBalance).toLocaleString()} more XP`
+                      : 'Buy'}
                 </button>
               )}
             </motion.div>
@@ -302,50 +241,46 @@ function StorePage() {
       </AnimatePresence>
 
       {/* Header */}
-      <div className="sticky top-0 z-40 bg-white/80 dark:bg-neutral-950/80 backdrop-blur-lg border-b border-gray-200 dark:border-neutral-800">
-        <div className="max-w-2xl mx-auto">
-          <div className="flex items-center justify-between px-4 py-3">
-            <div className="flex items-center gap-3">
-              <Link
-                href="/more"
-                className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors"
-              >
-                <ChevronLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-              </Link>
-              <div>
-                <h1 className="text-lg font-semibold text-gray-900 dark:text-white">XP Store</h1>
-                <p className="text-xs text-gray-500">Spend your XP balance on rewards</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-neutral-800">
-              <Coins className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-              <span className="text-sm font-medium text-gray-900 dark:text-white">
-                {xpBalance.toLocaleString()}
-              </span>
-            </div>
+      <div className="mx-auto max-w-xl px-4 pt-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Link
+              href="/more"
+              aria-label="Back to settings"
+              className="-ml-2 inline-flex h-9 w-9 items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-neutral-800"
+            >
+              <ChevronLeft className="h-6 w-6" />
+            </Link>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-white">XP Store</h1>
           </div>
+          <p className="text-sm text-gray-500 dark:text-neutral-400">
+            Balance{' '}
+            <span className="font-semibold tabular-nums text-gray-900 dark:text-white">
+              {xpBalance.toLocaleString()} XP
+            </span>
+          </p>
+        </div>
 
-          {/* Tabs */}
-          <div className="flex px-4 gap-2 pb-3">
-            {[
-              { id: 'shop', label: 'Shop', icon: <ShoppingBag className="w-4 h-4" /> },
-              { id: 'inventory', label: 'My Items', icon: <Package className="w-4 h-4" /> },
-              { id: 'history', label: 'History', icon: <Clock className="w-4 h-4" /> },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as typeof activeTab)}
-                className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-1.5 ${
-                  activeTab === tab.id
-                    ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900'
-                    : 'bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-neutral-700'
-                }`}
-              >
-                {tab.icon}
-                {tab.label}
-              </button>
-            ))}
-          </div>
+        <div role="tablist" aria-label="Store sections" className="mt-4 flex border-b border-gray-200 dark:border-neutral-800">
+          {[
+            { id: 'shop', label: 'Shop' },
+            { id: 'inventory', label: 'My items' },
+            { id: 'history', label: 'History' },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              role="tab"
+              aria-selected={activeTab === tab.id}
+              onClick={() => setActiveTab(tab.id as typeof activeTab)}
+              className={`-mb-px flex-1 border-b-2 py-3 text-sm font-semibold ${
+                activeTab === tab.id
+                  ? 'border-gray-900 text-gray-900 dark:border-white dark:text-white'
+                  : 'border-transparent text-gray-500 hover:text-gray-900 dark:text-neutral-400 dark:hover:text-white'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -353,11 +288,9 @@ function StorePage() {
       <StoreListings
         activeTab={activeTab}
         categories={categories}
-        categoryIcons={categoryIcons}
         filteredItems={filteredItems}
         getInrPrice={getInrPrice}
         getItemCost={getItemCost}
-        getItemIcon={getItemIcon}
         inventory={inventory}
         isPurchased={isPurchased}
         items={items}

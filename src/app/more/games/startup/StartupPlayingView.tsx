@@ -54,7 +54,7 @@ export function StartupPlayingView({
           className="space-y-4"
         >
           {/* Game Controls */}
-          <div className="flex items-center justify-between bg-white dark:bg-gray-800 rounded-xl p-3 border border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between py-3 border-b border-gray-100 dark:border-neutral-800">
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-500">Month {startup.month}</span>
               <span className="text-xs text-gray-400">
@@ -83,7 +83,7 @@ export function StartupPlayingView({
 
           {/* Stats Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-3 border border-gray-200 dark:border-gray-700">
+            <div className="py-3 border-b border-gray-100 dark:border-neutral-800">
               <div className="flex items-center gap-2 mb-1">
                 <DollarSign className="w-4 h-4 text-green-500" />
                 <span className="text-xs text-gray-500">Cash</span>
@@ -94,7 +94,7 @@ export function StartupPlayingView({
                 {formatMoney(startup.cash)}
               </p>
             </div>
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-3 border border-gray-200 dark:border-gray-700">
+            <div className="py-3 border-b border-gray-100 dark:border-neutral-800">
               <div className="flex items-center gap-2 mb-1">
                 <Users className="w-4 h-4 text-blue-500" />
                 <span className="text-xs text-gray-500">Users</span>
@@ -103,16 +103,16 @@ export function StartupPlayingView({
                 {formatNumber(startup.users)}
               </p>
             </div>
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-3 border border-gray-200 dark:border-gray-700">
+            <div className="py-3 border-b border-gray-100 dark:border-neutral-800">
               <div className="flex items-center gap-2 mb-1">
-                <TrendingUp className="w-4 h-4 text-purple-500" />
+                <TrendingUp className="w-4 h-4 text-blue-500" />
                 <span className="text-xs text-gray-500">Revenue/mo</span>
               </div>
               <p className="text-lg font-bold text-gray-900 dark:text-white">
                 {formatMoney(startup.revenue)}
               </p>
             </div>
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-3 border border-gray-200 dark:border-gray-700">
+            <div className="py-3 border-b border-gray-100 dark:border-neutral-800">
               <div className="flex items-center gap-2 mb-1">
                 <Building2 className="w-4 h-4 text-amber-500" />
                 <span className="text-xs text-gray-500">Valuation</span>
@@ -124,7 +124,7 @@ export function StartupPlayingView({
           </div>
 
           {/* Levels */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+          <div className="py-4 border-b border-gray-100 dark:border-neutral-800">
             <h3 className="font-medium text-gray-900 dark:text-white mb-3">Company Stats</h3>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
@@ -172,7 +172,7 @@ export function StartupPlayingView({
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Briefcase className="w-4 h-4 text-purple-500" />
+                  <Briefcase className="w-4 h-4 text-blue-500" />
                   <span className="text-sm text-gray-600 dark:text-gray-400">Employees</span>
                 </div>
                 <span className="text-sm font-medium text-gray-900 dark:text-white">
@@ -187,7 +187,7 @@ export function StartupPlayingView({
             <button
               onClick={() => invest('tech')}
               disabled={startup.cash < 30000}
-              className="p-3 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              className="p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
               <Code className="w-6 h-6 text-blue-500 mx-auto mb-2" />
               <p className="text-xs font-medium text-gray-900 dark:text-white">Upgrade Tech</p>
@@ -196,7 +196,7 @@ export function StartupPlayingView({
             <button
               onClick={() => invest('marketing')}
               disabled={startup.cash < 20000}
-              className="p-3 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-orange-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              className="p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-orange-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
               <Megaphone className="w-6 h-6 text-orange-500 mx-auto mb-2" />
               <p className="text-xs font-medium text-gray-900 dark:text-white">Marketing</p>
@@ -205,16 +205,16 @@ export function StartupPlayingView({
             <button
               onClick={() => invest('hiring')}
               disabled={startup.cash < 50000}
-              className="p-3 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-purple-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              className="p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
-              <Users className="w-6 h-6 text-purple-500 mx-auto mb-2" />
+              <Users className="w-6 h-6 text-blue-500 mx-auto mb-2" />
               <p className="text-xs font-medium text-gray-900 dark:text-white">Hire</p>
               <p className="text-xs text-gray-500">$50K</p>
             </button>
           </div>
 
           {/* Milestones */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+          <div className="py-4 border-b border-gray-100 dark:border-neutral-800">
             <h3 className="font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2">
               <Trophy className="w-5 h-5 text-amber-500" />
               Milestones
@@ -245,7 +245,7 @@ export function StartupPlayingView({
                       {milestone.title}
                     </span>
                   </div>
-                  <span className="text-xs text-purple-600 dark:text-purple-400">
+                  <span className="text-xs text-blue-600 dark:text-blue-400">
                     +{milestone.xpReward} XP
                   </span>
                 </div>

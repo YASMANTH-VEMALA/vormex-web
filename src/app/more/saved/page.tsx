@@ -88,9 +88,9 @@ export default function SavedPostsPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50 dark:bg-neutral-950">
+      <div className="min-h-screen bg-white dark:bg-neutral-950">
         {/* Header */}
-        <div className="sticky top-0 z-40 bg-white dark:bg-neutral-900 border-b border-gray-200 dark:border-neutral-800">
+        <div className="">
           <div className="max-w-2xl mx-auto px-4 py-3 flex items-center gap-4">
             <button
               onClick={() => router.back()}

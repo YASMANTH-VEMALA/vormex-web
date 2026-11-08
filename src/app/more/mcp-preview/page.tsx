@@ -22,7 +22,7 @@ function CurrentMcpCard({ profile }: { profile: PublicProfile }) {
         <UserAvatar
           imageSrc={profile.avatar}
           name={profile.name}
-          className="h-16 w-16 shrink-0 bg-gradient-to-br from-violet-700 to-blue-600 text-xl font-extrabold text-white"
+          className="h-16 w-16 shrink-0 bg-blue-700 text-xl font-extrabold text-white"
           fallbackClassName="text-xl"
         />
         <div className="min-w-0">
@@ -48,7 +48,7 @@ function CurrentMcpCard({ profile }: { profile: PublicProfile }) {
         {profile.skills.slice(0, 6).map((skill) => (
           <span
             key={skill}
-            className="rounded-full bg-indigo-50 px-2.5 py-1.5 text-xs text-indigo-700 dark:bg-indigo-950 dark:text-indigo-200"
+            className="rounded-full bg-blue-50 px-2.5 py-1.5 text-xs text-blue-700 dark:bg-blue-950 dark:text-blue-200"
           >
             {skill}
           </span>
@@ -93,7 +93,7 @@ function RedesignedMcpCard({ profile }: { profile: PublicProfile }) {
             <UserAvatar
               imageSrc={profile.avatar}
               name={profile.name}
-              className="-mt-9 h-[72px] w-[72px] shrink-0 border-4 border-white bg-gradient-to-br from-violet-700 to-blue-600 text-xl font-extrabold text-white shadow-md dark:border-slate-900"
+              className="-mt-9 h-[72px] w-[72px] shrink-0 border-4 border-white bg-blue-700 text-xl font-extrabold text-white dark:border-slate-900"
               fallbackClassName="text-xl"
             />
             <img
@@ -229,8 +229,8 @@ export default function McpCardPreviewPage() {
   return (
     <ProtectedRoute>
       <main className="min-h-screen bg-slate-50 pb-32 text-slate-900 dark:bg-neutral-950 dark:text-white">
-        <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/95 backdrop-blur dark:border-neutral-800 dark:bg-neutral-900/95">
-          <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
+        <header className="border-slate-200">
+          <div className="mx-auto flex max-w-2xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
             <div className="flex items-center gap-3">
               <Link
                 href="/more"
@@ -239,7 +239,7 @@ export default function McpCardPreviewPage() {
               >
                 <ArrowLeft className="h-5 w-5" />
               </Link>
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-100 text-violet-600 dark:bg-violet-950 dark:text-violet-300">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100 dark:bg-neutral-800 text-gray-700 dark:text-neutral-200">
                 <Bot className="h-5 w-5" />
               </div>
               <div>
@@ -255,10 +255,10 @@ export default function McpCardPreviewPage() {
           </div>
         </header>
 
-        <section className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
+        <section className="mx-auto max-w-2xl px-4 py-8 sm:px-6">
           <div className="mb-6 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="text-sm font-semibold text-violet-600 dark:text-violet-400">
+              <p className="text-sm font-semibold text-blue-600 dark:text-blue-400">
                 Vormex People Discovery
               </p>
               <h2 className="mt-2 text-2xl font-bold tracking-tight">
@@ -270,7 +270,7 @@ export default function McpCardPreviewPage() {
               </p>
             </div>
             <div
-              className="flex w-fit rounded-xl border border-slate-200 bg-white p-1 dark:border-slate-700 dark:bg-slate-900"
+              className="flex w-fit rounded-lg border border-slate-200 bg-white p-1 dark:border-slate-700 dark:bg-slate-900"
               role="tablist"
               aria-label="Card design"
             >
@@ -294,13 +294,13 @@ export default function McpCardPreviewPage() {
           </div>
 
           {loading && (
-            <div className="flex min-h-72 items-center justify-center rounded-3xl border border-dashed border-slate-300 bg-white text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-900">
+            <div className="flex min-h-72 items-center justify-center rounded-lg border border-dashed border-slate-300 bg-white text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-900">
               <LoaderCircle className="mr-2 h-5 w-5 animate-spin" />
               Loading real public profiles...
             </div>
           )}
           {loadError && !loading && (
-            <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-10 text-center text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-900">
+            <div className="rounded-lg border border-dashed border-slate-300 bg-white p-10 text-center text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-900">
               No eligible public profiles are available right now.
             </div>
           )}

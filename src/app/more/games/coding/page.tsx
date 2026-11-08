@@ -139,10 +139,10 @@ export default function CodingPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen bg-white dark:bg-gray-900">
         {/* Header */}
-        <div className="sticky top-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200 dark:border-gray-800">
-          <div className="max-w-4xl mx-auto px-4 py-4">
+        <div className="">
+          <div className="max-w-2xl mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <Link
@@ -154,7 +154,7 @@ export default function CodingPage() {
                       setSelectedPuzzle(null);
                     }
                   }}
-                  className="p-2 -ml-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  className="p-2 -ml-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                 >
                   <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                 </Link>
@@ -167,9 +167,9 @@ export default function CodingPage() {
               </div>
 
               {xpEarned > 0 && (
-                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-100 dark:bg-purple-900/30 rounded-full">
-                  <Zap className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                  <span className="text-sm font-semibold text-purple-600 dark:text-purple-400">
+                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-full">
+                  <Zap className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">
                     +{xpEarned} XP
                   </span>
                 </div>

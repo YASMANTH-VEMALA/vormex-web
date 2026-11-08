@@ -85,7 +85,7 @@ export function CodingChallengeView({
   xpEarned,
 }: CodingChallengeViewProps) {
   return (
-    <div className="max-w-4xl mx-auto px-4 py-6">
+    <div className="max-w-2xl mx-auto px-4 py-6">
       {/* Loading State */}
       {gameState === 'loading' && (
         <div className="flex flex-col items-center justify-center py-20">
@@ -103,7 +103,7 @@ export function CodingChallengeView({
           </h2>
           <button
             onClick={fetchPuzzles}
-            className="px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-xl font-medium transition-colors"
+            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
           >
             Try Again
           </button>
@@ -119,7 +119,7 @@ export function CodingChallengeView({
               <button
                 key={diff}
                 onClick={() => setDifficulty(diff)}
-                className={`px-4 py-2 rounded-xl font-medium transition-all border ${
+                className={`px-4 py-2 rounded-lg font-medium transition-all border ${
                   difficulty === diff
                     ? getDifficultyColor(diff)
                     : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-gray-300'
@@ -133,7 +133,7 @@ export function CodingChallengeView({
           {/* Puzzles List */}
           <div className="space-y-3">
             {puzzles.length === 0 ? (
-              <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
+              <div className="text-center py-12">
                 <Code className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
                 <p className="text-gray-500">No puzzles available for this difficulty.</p>
               </div>
@@ -145,10 +145,10 @@ export function CodingChallengeView({
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
                   onClick={() => selectPuzzle(puzzle)}
-                  className="w-full p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-orange-500 dark:hover:border-orange-500 transition-all text-left group"
+                  className="w-full p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-orange-500 dark:hover:border-orange-500 transition-all text-left group"
                 >
                   <div className="flex items-center gap-4">
-                    <div className="p-3 bg-orange-100 dark:bg-orange-900/30 rounded-xl">
+                    <div className="p-3 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
                       <Code className="w-6 h-6 text-orange-600 dark:text-orange-400" />
                     </div>
                     <div className="flex-1 min-w-0">
@@ -185,7 +185,7 @@ export function CodingChallengeView({
       {(gameState === 'solving' || gameState === 'result') && selectedPuzzle && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
           {/* Problem Description */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+          <div className="py-4 border-b border-gray-100 dark:border-neutral-800">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <BookOpen className="w-5 h-5 text-gray-500" />
@@ -204,7 +204,7 @@ export function CodingChallengeView({
 
           {/* Examples */}
           {selectedPuzzle.testCases && selectedPuzzle.testCases.length > 0 && (
-            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+            <div className="py-4 border-b border-gray-100 dark:border-neutral-800">
               <div className="flex items-center gap-2 mb-3">
                 <Terminal className="w-5 h-5 text-gray-500" />
                 <span className="font-medium text-gray-900 dark:text-white">Examples</span>
@@ -236,7 +236,7 @@ export function CodingChallengeView({
 
           {/* Hint */}
           {selectedPuzzle.hints && selectedPuzzle.hints.length > 0 && (
-            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div className="overflow-hidden">
               <button
                 onClick={() => setShowHint(!showHint)}
                 className="w-full p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
@@ -269,7 +269,7 @@ export function CodingChallengeView({
           )}
 
           {/* Code Editor */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+          <div className="overflow-hidden">
             <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50">
               <div className="flex items-center gap-2">
                 <Code className="w-4 h-4 text-gray-500" />
@@ -312,7 +312,7 @@ export function CodingChallengeView({
           {/* Output */}
           {output && (
             <div
-              className={`p-4 rounded-xl border ${
+              className={`p-4 rounded-lg border ${
                 isCorrect === true
                   ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
                   : isCorrect === false
@@ -355,14 +355,14 @@ export function CodingChallengeView({
                       ''
                   )
                 }
-                className="px-4 py-3 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl font-medium transition-colors"
+                className="px-4 py-3 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-medium transition-colors"
               >
                 Reset
               </button>
               <button
                 onClick={runCode}
                 disabled={isSubmitting || !code.trim()}
-                className="flex-1 py-3 bg-orange-600 hover:bg-orange-700 disabled:bg-gray-400 text-white rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
+                className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-semibold transition-colors flex items-center justify-center gap-2"
               >
                 {isSubmitting ? (
                   <>
@@ -382,14 +382,14 @@ export function CodingChallengeView({
           {/* Success Actions */}
           {gameState === 'result' && (
             <div className="space-y-4">
-              <div className="p-6 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl border border-green-200 dark:border-green-800 text-center">
+              <div className="p-6 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800 text-center">
                 <Trophy className="w-12 h-12 text-amber-500 mx-auto mb-3" />
                 <h3 className="text-xl font-bold text-green-700 dark:text-green-300 mb-2">
-                  Puzzle Solved! 🎉
+                  Puzzle solved
                 </h3>
                 <div className="flex items-center justify-center gap-2 mb-4">
-                  <Zap className="w-5 h-5 text-purple-500" />
-                  <span className="text-lg font-semibold text-purple-600">+{xpEarned} XP</span>
+                  <Zap className="w-5 h-5 text-blue-500" />
+                  <span className="text-lg font-semibold text-blue-600">+{xpEarned} XP</span>
                 </div>
               </div>
 
@@ -400,13 +400,13 @@ export function CodingChallengeView({
                     setSelectedPuzzle(null);
                     setXpEarned(0);
                   }}
-                  className="flex-1 py-3 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-900 dark:text-white rounded-xl font-medium transition-colors"
+                  className="flex-1 py-3 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-900 dark:text-white rounded-lg font-medium transition-colors"
                 >
                   More Puzzles
                 </button>
                 <Link
                   href="/more/games"
-                  className="flex-1 py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-xl font-medium transition-colors text-center"
+                  className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-center"
                 >
                   Back to Games
                 </Link>

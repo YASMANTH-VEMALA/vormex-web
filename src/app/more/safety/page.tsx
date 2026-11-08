@@ -18,7 +18,6 @@ import {
   signInWithPhoneNumber,
   type ConfirmationResult,
 } from 'firebase/auth';
-import { AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 function getErrorMessage(error: unknown): string {
@@ -54,20 +53,16 @@ function trustLabel(level: string | undefined): string {
 
 function StatusPill({ active, label }: { active: boolean; label: string }) {
   return (
-    <span
-      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${
-        active
-          ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
-          : 'bg-gray-100 text-gray-600 dark:bg-neutral-800 dark:text-neutral-400'
-      }`}
-    >
-      {active ? (
-        <CheckCircle2 className="h-3.5 w-3.5" />
-      ) : (
-        <AlertTriangle className="h-3.5 w-3.5" />
-      )}
-      {label}
-    </span>
+    <div className="flex items-center justify-between py-3 text-sm">
+      <span>{label}</span>
+      <span
+        className={
+          active ? 'font-semibold text-emerald-600 dark:text-emerald-400' : 'text-gray-500'
+        }
+      >
+        {active ? 'Verified' : 'Not verified'}
+      </span>
+    </div>
   );
 }
 
