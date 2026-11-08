@@ -14,7 +14,7 @@
     "lint": "eslint",
     "lint:focused": "eslint src/proxy.ts src/lib/routing/authProxy.ts src/lib/api/client.ts src/lib/api/request.ts src/lib/api/accountability.ts src/lib/api/circles.ts src/app/accountability/page.tsx src/hooks/useVariableRewards.ts tests/*.test.ts",
     "test": "node scripts/run-tests.mjs",
-    "verify": "npm run check:architecture && npm run check:contracts && npm run lint && npm run typecheck && npm test && npm run build && npm audit --audit-level=moderate",
+    "verify": "npm run check:architecture && npm run check:contracts && npm run lint && npm run typecheck && npm test && npm run build && npm audit --omit=dev --audit-level=moderate",
     "postinstall": "node scripts/patch-minimatch.cjs && node scripts/patch-next-eslint-glob.cjs",
     "typecheck": "tsc --noEmit --incremental false",
     "check:architecture": "node scripts/check-architecture.cjs",

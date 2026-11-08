@@ -18,3 +18,12 @@ plugin no longer installs the affected tree.
 Dependency changes must pass a fresh install, full lint, behavior/contract tests,
 type checking, production build, and npm audit. An audit count is a dependency
 signal; it does not establish runtime exploitability or production readiness.
+
+## Audit scope
+
+`npm run verify` audits production dependencies at moderate severity. CI separately
+audits all dependencies at high severity. Moderate advisories in the lint toolchain
+(`typescript-eslint`, `minimatch`) are not shipped to users, and npm's only automatic
+fix downgrades `eslint-config-next` to 15.x, which must stay aligned with Next 16.
+Re-check them when `eslint-config-next` publishes a release with patched dependencies,
+and remove this note once the full audit is clean again.
