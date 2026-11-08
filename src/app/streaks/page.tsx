@@ -68,29 +68,12 @@ const STREAK_TYPES = [
     currentKey: 'messagingStreak' as const,
     longestKey: 'longestMessagingStreak' as const,
     description: 'Send a message every day',
-    bgLight: 'bg-purple-50',
-    bgDark: 'dark:bg-purple-900/20',
-    textColor: 'text-purple-500',
-    ringColor: 'ring-purple-500/30',
+    bgLight: 'bg-blue-50',
+    bgDark: 'dark:bg-blue-900/20',
+    textColor: 'text-blue-500',
+    ringColor: 'ring-blue-500/30',
   },
 ];
-
-function getHistoryEventEmoji(event: string): string {
-  switch (event) {
-    case 'increment':
-      return '🔥';
-    case 'milestone':
-      return '🏆';
-    case 'break':
-      return '💔';
-    case 'freeze_used':
-      return '❄️';
-    case 'shield_saved':
-      return '🛡️';
-    default:
-      return '📌';
-  }
-}
 
 function getHistoryEventLabel(event: string): string {
   switch (event) {
@@ -206,14 +189,14 @@ export default function StreaksPage() {
   if (streakLoading) {
     return (
       <ProtectedRoute>
-        <div className="min-h-screen bg-gray-50 dark:bg-neutral-950">
+        <div className="min-h-screen bg-white dark:bg-neutral-950">
           <div className="max-w-lg mx-auto px-4 py-8">
             <div className="animate-pulse space-y-4">
               <div className="h-8 bg-gray-200 dark:bg-neutral-800 rounded w-1/3" />
-              <div className="h-40 bg-gray-200 dark:bg-neutral-800 rounded-xl" />
+              <div className="h-40 bg-gray-200 dark:bg-neutral-800 rounded-lg" />
               <div className="grid grid-cols-2 gap-3">
                 {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="h-28 bg-gray-200 dark:bg-neutral-800 rounded-xl" />
+                  <div key={i} className="h-28 bg-gray-200 dark:bg-neutral-800 rounded-lg" />
                 ))}
               </div>
             </div>
@@ -226,7 +209,7 @@ export default function StreaksPage() {
   if (!streak) {
     return (
       <ProtectedRoute>
-        <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 flex items-center justify-center">
+        <div className="min-h-screen bg-white dark:bg-neutral-950 flex items-center justify-center">
           <p className="text-gray-500 dark:text-neutral-400">Failed to load streak data.</p>
         </div>
       </ProtectedRoute>
@@ -239,7 +222,6 @@ export default function StreaksPage() {
       anyAtRisk={anyAtRisk}
       bestCurrentStreak={bestCurrentStreak}
       freezeLoading={freezeLoading}
-      getHistoryEventEmoji={getHistoryEventEmoji}
       getHistoryEventLabel={getHistoryEventLabel}
       getStreakTypeLabel={getStreakTypeLabel}
       handlePurchaseFreeze={handlePurchaseFreeze}

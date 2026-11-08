@@ -68,10 +68,9 @@ export default function GroupSettingsPage({ params }: GroupSettingsPageProps) {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [groupData, membersData] = await Promise.all([
-          getGroup(resolvedParams.slug),
-          getGroupMembers(resolvedParams.slug),
-        ]);
+        // Members are keyed by group id; the URL only carries the slug.
+        const groupData = await getGroup(resolvedParams.slug);
+        const membersData = await getGroupMembers(groupData.id);
 
         // Check if user is admin/owner
         const userRole = groupData.memberRole || groupData.userRole;

@@ -74,7 +74,16 @@ export function GroupImageUploadModal({
   const handleCropComplete = useCallback(
     (croppedBlob: Blob) => {
       // Convert blob to file
-      const croppedFile = new File([croppedBlob], selectedFile?.name || 'cropped-image.jpg', {
+      // The cropper always re-encodes to JPEG, so the name must end in .jpg or
+      // the server rejects it ("File extension does not match file type").
+      // Also keep only characters the server's filename check allows.
+      const baseName =
+        (selectedFile?.name || '')
+          .replace(/\.[^.]*$/, '')
+          .replace(/[^a-zA-Z0-9._ ()-]+/g, '-')
+          .replace(/\.{2,}/g, '.')
+          .slice(0, 80) || 'cropped-image';
+      const croppedFile = new File([croppedBlob], `${baseName}.jpg`, {
         type: 'image/jpeg',
       });
 

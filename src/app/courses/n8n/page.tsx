@@ -140,7 +140,7 @@ function N8NCourseContent() {
   const progress = Math.round((completedLessons.size / courseData.lessons.length) * 100);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 pb-24">
+    <div className="min-h-screen bg-white dark:bg-neutral-950 pb-24">
       {/* Video Player Modal */}
       <AnimatePresence>
         {currentLesson && (
@@ -185,7 +185,7 @@ function N8NCourseContent() {
 
             {/* Video Container */}
             <div className="flex-1 flex items-center justify-center p-4">
-              <div className="w-full max-w-5xl aspect-video">
+              <div className="w-full max-w-2xl aspect-video">
                 <iframe
                   width="100%"
                   height="100%"
@@ -230,7 +230,7 @@ function N8NCourseContent() {
       </AnimatePresence>
 
       {/* Header */}
-      <div className="sticky top-0 z-40 bg-white dark:bg-neutral-900 border-b border-gray-200 dark:border-neutral-800">
+      <div className="">
         <div className="flex items-center gap-3 px-4 py-4">
           <Link
             href="/learning"
@@ -251,9 +251,9 @@ function N8NCourseContent() {
 
       {/* Course Info Card */}
       <div className="px-4 py-6 max-w-2xl mx-auto">
-        <div className="bg-white dark:bg-neutral-900 rounded-xl border border-gray-200 dark:border-neutral-800 overflow-hidden mb-6">
+        <div className="overflow-hidden mb-6">
           {/* Course Thumbnail */}
-          <div className="aspect-video bg-gradient-to-br from-[#FF6D5A]/20 via-[#EA4B71]/20 to-[#7B61FF]/20 flex items-center justify-center relative">
+          <div className="aspect-video  flex items-center justify-center relative">
             <div className="absolute inset-0 flex items-center justify-center">
               <img
                 src="https://n8n.io/favicon.ico"
@@ -343,7 +343,7 @@ function N8NCourseContent() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.03 }}
-              className="bg-white dark:bg-neutral-900 rounded-xl border border-gray-200 dark:border-neutral-800 overflow-hidden"
+              className="overflow-hidden"
             >
               <button
                 onClick={() => setExpandedLesson(expandedLesson === lesson.id ? null : lesson.id)}
@@ -420,7 +420,7 @@ function N8NCourseContent() {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="mt-6 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-200 dark:border-green-800 p-6 text-center"
+            className="mt-6 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800 p-6 text-center"
           >
             <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-4">
               <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />

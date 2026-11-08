@@ -54,6 +54,24 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 
 ## Deploy on Vercel
 
+The production web build checks the configured API's readiness and verifies that
+`/api/music/search` exists and requires authentication. An old API returning 404,
+a crashed function, or unavailable required Redis/workers blocks the build.
+Run `npm run check:deployment` manually to check the target configured in your
+environment. This probe does not log in or send a user token and does not test
+authenticated catalog search or playback.
+
+For the Vercel backend deployment, set web `BACKEND_URL` to
+`https://vormex-backend-ten.vercel.app` only after its readiness check succeeds.
+Keep `NEXT_PUBLIC_API_URL=/api` so browser sessions use the same-origin proxy.
+Changing the proxy target requires rebuilding/redeploying the web app. Use the
+long-running Socket.IO backend for `NEXT_PUBLIC_SOCKET_URL`.
+
+If backend logs report that Upstash suspended a database for its budget limit,
+restore that database or configure an active replacement in the backend hosting
+environment. Updating Neon `DATABASE_URL` cannot resolve Redis suspension. Keep
+critical Redis and authentication requirements enabled.
+
 Deploy `vormex-backend` first because the web socket client requires the backend `/api/auth/socket-ticket` endpoint. Then deploy this project with the production values from `.env.example`. The web client exchanges its same-origin session for a short-lived socket ticket.
 
 The checked-in `vercel.json` pins dynamic Next.js compute to Singapore (`sin1`).

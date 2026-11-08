@@ -63,7 +63,7 @@ export function InterviewPracticeView({
   toast,
 }: InterviewPracticeViewProps) {
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 pb-20">
+    <div className="min-h-screen bg-white dark:bg-neutral-950 pb-20">
       {/* Toast */}
       <AnimatePresence>
         {toast.show && (
@@ -96,12 +96,12 @@ export function InterviewPracticeView({
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white dark:bg-neutral-900 rounded-xl max-w-md w-full border border-gray-200 dark:border-neutral-800 overflow-hidden"
+              className="bg-white dark:bg-neutral-900 rounded-lg max-w-md w-full border border-gray-200 dark:border-neutral-800 overflow-hidden"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="p-6">
                 <div className="flex items-center gap-4 mb-6">
-                  <div className="w-14 h-14 rounded-xl bg-gray-100 dark:bg-neutral-800 flex items-center justify-center text-gray-600 dark:text-gray-400">
+                  <div className="w-14 h-14 rounded-lg bg-gray-100 dark:bg-neutral-800 flex items-center justify-center text-gray-600 dark:text-gray-400">
                     {getCategoryIcon(selectedCategory.icon)}
                   </div>
                   <div>
@@ -173,7 +173,7 @@ export function InterviewPracticeView({
       </AnimatePresence>
 
       {/* Header */}
-      <div className="sticky top-0 z-40 bg-white dark:bg-neutral-900 border-b border-gray-200 dark:border-neutral-800">
+      <div className="">
         <div className="flex items-center gap-3 px-4 py-4">
           <Link
             href="/more"
@@ -203,7 +203,6 @@ export function InterviewPracticeView({
                   : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-neutral-800'
               }`}
             >
-              {tab.icon}
               {tab.label}
             </button>
           ))}
@@ -225,7 +224,7 @@ export function InterviewPracticeView({
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
                   onClick={() => setSelectedCategory(category)}
-                  className="bg-white dark:bg-neutral-900 rounded-xl p-4 border border-gray-200 dark:border-neutral-800 hover:border-gray-300 dark:hover:border-neutral-700 transition-colors text-left"
+                  className="bg-white dark:bg-neutral-900 rounded-lg p-4 border border-gray-200 dark:border-neutral-800 hover:border-gray-300 dark:hover:border-neutral-700 transition-colors text-left"
                 >
                   <div className="w-12 h-12 rounded-lg bg-gray-100 dark:bg-neutral-800 flex items-center justify-center text-gray-600 dark:text-gray-400 mb-3">
                     {getCategoryIcon(category.icon)}
@@ -244,7 +243,7 @@ export function InterviewPracticeView({
             </div>
 
             {/* STAR Method Tips */}
-            <div className="mt-6 bg-white dark:bg-neutral-900 rounded-xl border border-gray-200 dark:border-neutral-800 p-5">
+            <div className="mt-6 py-5 border-b border-gray-100 dark:border-neutral-800">
               <h3 className="font-medium text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                 <Lightbulb className="w-4 h-4 text-amber-500" />
                 STAR Method
@@ -303,7 +302,7 @@ export function InterviewPracticeView({
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.05 }}
-                    className="bg-white dark:bg-neutral-900 rounded-xl p-4 border border-gray-200 dark:border-neutral-800"
+                    className="py-4 border-b border-gray-100 dark:border-neutral-800"
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center gap-3">
@@ -373,13 +372,13 @@ export function InterviewPracticeView({
               <div className="space-y-4">
                 {/* Overview Stats */}
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-white dark:bg-neutral-900 rounded-xl p-4 border border-gray-200 dark:border-neutral-800">
+                  <div className="py-4 border-b border-gray-100 dark:border-neutral-800">
                     <div className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
                       {stats.totalSessions}
                     </div>
                     <p className="text-xs text-gray-500 dark:text-gray-400">Total Sessions</p>
                   </div>
-                  <div className="bg-white dark:bg-neutral-900 rounded-xl p-4 border border-gray-200 dark:border-neutral-800">
+                  <div className="py-4 border-b border-gray-100 dark:border-neutral-800">
                     <div
                       className={`text-2xl font-bold mb-1 ${getScoreColor(stats.averageScore ?? stats.avgScore ?? 0)}`}
                     >
@@ -387,13 +386,13 @@ export function InterviewPracticeView({
                     </div>
                     <p className="text-xs text-gray-500 dark:text-gray-400">Average Score</p>
                   </div>
-                  <div className="bg-white dark:bg-neutral-900 rounded-xl p-4 border border-gray-200 dark:border-neutral-800">
+                  <div className="py-4 border-b border-gray-100 dark:border-neutral-800">
                     <div className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
                       {stats.totalQuestions ?? 0}
                     </div>
                     <p className="text-xs text-gray-500 dark:text-gray-400">Questions Answered</p>
                   </div>
-                  <div className="bg-white dark:bg-neutral-900 rounded-xl p-4 border border-gray-200 dark:border-neutral-800">
+                  <div className="py-4 border-b border-gray-100 dark:border-neutral-800">
                     <div className="text-2xl font-bold text-green-600 dark:text-green-400 mb-1">
                       {stats.strongAreas?.length || 0}
                     </div>
@@ -403,7 +402,7 @@ export function InterviewPracticeView({
 
                 {/* Strong Areas */}
                 {stats.strongAreas && stats.strongAreas.length > 0 && (
-                  <div className="bg-white dark:bg-neutral-900 rounded-xl p-4 border border-gray-200 dark:border-neutral-800">
+                  <div className="py-4 border-b border-gray-100 dark:border-neutral-800">
                     <h3 className="font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2">
                       <ThumbsUp className="w-4 h-4 text-green-500" />
                       Strong Areas
@@ -423,7 +422,7 @@ export function InterviewPracticeView({
 
                 {/* Weak Areas */}
                 {stats.weakAreas && stats.weakAreas.length > 0 && (
-                  <div className="bg-white dark:bg-neutral-900 rounded-xl p-4 border border-gray-200 dark:border-neutral-800">
+                  <div className="py-4 border-b border-gray-100 dark:border-neutral-800">
                     <h3 className="font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2">
                       <Target className="w-4 h-4 text-amber-500" />
                       Areas to Improve

@@ -41,7 +41,7 @@ function EventCard({
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`bg-white dark:bg-neutral-900 rounded-2xl border border-gray-200 dark:border-neutral-800 overflow-hidden ${isPast ? 'opacity-60' : ''}`}
+      className={`bg-white dark:bg-neutral-900 rounded-lg border border-gray-200 dark:border-neutral-800 overflow-hidden ${isPast ? 'opacity-60' : ''}`}
     >
       {/* Date strip */}
       <div className="flex">
@@ -230,8 +230,8 @@ function EventsContent() {
   const displayEvents = tab === 'my' ? myEvents : events;
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 pb-24">
-      <div className="bg-white dark:bg-neutral-900 border-b border-gray-200 dark:border-neutral-800 sticky top-0 z-40">
+    <div className="min-h-screen bg-white dark:bg-neutral-950 pb-24">
+      <div className="">
         <div className="max-w-2xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between mb-3">
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Events</h1>
@@ -243,16 +243,16 @@ function EventsContent() {
             </button>
           </div>
 
-          <div className="flex bg-gray-100 dark:bg-neutral-800 rounded-xl p-1 mb-3">
+          <div className="flex bg-gray-100 dark:bg-neutral-800 rounded-lg p-1 mb-3">
             <button
               onClick={() => setTab('upcoming')}
-              className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${tab === 'upcoming' ? 'bg-white dark:bg-neutral-900 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500'}`}
+              className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${tab === 'upcoming' ? 'bg-white dark:bg-neutral-900 text-gray-900 dark:text-white' : 'text-gray-500'}`}
             >
               Upcoming
             </button>
             <button
               onClick={() => setTab('my')}
-              className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${tab === 'my' ? 'bg-white dark:bg-neutral-900 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500'}`}
+              className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${tab === 'my' ? 'bg-white dark:bg-neutral-900 text-gray-900 dark:text-white' : 'text-gray-500'}`}
             >
               My Events
             </button>
@@ -284,7 +284,7 @@ function EventsContent() {
             className="overflow-hidden"
           >
             <div className="max-w-2xl mx-auto px-4 py-4">
-              <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-gray-200 dark:border-neutral-800 p-4 space-y-3">
+              <div className="py-4 space-y-3 border-b border-gray-100 dark:border-neutral-800">
                 <input
                   placeholder="Event title *"
                   value={form.title}
@@ -359,7 +359,7 @@ function EventsContent() {
           Array.from({ length: 4 }).map((_, i) => (
             <div
               key={i}
-              className="bg-white dark:bg-neutral-900 rounded-2xl border border-gray-200 dark:border-neutral-800 h-24 animate-pulse"
+              className="h-24 animate-pulse"
             />
           ))
         ) : displayEvents.length === 0 ? (

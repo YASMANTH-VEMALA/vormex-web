@@ -83,9 +83,9 @@ const rarityStyles: Record<string, { border: string; bg: string; text: string }>
     text: 'text-blue-600 dark:text-blue-400',
   },
   epic: {
-    border: 'border-purple-400 dark:border-purple-500',
-    bg: 'bg-purple-50 dark:bg-purple-900/20',
-    text: 'text-purple-600 dark:text-purple-400',
+    border: 'border-blue-400 dark:border-blue-500',
+    bg: 'bg-blue-50 dark:bg-blue-900/20',
+    text: 'text-blue-600 dark:text-blue-400',
   },
   legendary: {
     border: 'border-amber-400 dark:border-amber-500',
@@ -148,7 +148,7 @@ export default function BadgesPage() {
   if (loading) {
     return (
       <ProtectedRoute>
-        <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 flex items-center justify-center">
+        <div className="min-h-screen bg-white dark:bg-neutral-950 flex items-center justify-center">
           <div className="animate-spin rounded-full h-8 w-8 border-2 border-gray-300 dark:border-neutral-600 border-t-blue-500"></div>
         </div>
       </ProtectedRoute>
@@ -157,9 +157,9 @@ export default function BadgesPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 pb-20">
+      <div className="min-h-screen bg-white dark:bg-neutral-950 pb-20">
         {/* Header */}
-        <div className="bg-white dark:bg-neutral-900 border-b border-gray-200 dark:border-neutral-800 sticky top-0 z-10">
+        <div className="">
           <div className="max-w-2xl mx-auto px-4 py-4">
             <div className="flex items-center gap-3">
               <Link
@@ -183,7 +183,7 @@ export default function BadgesPage() {
         {/* Stats Cards */}
         <div className="max-w-2xl mx-auto px-4 py-4">
           <div className="grid grid-cols-3 gap-3">
-            <div className="bg-white dark:bg-neutral-900 rounded-xl p-4 border border-gray-200 dark:border-neutral-800">
+            <div className="py-4 border-b border-gray-100 dark:border-neutral-800">
               <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 mb-1">
                 <Award className="w-4 h-4" />
                 <span className="text-xs">Unlocked</span>
@@ -192,14 +192,14 @@ export default function BadgesPage() {
                 {totalUnlocked}
               </p>
             </div>
-            <div className="bg-white dark:bg-neutral-900 rounded-xl p-4 border border-gray-200 dark:border-neutral-800">
+            <div className="py-4 border-b border-gray-100 dark:border-neutral-800">
               <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 mb-1">
                 <Zap className="w-4 h-4" />
                 <span className="text-xs">XP Earned</span>
               </div>
               <p className="text-2xl font-semibold text-gray-900 dark:text-white">{totalXP}</p>
             </div>
-            <div className="bg-white dark:bg-neutral-900 rounded-xl p-4 border border-gray-200 dark:border-neutral-800">
+            <div className="py-4 border-b border-gray-100 dark:border-neutral-800">
               <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 mb-1">
                 <Target className="w-4 h-4" />
                 <span className="text-xs">Progress</span>
@@ -227,7 +227,7 @@ export default function BadgesPage() {
                 onClick={() => setActiveTab(tab.id as TabType)}
                 className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
                   activeTab === tab.id
-                    ? 'bg-white dark:bg-neutral-700 text-gray-900 dark:text-white shadow-sm'
+                    ? 'bg-white dark:bg-neutral-700 text-gray-900 dark:text-white'
                     : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                 }`}
               >
@@ -336,7 +336,7 @@ export default function BadgesPage() {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.05 }}
-                      className="bg-white dark:bg-neutral-900 rounded-xl p-4 border border-gray-200 dark:border-neutral-800 flex items-center gap-4"
+                      className="py-4 flex items-center gap-4 border-b border-gray-100 dark:border-neutral-800"
                     >
                       <div
                         className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
@@ -405,13 +405,13 @@ function BadgeCard({
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`bg-white dark:bg-neutral-900 rounded-xl p-4 border ${
+      className={`bg-white dark:bg-neutral-900 rounded-lg p-4 border ${
         badge.unlocked ? style.border : 'border-gray-200 dark:border-neutral-800'
       }`}
     >
       <div className="flex items-start gap-4">
         <div
-          className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${
+          className={`w-12 h-12 rounded-lg flex items-center justify-center shrink-0 ${
             badge.unlocked ? style.bg : 'bg-gray-100 dark:bg-neutral-800'
           }`}
         >

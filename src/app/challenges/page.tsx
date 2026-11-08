@@ -137,7 +137,7 @@ function ChallengesPage() {
       case 'RUNTIME_ERROR':
         return 'text-orange-700 dark:text-orange-400 bg-orange-100 dark:bg-orange-900/30';
       case 'COMPILE_ERROR':
-        return 'text-purple-700 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/30';
+        return 'text-blue-700 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30';
       default:
         return 'text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-neutral-800';
     }
@@ -151,14 +151,14 @@ function ChallengesPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 flex items-center justify-center">
+      <div className="min-h-screen bg-white dark:bg-neutral-950 flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-neutral-600"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 pb-20">
+    <div className="min-h-screen bg-white dark:bg-neutral-950 pb-20">
       {/* Toast */}
       <AnimatePresence>
         {toast.show && (
@@ -196,7 +196,7 @@ function ChallengesPage() {
       />
 
       {/* Header */}
-      <div className="sticky top-0 z-40 bg-white/80 dark:bg-neutral-950/80 backdrop-blur-lg border-b border-gray-200 dark:border-neutral-800">
+      <div className="">
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center justify-between px-4 py-3">
             <div className="flex items-center gap-3">
@@ -226,7 +226,7 @@ function ChallengesPage() {
           </div>
 
           {/* Tabs */}
-          <div className="flex px-4 gap-2 pb-3">
+          <div role="tablist" className="flex border-b border-gray-200 px-4 dark:border-neutral-800">
             {[
               { id: 'challenges', label: 'Challenges', icon: <Code2 className="w-4 h-4" /> },
               { id: 'submissions', label: 'My Submissions', icon: <Target className="w-4 h-4" /> },
@@ -235,13 +235,12 @@ function ChallengesPage() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as typeof activeTab)}
-                className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-1.5 ${
+                className={`-mb-px flex-1 border-b-2 py-3 text-sm font-semibold ${
                   activeTab === tab.id
-                    ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900'
-                    : 'bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-neutral-700'
+                    ? 'border-gray-900 text-gray-900 dark:border-white dark:text-white'
+                    : 'border-transparent text-gray-500 hover:text-gray-900 dark:text-neutral-400 dark:hover:text-white'
                 }`}
               >
-                {tab.icon}
                 {tab.label}
               </button>
             ))}

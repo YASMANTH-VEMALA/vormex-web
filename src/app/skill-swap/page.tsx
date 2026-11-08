@@ -21,7 +21,7 @@ function getErrorMessage(error: unknown, fallback: string): string {
 
 function PersonAvatar({ name, src }: { name?: string | null; src?: string | null }) {
   return (
-    <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-blue-100 text-sm font-bold text-blue-700 dark:bg-blue-950 dark:text-blue-300">
+    <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-gray-100 dark:bg-neutral-800 text-sm font-bold text-gray-700 dark:text-neutral-200">
       {src ? (
         <img src={src} alt="" className="h-full w-full object-cover" />
       ) : (
@@ -40,7 +40,7 @@ function RequestRow({
 }) {
   const peer = onRespond ? request.requester : request.recipient;
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-3 dark:border-neutral-800 dark:bg-neutral-900">
+    <div className="py-3 border-b border-gray-100 dark:border-neutral-800">
       <div className="flex items-start gap-3">
         <PersonAvatar name={peer?.name} src={peer?.profileImage} />
         <div className="min-w-0 flex-1">
@@ -89,7 +89,7 @@ function SessionRow({
   onComplete: (sessionId: string) => void;
 }) {
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-3 dark:border-neutral-800 dark:bg-neutral-900">
+    <div className="py-3 border-b border-gray-100 dark:border-neutral-800">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="font-semibold">{session.skill}</p>
@@ -207,9 +207,9 @@ export default function SkillSwapPage() {
 
   return (
     <ProtectedRoute>
-      <main className="min-h-screen bg-gray-50 pb-24 text-gray-950 dark:bg-neutral-950 dark:text-white">
-        <div className="sticky top-0 z-20 border-b border-gray-200 bg-white/95 backdrop-blur dark:border-neutral-800 dark:bg-neutral-950/95">
-          <div className="mx-auto max-w-5xl px-4 py-4">
+      <main className="min-h-screen bg-white pb-24 text-gray-950 dark:bg-neutral-950 dark:text-white">
+        <div className="">
+          <div className="mx-auto max-w-2xl px-4 py-4">
             <div className="flex items-center gap-3">
               <Link
                 href="/more"
@@ -226,7 +226,7 @@ export default function SkillSwapPage() {
               </div>
             </div>
             <div className="mt-4 grid gap-3 sm:grid-cols-[auto_1fr]">
-              <div className="flex rounded-lg border border-gray-200 bg-white p-1 dark:border-neutral-800 dark:bg-neutral-900">
+              <div className="flex py-1 border-b border-gray-100 dark:border-neutral-800">
                 {(['learn', 'teach'] as const).map((item) => (
                   <button
                     key={item}
@@ -237,7 +237,7 @@ export default function SkillSwapPage() {
                   </button>
                 ))}
               </div>
-              <label className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 dark:border-neutral-800 dark:bg-neutral-900">
+              <label className="flex items-center gap-2 px-3 py-2">
                 <Search className="h-4 w-4 text-gray-400" />
                 <input
                   value={skill}
@@ -250,7 +250,7 @@ export default function SkillSwapPage() {
           </div>
         </div>
 
-        <div className="mx-auto max-w-5xl space-y-5 px-4 py-5">
+        <div className="mx-auto max-w-2xl space-y-5 px-4 py-5">
           {(error || message) && (
             <div
               className={`rounded-lg border px-4 py-3 text-sm ${error ? 'border-red-200 bg-red-50 text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300' : 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-300'}`}
@@ -274,7 +274,7 @@ export default function SkillSwapPage() {
           )}
 
           {loading ? (
-            <div className="flex min-h-[320px] items-center justify-center rounded-lg border border-gray-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
+            <div className="flex min-h-[320px] items-center justify-center">
               <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
             </div>
           ) : (
@@ -285,7 +285,7 @@ export default function SkillSwapPage() {
                   Suggestions
                 </h2>
                 {suggestions.length === 0 ? (
-                  <div className="rounded-lg border border-gray-200 bg-white p-8 text-center dark:border-neutral-800 dark:bg-neutral-900">
+                  <div className="py-8 text-center border-b border-gray-100 dark:border-neutral-800">
                     <p className="font-semibold">No matches yet</p>
                     <p className="text-sm text-gray-500 dark:text-neutral-400">
                       Try another skill or update your onboarding skills.
@@ -295,7 +295,7 @@ export default function SkillSwapPage() {
                   suggestions.map((suggestion) => (
                     <article
                       key={`${suggestion.user.id}-${suggestion.skill}-${suggestion.mode}`}
-                      className="rounded-lg border border-gray-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900"
+                      className="py-4 border-b border-gray-100 dark:border-neutral-800"
                     >
                       <div className="flex items-start gap-3">
                         <PersonAvatar
@@ -359,7 +359,7 @@ export default function SkillSwapPage() {
                   <h2 className="mb-3 text-lg font-semibold">Incoming</h2>
                   <div className="grid gap-2">
                     {incoming.length === 0 ? (
-                      <p className="rounded-lg border border-gray-200 bg-white p-4 text-sm text-gray-500 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400">
+                      <p className="py-4 text-sm text-gray-500 dark:text-neutral-400 border-b border-gray-100 dark:border-neutral-800">
                         No incoming requests.
                       </p>
                     ) : (
@@ -373,7 +373,7 @@ export default function SkillSwapPage() {
                   <h2 className="mb-3 text-lg font-semibold">Outgoing</h2>
                   <div className="grid gap-2">
                     {outgoing.length === 0 ? (
-                      <p className="rounded-lg border border-gray-200 bg-white p-4 text-sm text-gray-500 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400">
+                      <p className="py-4 text-sm text-gray-500 dark:text-neutral-400 border-b border-gray-100 dark:border-neutral-800">
                         No outgoing requests.
                       </p>
                     ) : (
@@ -385,7 +385,7 @@ export default function SkillSwapPage() {
                   <h2 className="mb-3 text-lg font-semibold">Sessions</h2>
                   <div className="grid gap-2">
                     {sessions.length === 0 ? (
-                      <p className="rounded-lg border border-gray-200 bg-white p-4 text-sm text-gray-500 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400">
+                      <p className="py-4 text-sm text-gray-500 dark:text-neutral-400 border-b border-gray-100 dark:border-neutral-800">
                         No sessions yet.
                       </p>
                     ) : (

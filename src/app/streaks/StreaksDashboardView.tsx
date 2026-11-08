@@ -2,21 +2,35 @@
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
-  AlertTriangle,
-  ArrowLeft,
+  ChevronLeft,
   ChevronRight,
-  Crown,
-  Eye,
-  EyeOff,
   Flame,
-  History,
   Shield,
   Snowflake,
   Star,
-  Zap,
+  TrendingDown,
+  Trophy,
 } from 'lucide-react';
 import Link from 'next/link';
 import type * as React from 'react';
+
+function HistoryEventIcon({ event }: { event: string }) {
+  const common = 'h-5 w-5';
+  switch (event) {
+    case 'increment':
+      return <Flame className={`${common} flex-shrink-0 text-orange-500`} aria-hidden="true" />;
+    case 'milestone':
+      return <Trophy className={`${common} flex-shrink-0 text-amber-500`} aria-hidden="true" />;
+    case 'break':
+      return <TrendingDown className={`${common} flex-shrink-0 text-red-500`} aria-hidden="true" />;
+    case 'freeze_used':
+      return <Snowflake className={`${common} flex-shrink-0 text-sky-500`} aria-hidden="true" />;
+    case 'shield_saved':
+      return <Shield className={`${common} flex-shrink-0 text-blue-500`} aria-hidden="true" />;
+    default:
+      return <Star className={`${common} flex-shrink-0 text-gray-400`} aria-hidden="true" />;
+  }
+}
 
 interface StreaksDashboardViewProps {
   STREAK_TYPES: (
@@ -88,7 +102,6 @@ interface StreaksDashboardViewProps {
   anyAtRisk: boolean;
   bestCurrentStreak: number;
   freezeLoading: boolean;
-  getHistoryEventEmoji: (event: string) => string;
   getHistoryEventLabel: (event: string) => string;
   getStreakTypeLabel: (type: string) => string;
   handlePurchaseFreeze: () => Promise<void>;
@@ -109,7 +122,6 @@ export function StreaksDashboardView({
   anyAtRisk,
   bestCurrentStreak,
   freezeLoading,
-  getHistoryEventEmoji,
   getHistoryEventLabel,
   getStreakTypeLabel,
   handlePurchaseFreeze,
@@ -126,7 +138,7 @@ export function StreaksDashboardView({
 }: StreaksDashboardViewProps) {
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 pb-24">
+      <div className="min-h-screen bg-white dark:bg-neutral-950 pb-24">
         {/* Toast */}
         <AnimatePresence>
           {toast && (
@@ -134,8 +146,8 @@ export function StreaksDashboardView({
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className={`fixed top-4 left-1/2 -translate-x-1/2 z-[200] px-4 py-2.5 rounded-lg text-sm font-medium shadow-lg ${
-                toast.type === 'success' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
+              className={`fixed left-1/2 top-4 z-[200] -translate-x-1/2 rounded-lg px-4 py-2.5 text-sm font-medium text-white ${
+                toast.type === 'success' ? 'bg-gray-900 dark:bg-neutral-700' : 'bg-red-600'
               }`}
             >
               {toast.message}
@@ -143,278 +155,198 @@ export function StreaksDashboardView({
           )}
         </AnimatePresence>
 
-        <div className="max-w-lg mx-auto px-4 py-6">
+        <div className="mx-auto max-w-xl px-4 py-6">
           {/* Header */}
-          <div className="flex items-center gap-3 mb-6">
+          <div className="mb-6 flex items-center gap-2">
             <Link
               href="/more"
-              className="p-2 -ml-2 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-lg transition-colors"
+              aria-label="Back to settings"
+              className="-ml-2 inline-flex h-9 w-9 items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-neutral-800"
             >
-              <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-neutral-400" />
+              <ChevronLeft className="h-6 w-6" />
             </Link>
-            <h1 className="text-xl font-bold text-gray-900 dark:text-white">Your Streaks</h1>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-white">Streaks</h1>
           </div>
 
-          {/* Hero Card */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-orange-500 to-amber-500 dark:from-orange-600 dark:to-amber-600 p-6 mb-6 text-white"
-          >
-            <div className="absolute top-0 right-0 w-32 h-32 opacity-10">
-              <Flame className="w-full h-full" />
-            </div>
-
-            <div className="flex items-center gap-4">
-              <div className="relative">
-                <motion.div
-                  animate={{ scale: [1, 1.05, 1] }}
-                  transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-                  className="text-5xl font-black tabular-nums"
-                >
-                  {bestCurrentStreak}
-                </motion.div>
-              </div>
-              <div>
-                <p className="text-base font-semibold text-white/90">Best Active Streak</p>
-                <p className="text-sm text-white/70">
-                  Overall best: {streak.overallBestStreak} days
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-4 flex items-center gap-4 text-sm">
-              <div className="flex items-center gap-1.5">
-                <Zap className="w-4 h-4" />
-                <span className="font-medium">{streak.engagementScore} score</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <Star className="w-4 h-4" />
-                <span>
-                  {streak.weeklyConnectionsMade}/{streak.weeklyConnectionsGoal} weekly
-                </span>
-              </div>
-            </div>
-
+          {/* Summary */}
+          <section aria-label="Summary" className="mb-8">
+            <p className="text-5xl font-bold tabular-nums text-gray-900 dark:text-white">
+              {bestCurrentStreak}
+              <span className="ml-2 text-base font-normal text-gray-500 dark:text-neutral-400">
+                day best active streak
+              </span>
+            </p>
+            <p className="mt-2 text-sm text-gray-500 dark:text-neutral-400">
+              Overall best: {streak.overallBestStreak} days · Engagement score{' '}
+              {streak.engagementScore} · Weekly connections {streak.weeklyConnectionsMade}/
+              {streak.weeklyConnectionsGoal}
+            </p>
             {anyAtRisk && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="mt-3 flex items-center gap-2 px-3 py-2 bg-white/15 backdrop-blur-sm rounded-lg text-sm"
-              >
-                <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-                <span>Some streaks are at risk — take action today!</span>
-              </motion.div>
+              <p role="status" className="mt-3 text-sm font-semibold text-amber-600 dark:text-amber-400">
+                Some streaks are at risk. Take action today.
+              </p>
             )}
-          </motion.div>
+          </section>
 
-          {/* Streak Type Cards */}
-          <div className="grid grid-cols-2 gap-3 mb-6">
-            {STREAK_TYPES.map((type, index) => {
-              const current = streak[type.currentKey];
-              const longest = streak[type.longestKey];
-              const atRisk = streak.isAtRisk?.[type.key] ?? false;
-              const Icon = type.icon;
-
-              return (
-                <motion.div
-                  key={type.key}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                  className={`relative rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4 ${
-                    atRisk ? 'ring-2 ring-amber-400/50' : ''
-                  }`}
-                >
-                  <div className="flex items-center gap-2 mb-3">
-                    <div
-                      className={`w-8 h-8 rounded-lg ${type.bgLight} ${type.bgDark} flex items-center justify-center`}
-                    >
-                      <Icon className={`w-4 h-4 ${type.textColor}`} />
+          {/* Streak types */}
+          <section aria-label="Your streaks" className="mb-8">
+            <h2 className="pb-1 text-xs font-semibold text-gray-500 dark:text-neutral-400">
+              Your streaks
+            </h2>
+            <ul className="divide-y divide-gray-100 dark:divide-neutral-800">
+              {STREAK_TYPES.map((type) => {
+                const current = streak[type.currentKey];
+                const longest = streak[type.longestKey];
+                const atRisk = streak.isAtRisk?.[type.key] ?? false;
+                return (
+                  <li key={type.key} className="flex items-center gap-4 py-3.5">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                        {type.label}
+                      </p>
+                      <p className="mt-0.5 text-xs text-gray-500 dark:text-neutral-400">
+                        Best: {longest} days
+                        {atRisk && (
+                          <span className="ml-2 font-semibold text-amber-600 dark:text-amber-400">
+                            At risk
+                          </span>
+                        )}
+                      </p>
                     </div>
-                    {atRisk && (
-                      <span className="ml-auto px-1.5 py-0.5 bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 text-[10px] rounded font-medium">
-                        At risk
-                      </span>
-                    )}
-                  </div>
+                    <p className="text-lg font-bold tabular-nums text-gray-900 dark:text-white">
+                      {current}
+                    </p>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
 
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white leading-none">
-                    {current}
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-neutral-400 mt-1">{type.label}</p>
-                  <p className="text-[10px] text-gray-400 dark:text-neutral-500 mt-0.5">
-                    Best: {longest} days
-                  </p>
-                </motion.div>
-              );
-            })}
-          </div>
-
-          {/* Protection Section */}
-          <div className="space-y-3 mb-6">
-            <div className="flex items-center justify-between px-1">
-              <h2 className="text-sm font-semibold text-gray-500 dark:text-neutral-400 uppercase tracking-wider">
+          {/* Protection */}
+          <section aria-label="Protection" className="mb-8">
+            <div className="flex items-baseline justify-between pb-1">
+              <h2 className="text-xs font-semibold text-gray-500 dark:text-neutral-400">
                 Protection
               </h2>
-              <span className="text-xs font-medium text-gray-500 dark:text-neutral-400">
-                XP Balance: {xpBalance.toLocaleString()}
+              <span className="text-xs text-gray-500 dark:text-neutral-400">
+                XP balance {xpBalance.toLocaleString()}
               </span>
             </div>
 
-            {/* Streak Freeze */}
-            <div className="rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-cyan-50 dark:bg-cyan-900/20 flex items-center justify-center">
-                  <Snowflake className="w-5 h-5 text-cyan-500" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                    Streak Freezes
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-neutral-400">
-                    {streak.streakFreezes} available · {streak.totalFreezesUsed} used total · costs
-                    100 XP
-                  </p>
-                </div>
-                <button
-                  onClick={handlePurchaseFreeze}
-                  disabled={freezeLoading}
-                  className="px-3 py-1.5 text-xs font-medium rounded-lg bg-cyan-50 dark:bg-cyan-900/20 text-cyan-600 dark:text-cyan-400 hover:bg-cyan-100 dark:hover:bg-cyan-900/30 transition-colors disabled:opacity-50"
-                >
-                  {freezeLoading ? '...' : 'Buy 100 XP'}
-                </button>
+            <div className="flex items-center gap-4 py-3.5">
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                  Streak freezes
+                </p>
+                <p className="mt-0.5 text-xs text-gray-500 dark:text-neutral-400">
+                  {streak.streakFreezes} available · {streak.totalFreezesUsed} used · 100 XP each
+                </p>
               </div>
+              <button
+                onClick={handlePurchaseFreeze}
+                disabled={freezeLoading}
+                className="h-8 shrink-0 rounded-lg bg-gray-100 px-4 text-sm font-semibold text-gray-900 hover:bg-gray-200 disabled:opacity-50 dark:bg-neutral-800 dark:text-white dark:hover:bg-neutral-700"
+              >
+                {freezeLoading ? '...' : 'Buy'}
+              </button>
             </div>
 
-            {/* Streak Shield */}
-            <div className="rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4">
-              <div className="flex items-center gap-3">
-                <div
-                  className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                    streak.streakShieldActive
-                      ? 'bg-green-50 dark:bg-green-900/20'
-                      : 'bg-gray-100 dark:bg-neutral-800'
-                  }`}
-                >
-                  <Shield
-                    className={`w-5 h-5 ${
-                      streak.streakShieldActive
-                        ? 'text-green-500'
-                        : 'text-gray-400 dark:text-neutral-500'
-                    }`}
-                  />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                    Streak Shield
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-neutral-400">
-                    {streak.streakShieldActive
-                      ? 'Active — your streaks are protected'
-                      : 'Inactive — enable for protection'}
-                  </p>
-                </div>
-                <button
-                  onClick={handleToggleShield}
-                  disabled={shieldLoading}
-                  className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors disabled:opacity-50 ${
-                    streak.streakShieldActive
-                      ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/30'
-                      : 'bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-neutral-400 hover:bg-gray-200 dark:hover:bg-neutral-700'
-                  }`}
-                >
-                  {shieldLoading ? '...' : streak.streakShieldActive ? 'On' : 'Off'}
-                </button>
+            <div className="flex items-center gap-4 py-3.5">
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                  Streak shield
+                </p>
+                <p className="mt-0.5 text-xs text-gray-500 dark:text-neutral-400">
+                  {streak.streakShieldActive
+                    ? 'On. Your streaks are protected.'
+                    : 'Off. Turn on for protection.'}
+                </p>
               </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={streak.streakShieldActive}
+                aria-label="Streak shield"
+                onClick={handleToggleShield}
+                disabled={shieldLoading}
+                className={`relative h-6 w-11 shrink-0 rounded-full transition-colors disabled:opacity-50 ${
+                  streak.streakShieldActive ? 'bg-blue-600' : 'bg-gray-300 dark:bg-neutral-700'
+                }`}
+              >
+                <span
+                  className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white transition-transform ${
+                    streak.streakShieldActive ? 'translate-x-5' : 'translate-x-0'
+                  }`}
+                />
+              </button>
             </div>
-          </div>
+          </section>
 
-          {/* Quick Actions */}
-          <div className="space-y-3 mb-6">
-            <h2 className="text-sm font-semibold text-gray-500 dark:text-neutral-400 uppercase tracking-wider px-1">
-              More
-            </h2>
+          {/* More */}
+          <section aria-label="More" className="mb-6">
+            <h2 className="pb-1 text-xs font-semibold text-gray-500 dark:text-neutral-400">More</h2>
 
-            {/* Leaderboard Link */}
             <Link
               href="/streaks/leaderboard"
-              className="flex items-center gap-3 rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4 hover:bg-gray-50 dark:hover:bg-neutral-800/50 transition-colors"
+              className="flex items-center gap-4 py-3.5 hover:bg-gray-50 dark:hover:bg-neutral-900"
             >
-              <div className="w-10 h-10 rounded-lg bg-amber-50 dark:bg-amber-900/20 flex items-center justify-center">
-                <Crown className="w-5 h-5 text-amber-500" />
-              </div>
-              <div className="flex-1">
+              <div className="min-w-0 flex-1">
                 <p className="text-sm font-semibold text-gray-900 dark:text-white">Leaderboard</p>
-                <p className="text-xs text-gray-500 dark:text-neutral-400">See top streakers</p>
+                <p className="mt-0.5 text-xs text-gray-500 dark:text-neutral-400">
+                  See top streakers
+                </p>
               </div>
-              <ChevronRight className="w-4 h-4 text-gray-400 dark:text-neutral-500" />
+              <ChevronRight className="h-4 w-4 text-gray-400 dark:text-neutral-600" />
             </Link>
 
-            {/* Visibility Toggle */}
-            <button
-              onClick={handleToggleVisibility}
-              disabled={visibilityLoading}
-              className="w-full flex items-center gap-3 rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4 hover:bg-gray-50 dark:hover:bg-neutral-800/50 transition-colors disabled:opacity-50 text-left"
-            >
-              <div
-                className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                  streak.showOnProfile
-                    ? 'bg-blue-50 dark:bg-blue-900/20'
-                    : 'bg-gray-100 dark:bg-neutral-800'
-                }`}
-              >
-                {streak.showOnProfile ? (
-                  <Eye className="w-5 h-5 text-blue-500" />
-                ) : (
-                  <EyeOff className="w-5 h-5 text-gray-400 dark:text-neutral-500" />
-                )}
-              </div>
-              <div className="flex-1">
+            <div className="flex items-center gap-4 py-3.5">
+              <div className="min-w-0 flex-1">
                 <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                  Show on Profile
+                  Show on profile
                 </p>
-                <p className="text-xs text-gray-500 dark:text-neutral-400">
-                  {streak.showOnProfile ? 'Visible to others' : 'Hidden from profile'}
+                <p className="mt-0.5 text-xs text-gray-500 dark:text-neutral-400">
+                  {streak.showOnProfile ? 'Visible to others' : 'Hidden from your profile'}
                 </p>
               </div>
-              <div
-                className={`w-9 h-5 rounded-full relative transition-colors ${
-                  streak.showOnProfile ? 'bg-blue-500' : 'bg-gray-300 dark:bg-neutral-600'
+              <button
+                type="button"
+                role="switch"
+                aria-checked={streak.showOnProfile}
+                aria-label="Show streaks on profile"
+                onClick={handleToggleVisibility}
+                disabled={visibilityLoading}
+                className={`relative h-6 w-11 shrink-0 rounded-full transition-colors disabled:opacity-50 ${
+                  streak.showOnProfile ? 'bg-blue-600' : 'bg-gray-300 dark:bg-neutral-700'
                 }`}
               >
-                <motion.div
-                  animate={{ x: streak.showOnProfile ? 16 : 2 }}
-                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                  className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow-sm"
+                <span
+                  className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white transition-transform ${
+                    streak.showOnProfile ? 'translate-x-5' : 'translate-x-0'
+                  }`}
                 />
-              </div>
-            </button>
+              </button>
+            </div>
 
-            {/* History Toggle */}
             <button
               onClick={() => setShowHistory(!showHistory)}
-              className="w-full flex items-center gap-3 rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4 hover:bg-gray-50 dark:hover:bg-neutral-800/50 transition-colors text-left"
+              aria-expanded={showHistory}
+              className="flex w-full items-center gap-4 py-3.5 text-left hover:bg-gray-50 dark:hover:bg-neutral-900"
             >
-              <div className="w-10 h-10 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center">
-                <History className="w-5 h-5 text-indigo-500" />
-              </div>
-              <div className="flex-1">
+              <div className="min-w-0 flex-1">
                 <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                  Streak History
+                  Streak history
                 </p>
-                <p className="text-xs text-gray-500 dark:text-neutral-400">
+                <p className="mt-0.5 text-xs text-gray-500 dark:text-neutral-400">
                   {history?.length || 0} recent events
                 </p>
               </div>
-              <motion.div
-                animate={{ rotate: showHistory ? 90 : 0 }}
-                transition={{ duration: 0.15 }}
-              >
-                <ChevronRight className="w-4 h-4 text-gray-400 dark:text-neutral-500" />
-              </motion.div>
+              <ChevronRight
+                className={`h-4 w-4 text-gray-400 transition-transform dark:text-neutral-600 ${
+                  showHistory ? 'rotate-90' : ''
+                }`}
+              />
             </button>
-          </div>
+          </section>
 
           {/* History Timeline */}
           <AnimatePresence>
@@ -426,12 +358,10 @@ export function StreaksDashboardView({
                 transition={{ duration: 0.2 }}
                 className="overflow-hidden mb-6"
               >
-                <div className="rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 divide-y divide-gray-100 dark:divide-neutral-800">
+                <div className="divide-y divide-gray-100 dark:divide-neutral-800">
                   {history.map((item) => (
                     <div key={item.id} className="flex items-center gap-3 px-4 py-3">
-                      <span className="text-lg flex-shrink-0">
-                        {getHistoryEventEmoji(item.event)}
-                      </span>
+                      <HistoryEventIcon event={item.event} />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm text-gray-900 dark:text-white">
                           {getHistoryEventLabel(item.event)}

@@ -168,7 +168,7 @@ export default function StreakLeaderboardPage() {
 
           {/* Error State */}
           {error && (
-            <div className="text-center py-12 px-4 rounded-xl bg-red-900/30 border border-red-500/50">
+            <div className="text-center py-12 px-4 rounded-lg bg-red-900/30 border border-red-500/50">
               <p className="text-sm text-red-200 mb-3">{error}</p>
               <button
                 onClick={() => fetchLeaderboard(activeTab)}

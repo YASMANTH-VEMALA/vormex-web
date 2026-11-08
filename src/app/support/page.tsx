@@ -25,7 +25,7 @@ export default function SupportPage() {
         </p>
         <a
           href="mailto:support@vormex.in?subject=Vormex%20Support%20Request"
-          className="mt-5 inline-flex rounded-xl bg-blue-600 px-5 py-3 font-semibold !text-white !no-underline hover:bg-blue-700"
+          className="mt-5 inline-flex rounded-lg bg-blue-600 px-5 py-3 font-semibold !text-white !no-underline hover:bg-blue-700"
         >
           Email Vormex Support
         </a>

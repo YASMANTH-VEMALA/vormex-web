@@ -27,7 +27,7 @@ function StatCard({
   tone: string;
 }) {
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+    <div className="py-4 border-b border-gray-100 dark:border-neutral-800">
       <div className="flex items-center gap-3">
         <div className={`rounded-lg p-2 ${tone}`}>
           <Icon className="h-5 w-5" />
@@ -66,9 +66,9 @@ export default function ProgressPage() {
 
   return (
     <ProtectedRoute>
-      <main className="min-h-screen bg-gray-50 pb-24 text-gray-950 dark:bg-neutral-950 dark:text-white">
-        <div className="sticky top-0 z-20 border-b border-gray-200 bg-white/95 backdrop-blur dark:border-neutral-800 dark:bg-neutral-950/95">
-          <div className="mx-auto flex max-w-5xl items-center gap-3 px-4 py-4">
+      <main className="min-h-screen bg-white pb-24 text-gray-950 dark:bg-neutral-950 dark:text-white">
+        <div className="">
+          <div className="mx-auto flex max-w-2xl items-center gap-3 px-4 py-4">
             <Link
               href="/more"
               className="inline-flex h-9 w-9 items-center justify-center rounded-md text-gray-600 hover:bg-gray-100 dark:text-neutral-300 dark:hover:bg-neutral-900"
@@ -85,7 +85,7 @@ export default function ProgressPage() {
           </div>
         </div>
 
-        <div className="mx-auto max-w-5xl space-y-5 px-4 py-5">
+        <div className="mx-auto max-w-2xl space-y-5 px-4 py-5">
           {error && (
             <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300">
               {error}
@@ -93,7 +93,7 @@ export default function ProgressPage() {
           )}
 
           {loading ? (
-            <div className="flex min-h-[320px] items-center justify-center rounded-lg border border-gray-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
+            <div className="flex min-h-[320px] items-center justify-center">
               <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
             </div>
           ) : (
@@ -110,7 +110,7 @@ export default function ProgressPage() {
                     icon={Zap}
                     label="Lifetime XP"
                     value={progress.xp.lifetimeXp.toLocaleString()}
-                    tone="bg-violet-50 text-violet-600 dark:bg-violet-950/40 dark:text-violet-300"
+                    tone="bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-300"
                   />
                   <StatCard
                     icon={Coins}
@@ -126,7 +126,7 @@ export default function ProgressPage() {
                   />
                 </section>
 
-                <section className="rounded-lg border border-gray-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
+                <section className="py-5 border-b border-gray-100 dark:border-neutral-800">
                   <div className="flex flex-wrap items-end justify-between gap-3">
                     <div>
                       <h2 className="text-lg font-semibold">Level Progress</h2>
@@ -146,7 +146,7 @@ export default function ProgressPage() {
                 </section>
 
                 <section className="grid gap-4 lg:grid-cols-2">
-                  <div className="rounded-lg border border-gray-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
+                  <div className="py-5 border-b border-gray-100 dark:border-neutral-800">
                     <h2 className="text-lg font-semibold">Earn XP</h2>
                     <div className="mt-4 grid gap-2">
                       {progress.xp.rules.map((rule) => (
@@ -168,7 +168,7 @@ export default function ProgressPage() {
                     </div>
                   </div>
 
-                  <div className="rounded-lg border border-gray-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
+                  <div className="py-5 border-b border-gray-100 dark:border-neutral-800">
                     <h2 className="text-lg font-semibold">Streaks</h2>
                     <div className="mt-4 grid gap-2">
                       {Object.entries(progress.streak.categories).map(([key, value]) => (
@@ -196,7 +196,7 @@ export default function ProgressPage() {
                   </div>
                 </section>
 
-                <section className="rounded-lg border border-gray-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
+                <section className="py-5 border-b border-gray-100 dark:border-neutral-800">
                   <h2 className="text-lg font-semibold">Recent Coin Activity</h2>
                   <div className="mt-4 grid gap-2">
                     {progress.coins.recentTransactions.length === 0 ? (

@@ -29,7 +29,7 @@ interface JobListingsProps {
     | 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
     | 'bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-gray-400'
     | 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
-    | 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400';
+    | 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400';
   handleSaveJob: (job: import('@/app/jobs/page.types').Job) => Promise<void>;
   isJobSaved: (jobId: string) => boolean;
   jobTypes: string[];
@@ -82,7 +82,7 @@ export function JobListings({
                 placeholder="Search jobs or companies..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-4 py-2.5 rounded-lg bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 text-gray-900 dark:text-white text-sm placeholder-gray-400 focus:outline-none focus:border-gray-400 dark:focus:border-neutral-600"
+                className="w-full pl-9 pr-4 py-2.5 rounded-lg bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 text-gray-900 dark:text-white text-sm placeholder-gray-400 focus:outline-none focus:border-gray-400 dark:focus:border-neutral-600"
               />
             </div>
             <button
@@ -106,7 +106,7 @@ export function JobListings({
                 exit={{ height: 0, opacity: 0 }}
                 className="overflow-hidden mb-4"
               >
-                <div className="bg-white dark:bg-neutral-900 rounded-xl p-4 border border-gray-200 dark:border-neutral-800 space-y-4">
+                <div className="py-4 space-y-4 border-b border-gray-100 dark:border-neutral-800">
                   <div>
                     <label className="text-xs text-gray-500 mb-2 block">Job Type</label>
                     <div className="flex flex-wrap gap-1.5">
@@ -166,7 +166,7 @@ export function JobListings({
                   key={job.id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-white dark:bg-neutral-900 rounded-xl p-4 border border-gray-200 dark:border-neutral-800 hover:border-gray-300 dark:hover:border-neutral-700 transition-all cursor-pointer"
+                  className="bg-white dark:bg-neutral-900 rounded-lg p-4 border border-gray-200 dark:border-neutral-800 hover:border-gray-300 dark:hover:border-neutral-700 transition-all cursor-pointer"
                   onClick={() => setSelectedJob(job)}
                 >
                   <div className="flex items-start gap-3">
@@ -269,7 +269,7 @@ export function JobListings({
                   key={saved.id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-white dark:bg-neutral-900 rounded-xl p-4 border border-gray-200 dark:border-neutral-800 cursor-pointer"
+                  className="py-4 cursor-pointer border-b border-gray-100 dark:border-neutral-800"
                   onClick={() => setSelectedJob(saved.job)}
                 >
                   <div className="flex items-start gap-3">
@@ -328,7 +328,7 @@ export function JobListings({
                   key={application.id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-white dark:bg-neutral-900 rounded-xl p-4 border border-gray-200 dark:border-neutral-800"
+                  className="py-4 border-b border-gray-100 dark:border-neutral-800"
                 >
                   <div className="flex items-start gap-3">
                     <div className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-neutral-800 flex items-center justify-center text-gray-600 dark:text-gray-400 shrink-0">

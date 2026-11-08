@@ -29,9 +29,9 @@ function PersonCard({
   onConnect: (person: TalkPersonCard) => void;
 }) {
   return (
-    <article className="rounded-lg border border-gray-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+    <article className="py-4 border-b border-gray-100 dark:border-neutral-800">
       <div className="flex items-start gap-3">
-        <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-blue-100 text-sm font-bold text-blue-700 dark:bg-blue-950 dark:text-blue-300">
+        <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-gray-100 dark:bg-neutral-800 text-sm font-bold text-gray-700 dark:text-neutral-200">
           {person.profileImage ? (
             <img src={person.profileImage} alt="" className="h-full w-full object-cover" />
           ) : (
@@ -152,9 +152,9 @@ export default function TalkPage() {
 
   return (
     <ProtectedRoute>
-      <main className="min-h-screen bg-gray-50 pb-24 text-gray-950 dark:bg-neutral-950 dark:text-white">
-        <div className="sticky top-0 z-20 border-b border-gray-200 bg-white/95 backdrop-blur dark:border-neutral-800 dark:bg-neutral-950/95">
-          <div className="mx-auto flex max-w-5xl items-center gap-3 px-4 py-4">
+      <main className="min-h-screen bg-white pb-24 text-gray-950 dark:bg-neutral-950 dark:text-white">
+        <div className="">
+          <div className="mx-auto flex max-w-2xl items-center gap-3 px-4 py-4">
             <Link
               href="/more"
               className="inline-flex h-9 w-9 items-center justify-center rounded-md text-gray-600 hover:bg-gray-100 dark:text-neutral-300 dark:hover:bg-neutral-900"
@@ -171,8 +171,8 @@ export default function TalkPage() {
           </div>
         </div>
 
-        <div className="mx-auto grid max-w-5xl gap-5 px-4 py-5 lg:grid-cols-[1fr_280px]">
-          <section className="min-h-[620px] rounded-lg border border-gray-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
+        <div className="mx-auto grid max-w-2xl gap-5 px-4 py-5 lg:grid-cols-[1fr_280px]">
+          <section className="min-h-[620px]">
             <div className="space-y-4 p-4">
               {(error || message) && (
                 <div
@@ -238,7 +238,7 @@ export default function TalkPage() {
                   onChange={(event) => setInput(event.target.value)}
                   placeholder="Ask for people, skills, teammates, mentors, or a next step..."
                   rows={2}
-                  className="min-h-[48px] flex-1 resize-none rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-400 dark:border-neutral-800 dark:bg-neutral-950"
+                  className="min-h-[48px] flex-1 resize-none rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm outline-none focus:border-blue-400 dark:border-neutral-800 dark:bg-neutral-900"
                 />
                 <button
                   type="submit"
@@ -257,7 +257,7 @@ export default function TalkPage() {
           </section>
 
           <aside className="space-y-4">
-            <div className="rounded-lg border border-gray-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+            <div className="py-4 border-b border-gray-100 dark:border-neutral-800">
               <h2 className="flex items-center gap-2 font-semibold">
                 <Bot className="h-5 w-5 text-blue-500" />
                 Best prompts

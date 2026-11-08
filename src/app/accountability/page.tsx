@@ -7,7 +7,7 @@ import {
   type MentorshipMatch,
 } from '@/lib/api/accountability';
 import { motion } from 'framer-motion';
-import { BookOpen, CheckCircle2, Flame, Star } from 'lucide-react';
+import { BookOpen, CheckCircle2, Compass, Flame, Handshake, Star } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
@@ -35,7 +35,7 @@ function PartnerCard({
   const router = useRouter();
 
   return (
-    <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-gray-200 dark:border-neutral-800 p-4">
+    <div className="py-4 border-b border-gray-100 dark:border-neutral-800">
       <div className="flex items-center gap-3 mb-3">
         <div
           className="w-11 h-11 rounded-full bg-gray-200 dark:bg-neutral-800 flex items-center justify-center overflow-hidden"
@@ -70,7 +70,7 @@ function PartnerCard({
         </div>
       </div>
 
-      <div className="bg-gray-50 dark:bg-neutral-950 rounded-xl p-3 mb-3">
+      <div className="bg-gray-50 dark:bg-neutral-950 rounded-lg p-3 mb-3">
         <p className="text-xs text-gray-500 dark:text-neutral-400 mb-0.5">Shared Goal</p>
         <p className="text-sm font-medium text-gray-900 dark:text-white">{pair.goal}</p>
       </div>
@@ -103,7 +103,7 @@ function MentorshipCard({ match }: { match: MentorshipMatch }) {
   const other = match.partner;
 
   return (
-    <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-gray-200 dark:border-neutral-800 p-4">
+    <div className="py-4 border-b border-gray-100 dark:border-neutral-800">
       <div className="flex items-center gap-3">
         <div
           className="w-11 h-11 rounded-full bg-gray-200 dark:bg-neutral-800 flex items-center justify-center overflow-hidden cursor-pointer"
@@ -123,7 +123,7 @@ function MentorshipCard({ match }: { match: MentorshipMatch }) {
             <span
               className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
                 match.role === 'mentor'
-                  ? 'bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400'
+                  ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400'
                   : 'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400'
               }`}
             >
@@ -214,24 +214,24 @@ function AccountabilityContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 pb-24">
-      <div className="bg-white dark:bg-neutral-900 border-b border-gray-200 dark:border-neutral-800 sticky top-0 z-40">
+    <div className="min-h-screen bg-white dark:bg-neutral-950 pb-24">
+      <div className="">
         <div className="max-w-2xl mx-auto px-4 py-4">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">Grow Together</h1>
           <p className="text-sm text-gray-500 dark:text-neutral-400">
             Accountability partners & mentorship
           </p>
 
-          <div className="flex bg-gray-100 dark:bg-neutral-800 rounded-xl p-1 mt-4">
+          <div className="flex bg-gray-100 dark:bg-neutral-800 rounded-lg p-1 mt-4">
             <button
               onClick={() => setTab('partners')}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-semibold transition-all ${tab === 'partners' ? 'bg-white dark:bg-neutral-900 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500'}`}
+              className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-semibold transition-all ${tab === 'partners' ? 'bg-white dark:bg-neutral-900 text-gray-900 dark:text-white' : 'text-gray-500'}`}
             >
               <Flame className="w-4 h-4" /> Partners
             </button>
             <button
               onClick={() => setTab('mentorship')}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-semibold transition-all ${tab === 'mentorship' ? 'bg-white dark:bg-neutral-900 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500'}`}
+              className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-semibold transition-all ${tab === 'mentorship' ? 'bg-white dark:bg-neutral-900 text-gray-900 dark:text-white' : 'text-gray-500'}`}
             >
               <BookOpen className="w-4 h-4" /> Mentorship
             </button>
@@ -244,13 +244,13 @@ function AccountabilityContent() {
           Array.from({ length: 3 }).map((_, i) => (
             <div
               key={i}
-              className="bg-white dark:bg-neutral-900 rounded-2xl border border-gray-200 dark:border-neutral-800 h-32 animate-pulse"
+              className="h-32 animate-pulse"
             />
           ))
         ) : tab === 'partners' ? (
           partners.length === 0 ? (
             <div className="text-center py-16">
-              <span className="text-4xl block mb-3">🤝</span>
+              <Handshake className="mx-auto mb-3 h-9 w-9 text-gray-400" aria-hidden="true" />
               <p className="font-medium text-gray-700 dark:text-neutral-300">
                 No accountability partners yet
               </p>
@@ -260,7 +260,7 @@ function AccountabilityContent() {
               </p>
               <button
                 onClick={() => (window.location.href = '/find-people')}
-                className="mt-4 px-6 py-2.5 rounded-xl bg-gray-900 dark:bg-white text-white dark:text-black text-sm font-semibold"
+                className="mt-4 px-6 py-2.5 rounded-lg bg-gray-900 dark:bg-white text-white dark:text-black text-sm font-semibold"
               >
                 Find Partners
               </button>
@@ -278,7 +278,7 @@ function AccountabilityContent() {
           )
         ) : mentorships.length === 0 ? (
           <div className="text-center py-16">
-            <span className="text-4xl block mb-3">🧭</span>
+            <Compass className="mx-auto mb-3 h-9 w-9 text-gray-400" aria-hidden="true" />
             <p className="font-medium text-gray-700 dark:text-neutral-300">No mentorships yet</p>
             <p className="text-sm text-gray-500 mt-1 max-w-xs mx-auto">
               Use &quot;Find Mentor&quot; in Smart Matches to connect with experienced people who
@@ -286,7 +286,7 @@ function AccountabilityContent() {
             </p>
             <button
               onClick={() => (window.location.href = '/find-people')}
-              className="mt-4 px-6 py-2.5 rounded-xl bg-gray-900 dark:bg-white text-white dark:text-black text-sm font-semibold"
+              className="mt-4 px-6 py-2.5 rounded-lg bg-gray-900 dark:bg-white text-white dark:text-black text-sm font-semibold"
             >
               Find Mentors
             </button>

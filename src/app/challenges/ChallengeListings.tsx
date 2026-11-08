@@ -24,7 +24,7 @@ interface ChallengeListingsProps {
     | 'text-orange-700 dark:text-orange-400 bg-orange-100 dark:bg-orange-900/30'
     | 'text-red-700 dark:text-red-400 bg-red-100 dark:bg-red-900/30'
     | 'text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-neutral-800'
-    | 'text-purple-700 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/30';
+    | 'text-blue-700 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30';
   isSolved: (challengeId: string) => boolean;
   leaderboard: import('@/app/challenges/page.types').LeaderboardEntry[];
   selectedCategory: string;
@@ -85,7 +85,7 @@ export function ChallengeListings({
                 exit={{ height: 0, opacity: 0 }}
                 className="overflow-hidden mb-4"
               >
-                <div className="bg-white dark:bg-neutral-900 rounded-xl p-4 border border-gray-200 dark:border-neutral-800 space-y-4">
+                <div className="py-4 space-y-4 border-b border-gray-100 dark:border-neutral-800">
                   <div>
                     <label className="text-xs text-gray-500 mb-2 block">Difficulty</label>
                     <div className="flex flex-wrap gap-1.5">
@@ -145,7 +145,7 @@ export function ChallengeListings({
                   key={challenge.id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className={`bg-white dark:bg-neutral-900 rounded-xl p-4 border transition-all cursor-pointer ${
+                  className={`bg-white dark:bg-neutral-900 rounded-lg p-4 border transition-all cursor-pointer ${
                     isSolved(challenge.id)
                       ? 'border-green-300 dark:border-green-800'
                       : 'border-gray-200 dark:border-neutral-800 hover:border-gray-300 dark:hover:border-neutral-700'
@@ -221,7 +221,7 @@ export function ChallengeListings({
                   key={submission.id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-white dark:bg-neutral-900 rounded-xl p-4 border border-gray-200 dark:border-neutral-800"
+                  className="py-4 border-b border-gray-100 dark:border-neutral-800"
                 >
                   <div className="flex items-start justify-between mb-2">
                     <div>
@@ -279,7 +279,7 @@ export function ChallengeListings({
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className="bg-white dark:bg-neutral-900 rounded-xl p-3 border border-gray-200 dark:border-neutral-800 flex items-center gap-3"
+                  className="py-3 flex items-center gap-3 border-b border-gray-100 dark:border-neutral-800"
                 >
                   <div
                     className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-medium ${

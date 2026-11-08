@@ -35,7 +35,7 @@ function pillClass(verified?: boolean): string {
 
 function StatCard({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+    <div className="py-4 border-b border-gray-100 dark:border-neutral-800">
       <p className="text-xs font-medium uppercase text-gray-500 dark:text-neutral-500">{label}</p>
       <p className="mt-1 text-2xl font-bold text-gray-950 dark:text-white">{value}</p>
     </div>
@@ -44,7 +44,7 @@ function StatCard({ label, value }: { label: string; value: string | number }) {
 
 function SkillCard({ skill }: { skill: PassportSkill }) {
   return (
-    <article className="rounded-lg border border-gray-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+    <article className="py-4 border-b border-gray-100 dark:border-neutral-800">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h3 className="text-lg font-bold">{skill.name}</h3>
@@ -60,7 +60,7 @@ function SkillCard({ skill }: { skill: PassportSkill }) {
 
       <div className="mt-3 flex flex-wrap gap-2">
         {skill.canTeach && (
-          <span className="rounded-full bg-indigo-50 px-2 py-1 text-xs font-semibold text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-300">
+          <span className="rounded-full bg-blue-50 px-2 py-1 text-xs font-semibold text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
             Can teach
           </span>
         )}
@@ -165,9 +165,9 @@ export default function SkillPassportPage() {
 
   return (
     <ProtectedRoute>
-      <main className="min-h-screen bg-gray-50 pb-24 text-gray-950 dark:bg-neutral-950 dark:text-white">
-        <div className="sticky top-0 z-20 border-b border-gray-200 bg-white/95 backdrop-blur dark:border-neutral-800 dark:bg-neutral-950/95">
-          <div className="mx-auto flex max-w-5xl items-center gap-3 px-4 py-4">
+      <main className="min-h-screen bg-white pb-24 text-gray-950 dark:bg-neutral-950 dark:text-white">
+        <div className="">
+          <div className="mx-auto flex max-w-2xl items-center gap-3 px-4 py-4">
             <Link
               href="/more"
               className="inline-flex h-9 w-9 items-center justify-center rounded-md text-gray-600 hover:bg-gray-100 dark:text-neutral-300 dark:hover:bg-neutral-900"
@@ -184,9 +184,9 @@ export default function SkillPassportPage() {
           </div>
         </div>
 
-        <div className="mx-auto max-w-5xl space-y-5 px-4 py-5">
+        <div className="mx-auto max-w-2xl space-y-5 px-4 py-5">
           {loading ? (
-            <div className="flex min-h-[320px] items-center justify-center rounded-lg border border-gray-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
+            <div className="flex min-h-[320px] items-center justify-center">
               <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
             </div>
           ) : (
@@ -199,10 +199,10 @@ export default function SkillPassportPage() {
                 </div>
               )}
 
-              <section className="rounded-lg border border-gray-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
+              <section className="py-5 border-b border-gray-100 dark:border-neutral-800">
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div className="flex items-center gap-4">
-                    <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full bg-blue-100 text-lg font-bold text-blue-700 dark:bg-blue-950 dark:text-blue-300">
+                    <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full bg-gray-100 dark:bg-neutral-800 text-lg font-bold text-gray-700 dark:text-neutral-200">
                       {passport?.user.profileImage ? (
                         <img
                           src={passport.user.profileImage}
@@ -238,7 +238,7 @@ export default function SkillPassportPage() {
               </section>
 
               <section className="grid gap-4 lg:grid-cols-[1fr_0.85fr]">
-                <div className="rounded-lg border border-gray-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
+                <div className="py-5 border-b border-gray-100 dark:border-neutral-800">
                   <h3 className="flex items-center gap-2 text-lg font-semibold">
                     <Github className="h-5 w-5 text-gray-700 dark:text-neutral-300" />
                     Verification Links
@@ -249,7 +249,7 @@ export default function SkillPassportPage() {
                       onChange={(event) =>
                         setProvider(event.target.value as (typeof PROVIDERS)[number])
                       }
-                      className="rounded-md border border-gray-200 bg-white px-3 py-2 text-sm outline-none dark:border-neutral-800 dark:bg-neutral-950"
+                      className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm outline-none dark:border-neutral-800 dark:bg-neutral-900"
                     >
                       {PROVIDERS.map((item) => (
                         <option key={item} value={item}>
@@ -261,14 +261,14 @@ export default function SkillPassportPage() {
                       value={username}
                       onChange={(event) => setUsername(event.target.value)}
                       placeholder="Username or handle"
-                      className="rounded-md border border-gray-200 bg-white px-3 py-2 text-sm outline-none dark:border-neutral-800 dark:bg-neutral-950"
+                      className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm outline-none dark:border-neutral-800 dark:bg-neutral-900"
                     />
                   </div>
                   <input
                     value={profileUrl}
                     onChange={(event) => setProfileUrl(event.target.value)}
                     placeholder="Optional profile URL"
-                    className="mt-3 w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm outline-none dark:border-neutral-800 dark:bg-neutral-950"
+                    className="mt-3 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm outline-none dark:border-neutral-800 dark:bg-neutral-900"
                   />
                   <button
                     onClick={saveLink}
@@ -329,7 +329,7 @@ export default function SkillPassportPage() {
                   </div>
                 </div>
 
-                <div className="rounded-lg border border-gray-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
+                <div className="py-5 border-b border-gray-100 dark:border-neutral-800">
                   <h3 className="flex items-center gap-2 text-lg font-semibold">
                     <ShieldCheck className="h-5 w-5 text-emerald-500" />
                     Learning and Teaching
@@ -340,7 +340,7 @@ export default function SkillPassportPage() {
                       {(passport?.teachingSkills || []).slice(0, 12).map((item) => (
                         <span
                           key={item}
-                          className="rounded-full bg-indigo-50 px-2 py-1 text-xs font-semibold text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-300"
+                          className="rounded-full bg-blue-50 px-2 py-1 text-xs font-semibold text-blue-700 dark:bg-blue-950/40 dark:text-blue-300"
                         >
                           {item}
                         </span>

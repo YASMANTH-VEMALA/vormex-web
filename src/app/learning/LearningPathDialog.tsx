@@ -71,7 +71,7 @@ export function LearningPathDialog({
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: 20, opacity: 0 }}
-              className="bg-white dark:bg-neutral-900 rounded-xl max-w-lg w-full border border-gray-200 dark:border-neutral-800"
+              className="bg-white dark:bg-neutral-900 rounded-lg max-w-lg w-full border border-gray-200 dark:border-neutral-800"
             >
               {/* Modal Header */}
               <div className="sticky top-0 bg-white dark:bg-neutral-900 border-b border-gray-200 dark:border-neutral-800 p-4 rounded-t-xl flex items-center justify-between">

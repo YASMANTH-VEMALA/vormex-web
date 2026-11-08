@@ -32,7 +32,7 @@ const courses: Course[] = [
     language: 'Telugu',
     logo: 'https://n8n.io/favicon.ico',
     href: '/courses/n8n',
-    gradient: 'from-[#FF6D5A]/20 via-[#EA4B71]/20 to-[#7B61FF]/20',
+    gradient: 'bg-gray-100 dark:bg-neutral-800',
   },
 ];
 
@@ -51,9 +51,9 @@ function CoursesContent() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 pb-20">
+    <div className="min-h-screen bg-white dark:bg-neutral-950 pb-20">
       {/* Header */}
-      <div className="sticky top-0 z-40 bg-white dark:bg-neutral-900 border-b border-gray-200 dark:border-neutral-800">
+      <div className="">
         <div className="flex items-center gap-3 px-4 py-4">
           <Link
             href="/learning"
@@ -124,11 +124,11 @@ function CoursesContent() {
               >
                 <Link
                   href={course.href}
-                  className="block bg-white dark:bg-neutral-900 rounded-xl border border-gray-200 dark:border-neutral-800 overflow-hidden hover:border-gray-300 dark:hover:border-neutral-700 transition-colors"
+                  className="block bg-white dark:bg-neutral-900 rounded-lg border border-gray-200 dark:border-neutral-800 overflow-hidden hover:border-gray-300 dark:hover:border-neutral-700 transition-colors"
                 >
                   {/* Course Thumbnail */}
                   <div
-                    className={`aspect-[3/1] bg-gradient-to-br ${course.gradient} flex items-center justify-center relative`}
+                    className={`aspect-[3/1] ${course.gradient} flex items-center justify-center relative`}
                   >
                     <div className="flex items-center justify-center">
                       {course.logo ? (
@@ -180,7 +180,7 @@ function CoursesContent() {
         {/* Coming Soon Section */}
         <div className="mt-8">
           <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-4">Coming Soon</h3>
-          <div className="bg-white dark:bg-neutral-900 rounded-xl border border-gray-200 dark:border-neutral-800 p-6 text-center">
+          <div className="py-6 text-center border-b border-gray-100 dark:border-neutral-800">
             <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-neutral-800 flex items-center justify-center mx-auto mb-3">
               <BookOpen className="w-6 h-6 text-gray-400" />
             </div>

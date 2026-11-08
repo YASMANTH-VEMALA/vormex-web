@@ -131,7 +131,7 @@ function StoriesPage() {
           </div>
 
           {/* Tabs */}
-          <div className="flex px-4 gap-2 pb-3">
+          <div role="tablist" className="flex border-b border-gray-200 px-4 dark:border-neutral-800">
             {[
               { id: 'feed', label: 'Stories', icon: <Sparkles className="w-4 h-4" /> },
               { id: 'my-stories', label: 'My Stories', icon: <Camera className="w-4 h-4" /> },
@@ -139,13 +139,12 @@ function StoriesPage() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as typeof activeTab)}
-                className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-1.5 ${
+                className={`-mb-px flex-1 border-b-2 py-3 text-sm font-semibold ${
                   activeTab === tab.id
-                    ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900'
-                    : 'bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-neutral-700'
+                    ? 'border-gray-900 text-gray-900 dark:border-white dark:text-white'
+                    : 'border-transparent text-gray-500 hover:text-gray-900 dark:text-neutral-400 dark:hover:text-white'
                 }`}
               >
-                {tab.icon}
                 {tab.label}
               </button>
             ))}

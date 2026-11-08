@@ -4,19 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import * as referralsAPI from '@/lib/api/referrals';
-import { motion } from 'framer-motion';
-import {
-  Check,
-  ChevronLeft,
-  Copy,
-  Crown,
-  Gift,
-  Link2,
-  Target,
-  Trophy,
-  Users,
-  Zap,
-} from 'lucide-react';
+import { ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 
@@ -99,283 +87,182 @@ export default function ReferralsPage() {
   if (loading) {
     return (
       <ProtectedRoute>
-        <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-2 border-gray-300 dark:border-neutral-600 border-t-blue-500"></div>
+        <div className="flex min-h-screen items-center justify-center bg-white dark:bg-neutral-950">
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600 dark:border-neutral-700 dark:border-t-neutral-300" />
         </div>
       </ProtectedRoute>
     );
   }
 
+  const referrals = stats?.activeReferrals || 0;
+
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 pb-20">
-        {/* Header */}
-        <div className="bg-white dark:bg-neutral-900 border-b border-gray-200 dark:border-neutral-800 sticky top-0 z-10">
-          <div className="max-w-2xl mx-auto px-4 py-4">
-            <div className="flex items-center gap-3">
-              <Link
-                href="/more"
-                className="p-2 -ml-2 rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors"
-              >
-                <ChevronLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-              </Link>
-              <div>
-                <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
-                  Invite Friends
-                </h1>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Earn XP for every friend who joins
-                </p>
-              </div>
-            </div>
+      <div className="min-h-screen bg-white pb-28 text-gray-900 dark:bg-neutral-950 dark:text-white">
+        <div className="mx-auto max-w-xl px-4 pt-6">
+          {/* Header */}
+          <div className="flex items-center gap-2">
+            <Link
+              href="/more"
+              aria-label="Back to settings"
+              className="-ml-2 inline-flex h-9 w-9 items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-neutral-800"
+            >
+              <ChevronLeft className="h-6 w-6" />
+            </Link>
+            <h1 className="text-xl font-bold">Invite friends</h1>
           </div>
-        </div>
+          <p className="mt-3 text-sm text-gray-500 dark:text-neutral-400">
+            Earn XP for every friend who joins with your code or invite link.
+          </p>
 
-        {/* Referral Code Card */}
-        <div className="max-w-2xl mx-auto px-4 py-4">
-          <div className="bg-white dark:bg-neutral-900 rounded-xl p-6 border border-gray-200 dark:border-neutral-800">
-            <div className="text-center mb-6">
-              <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
-                <Gift className="w-7 h-7 text-blue-600 dark:text-blue-400" />
-              </div>
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
-                Your Referral Code
-              </h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Share this code with friends
-              </p>
-            </div>
-
-            <div className="flex items-center gap-3 mb-4">
-              <div className="flex-1 bg-gray-100 dark:bg-neutral-800 rounded-lg px-4 py-3 font-mono text-lg text-center text-gray-900 dark:text-white">
+          {/* Code */}
+          <section aria-label="Your referral code" className="mt-6">
+            <h2 className="text-xs font-semibold text-gray-500 dark:text-neutral-400">
+              Your referral code
+            </h2>
+            <div className="mt-1 flex items-center justify-between gap-4 border-b border-gray-100 py-3 dark:border-neutral-800">
+              <p className="font-mono text-base font-semibold tracking-wide">
                 {stats?.referralCode || 'Loading...'}
-              </div>
+              </p>
               <button
                 onClick={copyCode}
-                className="p-3 rounded-lg bg-gray-100 dark:bg-neutral-800 hover:bg-gray-200 dark:hover:bg-neutral-700 transition-colors"
+                className="text-sm font-semibold text-blue-600 hover:text-blue-800 dark:text-blue-400"
               >
-                {copied ? (
-                  <Check className="w-5 h-5 text-green-500" />
-                ) : (
-                  <Copy className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                )}
+                {copied ? 'Copied' : 'Copy'}
               </button>
             </div>
-
             <button
               onClick={copyLink}
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-lg bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-medium hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors"
+              className="mt-4 h-10 w-full rounded-lg bg-blue-600 text-sm font-semibold text-white hover:bg-blue-700"
             >
-              <Link2 className="w-4 h-4" />
-              Copy Invite Link
+              {copied ? 'Copied' : 'Copy invite link'}
             </button>
-          </div>
-        </div>
+          </section>
 
-        {/* Stats */}
-        <div className="max-w-2xl mx-auto px-4">
-          <div className="grid grid-cols-3 gap-3">
-            <div className="bg-white dark:bg-neutral-900 rounded-xl p-4 border border-gray-200 dark:border-neutral-800">
-              <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 mb-1">
-                <Users className="w-4 h-4" />
-                <span className="text-xs">Total</span>
-              </div>
-              <p className="text-2xl font-semibold text-gray-900 dark:text-white">
-                {stats?.totalReferrals || 0}
-              </p>
+          {/* Stats */}
+          <dl className="mt-8 grid grid-cols-3 gap-4">
+            <div>
+              <dt className="text-xs text-gray-500 dark:text-neutral-400">Invited</dt>
+              <dd className="mt-0.5 text-xl font-bold tabular-nums">{stats?.totalReferrals || 0}</dd>
             </div>
-            <div className="bg-white dark:bg-neutral-900 rounded-xl p-4 border border-gray-200 dark:border-neutral-800">
-              <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 mb-1">
-                <Check className="w-4 h-4" />
-                <span className="text-xs">Completed</span>
-              </div>
-              <p className="text-2xl font-semibold text-gray-900 dark:text-white">
-                {stats?.activeReferrals || 0}
-              </p>
+            <div>
+              <dt className="text-xs text-gray-500 dark:text-neutral-400">Joined</dt>
+              <dd className="mt-0.5 text-xl font-bold tabular-nums">{referrals}</dd>
             </div>
-            <div className="bg-white dark:bg-neutral-900 rounded-xl p-4 border border-gray-200 dark:border-neutral-800">
-              <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 mb-1">
-                <Zap className="w-4 h-4" />
-                <span className="text-xs">XP Earned</span>
-              </div>
-              <p className="text-2xl font-semibold text-gray-900 dark:text-white">
-                {stats?.totalXpEarned || 0}
-              </p>
+            <div>
+              <dt className="text-xs text-gray-500 dark:text-neutral-400">XP earned</dt>
+              <dd className="mt-0.5 text-xl font-bold tabular-nums">{stats?.totalXpEarned || 0}</dd>
             </div>
-          </div>
-        </div>
+          </dl>
 
-        {/* Tabs */}
-        <div className="max-w-2xl mx-auto px-4 py-4">
-          <div className="flex gap-1 bg-gray-100 dark:bg-neutral-800 p-1 rounded-lg">
+          {/* Tabs */}
+          <div
+            role="tablist"
+            aria-label="Referral sections"
+            className="mt-8 flex border-b border-gray-200 dark:border-neutral-800"
+          >
             {[
-              { id: 'overview', label: 'Milestones', icon: Target },
-              { id: 'leaderboard', label: 'Leaderboard', icon: Trophy },
+              { id: 'overview', label: 'Milestones' },
+              { id: 'leaderboard', label: 'Leaderboard' },
             ].map((tab) => (
               <button
                 key={tab.id}
+                role="tab"
+                aria-selected={activeTab === tab.id}
                 onClick={() => setActiveTab(tab.id as 'overview' | 'leaderboard')}
-                className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+                className={`-mb-px flex-1 border-b-2 py-3 text-sm font-semibold ${
                   activeTab === tab.id
-                    ? 'bg-white dark:bg-neutral-700 text-gray-900 dark:text-white shadow-sm'
-                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                    ? 'border-gray-900 text-gray-900 dark:border-white dark:text-white'
+                    : 'border-transparent text-gray-500 hover:text-gray-900 dark:text-neutral-400 dark:hover:text-white'
                 }`}
               >
-                <tab.icon className="w-4 h-4" />
                 {tab.label}
               </button>
             ))}
           </div>
-        </div>
 
-        {/* Content */}
-        <div className="max-w-2xl mx-auto px-4">
           {activeTab === 'overview' && (
-            <div className="space-y-3">
-              <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3">
-                Referral Milestones
-              </h3>
-              {getMilestoneProgress().map((milestone, index) => (
-                <motion.div
-                  key={milestone.count}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                  className={`bg-white dark:bg-neutral-900 rounded-xl p-4 border ${
-                    milestone.completed
-                      ? 'border-green-300 dark:border-green-700'
-                      : 'border-gray-200 dark:border-neutral-800'
-                  }`}
-                >
-                  <div className="flex items-center gap-4">
-                    <div
-                      className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
-                        milestone.completed
-                          ? 'bg-green-100 dark:bg-green-900/30'
-                          : 'bg-gray-100 dark:bg-neutral-800'
-                      }`}
-                    >
-                      {milestone.completed ? (
-                        <Check className="w-5 h-5 text-green-600 dark:text-green-400" />
-                      ) : (
-                        <Gift className="w-5 h-5 text-gray-400 dark:text-gray-500" />
-                      )}
-                    </div>
-
-                    <div className="flex-1">
-                      <p
-                        className={`font-medium ${
-                          milestone.completed
-                            ? 'text-gray-900 dark:text-white'
-                            : 'text-gray-600 dark:text-gray-400'
-                        }`}
-                      >
+            <ul className="divide-y divide-gray-100 dark:divide-neutral-800">
+              {getMilestoneProgress().map((milestone) => (
+                <li key={milestone.count} className="py-4">
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold">
                         Refer {milestone.count} {milestone.count === 1 ? 'friend' : 'friends'}
                       </p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                      <p className="mt-0.5 text-xs text-gray-500 dark:text-neutral-400">
                         {milestone.completed
                           ? 'Completed'
-                          : `${stats?.activeReferrals || 0} / ${milestone.count}`}
+                          : `${Math.min(referrals, milestone.count)} of ${milestone.count} joined`}
                       </p>
                     </div>
-
-                    <div className="flex items-center gap-1 text-sm">
-                      <Zap className="w-4 h-4 text-amber-500" />
-                      <span
-                        className={
-                          milestone.completed
-                            ? 'text-green-600 dark:text-green-400'
-                            : 'text-gray-600 dark:text-gray-400'
-                        }
-                      >
-                        +{milestone.reward}
-                      </span>
-                    </div>
+                    <p
+                      className={`shrink-0 text-sm font-semibold tabular-nums ${
+                        milestone.completed
+                          ? 'text-emerald-600 dark:text-emerald-400'
+                          : 'text-gray-900 dark:text-white'
+                      }`}
+                    >
+                      +{milestone.reward} XP
+                    </p>
                   </div>
-
                   {!milestone.completed && (
-                    <div className="mt-3">
-                      <div className="h-1.5 bg-gray-100 dark:bg-neutral-800 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-blue-500 rounded-full transition-all duration-300"
-                          style={{
-                            width: `${Math.min(100, ((stats?.activeReferrals || 0) / milestone.count) * 100)}%`,
-                          }}
-                        />
-                      </div>
+                    <div className="mt-3 h-1 overflow-hidden rounded-full bg-gray-100 dark:bg-neutral-800">
+                      <div
+                        className="h-full rounded-full bg-blue-600 transition-all"
+                        style={{ width: `${Math.min(100, (referrals / milestone.count) * 100)}%` }}
+                      />
                     </div>
                   )}
-                </motion.div>
+                </li>
               ))}
-            </div>
+            </ul>
           )}
 
           {activeTab === 'leaderboard' && (
             <>
               {leaderboard.length === 0 ? (
-                <div className="text-center py-12">
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 dark:bg-neutral-800 flex items-center justify-center">
-                    <Trophy className="w-8 h-8 text-gray-400 dark:text-gray-500" />
-                  </div>
-                  <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-1">
-                    Leaderboard
-                  </h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">No referrals yet</p>
-                </div>
+                <p className="py-12 text-center text-sm text-gray-500 dark:text-neutral-400">
+                  No referrals yet. Be the first.
+                </p>
               ) : (
-                <div className="space-y-2">
-                  {leaderboard.map((entry, index) => (
-                    <motion.div
-                      key={entry.user.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                      className="bg-white dark:bg-neutral-900 rounded-xl p-4 border border-gray-200 dark:border-neutral-800 flex items-center gap-4"
-                    >
-                      <div
-                        className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
-                          entry.rank === 1
-                            ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
-                            : entry.rank === 2
-                              ? 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
-                              : entry.rank === 3
-                                ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
-                                : 'bg-gray-100 text-gray-600 dark:bg-neutral-800 dark:text-gray-400'
-                        }`}
-                      >
-                        {entry.rank <= 3 ? <Crown className="w-4 h-4" /> : entry.rank}
-                      </div>
-
-                      <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-neutral-700 flex items-center justify-center overflow-hidden">
+                <ol className="divide-y divide-gray-100 dark:divide-neutral-800">
+                  {leaderboard.map((entry) => (
+                    <li key={entry.user.id} className="flex items-center gap-4 py-3">
+                      <span className="w-5 text-sm tabular-nums text-gray-500 dark:text-neutral-400">
+                        {entry.rank}
+                      </span>
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-200 dark:bg-neutral-800">
                         {entry.user.profileImage ? (
+                          // eslint-disable-next-line @next/next/no-img-element
                           <img
                             src={entry.user.profileImage}
                             alt=""
-                            className="w-full h-full object-cover"
+                            className="h-full w-full object-cover"
                           />
                         ) : (
-                          <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                          <span className="text-sm font-semibold text-gray-700 dark:text-neutral-200">
                             {entry.user.name?.charAt(0) || entry.user.username?.charAt(0) || '?'}
                           </span>
                         )}
                       </div>
-
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-gray-900 dark:text-white truncate">
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-semibold">
                           {entry.user.name || entry.user.username}
                         </p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                        <p className="truncate text-xs text-gray-500 dark:text-neutral-400">
                           @{entry.user.username}
                         </p>
                       </div>
-
-                      <div className="flex items-center gap-1.5 text-gray-600 dark:text-gray-300">
-                        <Users className="w-4 h-4" />
-                        <span className="font-semibold">{entry.referralCount}</span>
-                      </div>
-                    </motion.div>
+                      <p className="text-sm font-semibold tabular-nums">
+                        {entry.referralCount}
+                        <span className="ml-1 text-xs font-normal text-gray-500 dark:text-neutral-400">
+                          joined
+                        </span>
+                      </p>
+                    </li>
                   ))}
-                </div>
+                </ol>
               )}
             </>
           )}

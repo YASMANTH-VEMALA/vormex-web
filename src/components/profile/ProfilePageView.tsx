@@ -194,7 +194,6 @@ export function ProfilePageView({
           {/* About Section (Bio & Interests) */}
           <ProfileAbout
             user={profile.user}
-            stats={profile.stats}
             isOwner={!!isOwner}
             onRemoveInterest={handleRemoveInterest}
           />

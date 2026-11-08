@@ -152,14 +152,14 @@ function LearningPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 flex items-center justify-center">
+      <div className="min-h-screen bg-white dark:bg-neutral-950 flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-neutral-600"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 pb-20">
+    <div className="min-h-screen bg-white dark:bg-neutral-950 pb-20">
       {/* Toast */}
       <AnimatePresence>
         {toast.show && (
@@ -213,7 +213,7 @@ function LearningPage() {
               {/* Lesson Content */}
               <div className="flex-1 overflow-y-auto p-5 bg-white dark:bg-neutral-900">
                 {selectedLesson.type === 'VIDEO' && selectedLesson.videoUrl && (
-                  <div className="aspect-video bg-gray-100 dark:bg-neutral-800 rounded-xl mb-5 flex items-center justify-center">
+                  <div className="aspect-video bg-gray-100 dark:bg-neutral-800 rounded-lg mb-5 flex items-center justify-center">
                     <div className="text-center">
                       <Play className="w-12 h-12 text-gray-400 mx-auto mb-2" />
                       <p className="text-gray-500 text-sm">Video Player</p>
@@ -269,7 +269,7 @@ function LearningPage() {
       />
 
       {/* Header */}
-      <div className="sticky top-0 z-40 bg-white/80 dark:bg-neutral-950/80 backdrop-blur-lg border-b border-gray-200 dark:border-neutral-800">
+      <div className="">
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center justify-between px-4 py-3">
             <div className="flex items-center gap-3">
@@ -299,7 +299,7 @@ function LearningPage() {
           </div>
 
           {/* Tabs */}
-          <div className="flex px-4 gap-2 pb-3">
+          <div role="tablist" className="flex border-b border-gray-200 px-4 dark:border-neutral-800">
             {[
               { id: 'explore', label: 'Explore', icon: <GraduationCap className="w-4 h-4" /> },
               { id: 'my-paths', label: 'My Paths', icon: <BookOpen className="w-4 h-4" /> },
@@ -308,13 +308,12 @@ function LearningPage() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as typeof activeTab)}
-                className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-1.5 ${
+                className={`-mb-px flex-1 border-b-2 py-3 text-sm font-semibold ${
                   activeTab === tab.id
-                    ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900'
-                    : 'bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-neutral-700'
+                    ? 'border-gray-900 text-gray-900 dark:border-white dark:text-white'
+                    : 'border-transparent text-gray-500 hover:text-gray-900 dark:text-neutral-400 dark:hover:text-white'
                 }`}
               >
-                {tab.icon}
                 {tab.label}
               </button>
             ))}

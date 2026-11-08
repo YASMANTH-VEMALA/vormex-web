@@ -131,9 +131,9 @@ export default function CollegeCommunitiesPage() {
 
   return (
     <ProtectedRoute>
-      <main className="min-h-screen bg-gray-50 pb-24 text-gray-950 dark:bg-neutral-950 dark:text-white">
-        <div className="sticky top-0 z-20 border-b border-gray-200 bg-white/95 backdrop-blur dark:border-neutral-800 dark:bg-neutral-950/95">
-          <div className="mx-auto max-w-5xl px-4 py-4">
+      <main className="min-h-screen bg-white pb-24 text-gray-950 dark:bg-neutral-950 dark:text-white">
+        <div className="">
+          <div className="mx-auto max-w-2xl px-4 py-4">
             <div className="flex items-center gap-3">
               <Link
                 href="/more"
@@ -150,7 +150,7 @@ export default function CollegeCommunitiesPage() {
               </div>
             </div>
             <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_auto]">
-              <label className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 dark:border-neutral-800 dark:bg-neutral-900">
+              <label className="flex items-center gap-2 px-3 py-2">
                 <Search className="h-4 w-4 text-gray-400" />
                 <input
                   value={search}
@@ -169,7 +169,7 @@ export default function CollegeCommunitiesPage() {
           </div>
         </div>
 
-        <div className="mx-auto max-w-5xl space-y-5 px-4 py-5">
+        <div className="mx-auto max-w-2xl space-y-5 px-4 py-5">
           {(error || message) && (
             <div
               className={`rounded-lg border px-4 py-3 text-sm ${error ? 'border-red-200 bg-red-50 text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300' : 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-300'}`}
@@ -179,7 +179,7 @@ export default function CollegeCommunitiesPage() {
           )}
 
           <section className="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
-            <div className="rounded-lg border border-gray-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
+            <div className="py-5 border-b border-gray-100 dark:border-neutral-800">
               <h2 className="flex items-center gap-2 text-lg font-semibold">
                 <Plus className="h-5 w-5 text-blue-500" />
                 Create or Verify
@@ -188,20 +188,20 @@ export default function CollegeCommunitiesPage() {
                 value={college}
                 onChange={(event) => setCollege(event.target.value)}
                 placeholder="College name"
-                className="mt-4 w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm outline-none dark:border-neutral-800 dark:bg-neutral-950"
+                className="mt-4 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm outline-none dark:border-neutral-800 dark:bg-neutral-900"
               />
               <input
                 value={studentEmail}
                 onChange={(event) => setStudentEmail(event.target.value)}
                 placeholder="Student email, optional"
-                className="mt-3 w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm outline-none dark:border-neutral-800 dark:bg-neutral-950"
+                className="mt-3 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm outline-none dark:border-neutral-800 dark:bg-neutral-900"
               />
               <textarea
                 value={description}
                 onChange={(event) => setDescription(event.target.value)}
                 placeholder="Community description"
                 rows={3}
-                className="mt-3 w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm outline-none dark:border-neutral-800 dark:bg-neutral-950"
+                className="mt-3 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm outline-none dark:border-neutral-800 dark:bg-neutral-900"
               />
               <div className="mt-3 grid gap-2 sm:grid-cols-2">
                 <button
@@ -256,15 +256,15 @@ export default function CollegeCommunitiesPage() {
 
             <div className="space-y-3">
               <h2 className="flex items-center gap-2 text-lg font-semibold">
-                <Users className="h-5 w-5 text-indigo-500" />
+                <Users className="h-5 w-5 text-blue-500" />
                 Communities
               </h2>
               {loading ? (
-                <div className="flex min-h-[260px] items-center justify-center rounded-lg border border-gray-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
+                <div className="flex min-h-[260px] items-center justify-center">
                   <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
                 </div>
               ) : communities.length === 0 ? (
-                <div className="rounded-lg border border-gray-200 bg-white p-8 text-center dark:border-neutral-800 dark:bg-neutral-900">
+                <div className="py-8 text-center border-b border-gray-100 dark:border-neutral-800">
                   <GraduationCap className="mx-auto h-8 w-8 text-gray-400" />
                   <p className="mt-3 font-semibold">No communities found</p>
                   <p className="text-sm text-gray-500 dark:text-neutral-400">
@@ -275,7 +275,7 @@ export default function CollegeCommunitiesPage() {
                 communities.map((community) => (
                   <article
                     key={community.id}
-                    className="rounded-lg border border-gray-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900"
+                    className="py-4 border-b border-gray-100 dark:border-neutral-800"
                   >
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div>

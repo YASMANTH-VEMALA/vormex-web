@@ -105,7 +105,7 @@ export function LearningListings({
                   key={path.id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-white dark:bg-neutral-900 rounded-xl p-4 border border-gray-200 dark:border-neutral-800 hover:border-gray-300 dark:hover:border-neutral-700 transition-all cursor-pointer"
+                  className="bg-white dark:bg-neutral-900 rounded-lg p-4 border border-gray-200 dark:border-neutral-800 hover:border-gray-300 dark:hover:border-neutral-700 transition-all cursor-pointer"
                   onClick={() => setSelectedPath(path)}
                 >
                   <div className="flex items-start gap-3">
@@ -188,7 +188,7 @@ export function LearningListings({
                   key={enrollment.id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-white dark:bg-neutral-900 rounded-xl p-4 border border-gray-200 dark:border-neutral-800 cursor-pointer"
+                  className="py-4 cursor-pointer border-b border-gray-100 dark:border-neutral-800"
                   onClick={() => setSelectedPath(enrollment.path || null)}
                 >
                   <div className="flex items-start gap-3">
@@ -249,10 +249,10 @@ export function LearningListings({
                   key={enrollment.id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-white dark:bg-neutral-900 rounded-xl p-4 border border-green-300 dark:border-green-800"
+                  className="bg-white dark:bg-neutral-900 rounded-lg p-4 border border-green-300 dark:border-green-800"
                 >
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600 dark:text-green-400 shrink-0">
+                    <div className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-neutral-800 flex items-center justify-center text-gray-700 dark:text-neutral-200 shrink-0">
                       <Trophy className="w-5 h-5" />
                     </div>
                     <div className="flex-1">

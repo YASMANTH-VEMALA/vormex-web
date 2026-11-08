@@ -1,15 +1,11 @@
 'use client';
 
-import type { ProfileStats, ProfileUser } from '@/types/profile';
+import type { ProfileUser } from '@/types/profile';
 import {
-  Activity,
   BookOpen,
   ChevronDown,
   ChevronUp,
   GraduationCap,
-  Heart,
-  MessageSquare,
-  TrendingUp,
   X,
 } from 'lucide-react';
 import { useState } from 'react';
@@ -17,12 +13,11 @@ import { ProfileSection, RevealItem } from './ProfileSection';
 
 interface ProfileAboutProps {
   user: ProfileUser;
-  stats: ProfileStats;
   isOwner?: boolean;
   onRemoveInterest?: (interest: string) => void;
 }
 
-export function ProfileAbout({ user, stats, isOwner, onRemoveInterest }: ProfileAboutProps) {
+export function ProfileAbout({ user, isOwner, onRemoveInterest }: ProfileAboutProps) {
   const [expanded, setExpanded] = useState(false);
   const bioPreviewLength = 200;
 
@@ -87,34 +82,6 @@ export function ProfileAbout({ user, stats, isOwner, onRemoveInterest }: Profile
         </div>
       )}
 
-      {/* Quick stats */}
-      <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          icon={<Activity className="w-4 h-4" />}
-          label="Active Days"
-          value={stats.totalActiveDays}
-          index={0}
-        />
-        <StatCard
-          icon={<MessageSquare className="w-4 h-4" />}
-          label="Posts"
-          value={stats.totalPosts}
-          index={1}
-        />
-        <StatCard
-          icon={<TrendingUp className="w-4 h-4" />}
-          label="Articles"
-          value={stats.totalArticles}
-          index={2}
-        />
-        <StatCard
-          icon={<Heart className="w-4 h-4" />}
-          label="Likes"
-          value={stats.totalLikesReceived}
-          index={3}
-        />
-      </div>
-
       {/* Education info */}
       {(user.college || user.degree) && (
         <div className="mt-8 pt-6 border-t border-neutral-100 dark:border-neutral-800">
@@ -143,28 +110,5 @@ export function ProfileAbout({ user, stats, isOwner, onRemoveInterest }: Profile
         </div>
       )}
     </ProfileSection>
-  );
-}
-
-interface StatCardProps {
-  icon: React.ReactNode;
-  label: string;
-  value: number;
-  index: number;
-}
-
-function StatCard({ icon, label, value, index }: StatCardProps) {
-  return (
-    <RevealItem index={index}>
-      <div className="group flex flex-col items-center justify-center rounded-lg border border-neutral-200 bg-neutral-50 p-3 text-center dark:border-neutral-800 dark:bg-neutral-800/50 sm:p-4">
-        <div className="mb-2 text-neutral-400">{icon}</div>
-        <p className="text-lg sm:text-xl font-bold text-neutral-900 dark:text-white tracking-tight">
-          {value.toLocaleString()}
-        </p>
-        <p className="text-[11px] text-neutral-500 dark:text-neutral-400 font-medium mt-0.5">
-          {label}
-        </p>
-      </div>
-    </RevealItem>
   );
 }

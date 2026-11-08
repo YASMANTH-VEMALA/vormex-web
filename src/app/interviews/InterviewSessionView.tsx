@@ -44,9 +44,9 @@ export function InterviewSessionView({
   submitting,
 }: InterviewSessionViewProps) {
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 flex flex-col">
+    <div className="min-h-screen bg-white dark:bg-neutral-950 flex flex-col">
       {/* Session Header */}
-      <div className="sticky top-0 z-40 bg-white dark:bg-neutral-900 border-b border-gray-200 dark:border-neutral-800">
+      <div className="">
         <div className="flex items-center justify-between px-4 py-4">
           <div className="flex items-center gap-3">
             <button
@@ -83,7 +83,7 @@ export function InterviewSessionView({
               exit={{ opacity: 0, y: -20 }}
               className="max-w-2xl mx-auto"
             >
-              <div className="bg-white dark:bg-neutral-900 rounded-xl border border-gray-200 dark:border-neutral-800 p-6 mb-4">
+              <div className="py-6 mb-4 border-b border-gray-100 dark:border-neutral-800">
                 <div className="flex items-center justify-center mb-6">
                   <div className={`text-5xl font-bold ${getScoreColor(lastFeedback.score)}`}>
                     {lastFeedback.score}
@@ -135,7 +135,7 @@ export function InterviewSessionView({
               className="max-w-2xl mx-auto"
             >
               {/* Question */}
-              <div className="bg-white dark:bg-neutral-900 rounded-xl border border-gray-200 dark:border-neutral-800 p-6 mb-4">
+              <div className="py-6 mb-4 border-b border-gray-100 dark:border-neutral-800">
                 <div className="flex items-center gap-2 mb-4">
                   <span className="px-2.5 py-1 rounded-full bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-gray-400 text-xs font-medium">
                     {typeof currentQuestion.category === 'string'
@@ -175,7 +175,7 @@ export function InterviewSessionView({
               </div>
 
               {/* Answer Input */}
-              <div className="bg-white dark:bg-neutral-900 rounded-xl border border-gray-200 dark:border-neutral-800 p-6">
+              <div className="py-6 border-b border-gray-100 dark:border-neutral-800">
                 <h4 className="font-medium text-gray-900 dark:text-white mb-3">Your Answer</h4>
                 <textarea
                   value={answer}
