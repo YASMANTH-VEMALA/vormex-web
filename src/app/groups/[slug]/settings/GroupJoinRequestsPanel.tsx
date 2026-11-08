@@ -5,7 +5,7 @@ import Image from 'next/image';
 interface GroupJoinRequestsPanelProps {
   activeTab: import('@/app/groups/[slug]/settings/page.types').SettingsTab;
   group: import('@/lib/api/groups.types').Group;
-  handleRequest: (requestId: string, action: 'approve' | 'reject') => Promise<void>;
+  handleRequest: (requestId: string, action: 'approve' | 'reject', source?: import('@/lib/api/groups.types').GroupRequestSource) => Promise<void>;
   pendingRequests: import('@/lib/api/groups.types').GroupJoinRequest[];
   processingRequest: string | null;
 }
@@ -19,7 +19,7 @@ export function GroupJoinRequestsPanel({
 }: GroupJoinRequestsPanelProps) {
   return (
     <>
-      {activeTab === 'requests' && (group.privacy === 'PRIVATE' || group.privacy === 'SECRET') && (
+      {activeTab === 'requests' && group.privacy !== 'PUBLIC' && (
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -55,6 +55,24 @@ export function GroupJoinRequestsPanel({
                     <p className="text-sm text-gray-500 dark:text-gray-400">
                       @{request.user.username}
                     </p>
+                    <span
+                      className={`inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-medium ${
+                        request.source === 'hackathon'
+                          ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300'
+                          : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
+                      }`}
+                    >
+                      {request.source === 'hackathon' && request.hackathon
+                        ? `Hackathon: ${request.hackathon.title}${request.role ? ` · as ${request.role}` : ''}`
+                        : request.source === 'invite_link'
+                          ? 'Via invite link'
+                          : 'Asked to join'}
+                    </span>
+                    {request.skills && request.skills.length > 0 && (
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        Skills: {request.skills.join(', ')}
+                      </p>
+                    )}
                     {request.message && (
                       <p className="text-sm text-gray-600 dark:text-gray-300 mt-1 italic">
                         &ldquo;{request.message}&rdquo;
@@ -68,7 +86,7 @@ export function GroupJoinRequestsPanel({
 
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => handleRequest(request.id, 'approve')}
+                    onClick={() => handleRequest(request.id, 'approve', request.source)}
                     disabled={processingRequest === request.id}
                     className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center gap-2"
                   >
@@ -106,7 +124,7 @@ export function GroupJoinRequestsPanel({
                     Approve
                   </button>
                   <button
-                    onClick={() => handleRequest(request.id, 'reject')}
+                    onClick={() => handleRequest(request.id, 'reject', request.source)}
                     disabled={processingRequest === request.id}
                     className="px-4 py-2 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 text-sm font-medium rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors disabled:opacity-50"
                   >

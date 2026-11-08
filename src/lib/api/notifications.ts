@@ -19,6 +19,10 @@ export type NotificationType =
   | 'streak_lost'
   | 'xp_earned'
   | 'post_share'
+  | 'group_join_request'
+  | 'hackathon_team_application'
+  | 'hackathon_team_application_accepted'
+  | 'hackathon_team_application_rejected'
   // Legacy/Post types for compatibility
   | 'POST_REACTION'
   | 'POST_LIKE'

@@ -20,12 +20,14 @@ import {
 } from '@/lib/api/groups';
 import { useAuth } from '@/lib/auth/useAuth';
 import { cn } from '@/lib/utils';
+import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { use, useEffect, useState } from 'react';
 
 export default function GroupDetailPage({ params }: GroupDetailPageProps) {
   const resolvedParams = use(params);
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { user } = useAuth();
   const [group, setGroup] = useState<Group | null>(null);
   const [posts, setPosts] = useState<GroupPost[]>([]);
@@ -45,8 +47,8 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
         const groupData = await getGroup(resolvedParams.slug);
         setGroup(groupData);
 
-        // Fetch posts and members if member or public
-        if (groupData.isMember || groupData.privacy !== 'SECRET') {
+        // Fetch posts and members if member or public (private groups show a preview only)
+        if (groupData.isMember || groupData.privacy === 'PUBLIC') {
           const [postsData, membersData] = await Promise.all([
             getGroupPosts(groupData.id),
             getGroupMembers(groupData.id, { limit: 10 }),
@@ -81,6 +83,7 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
         ]);
         setPosts(postsData.posts);
         setMembers(membersData.members);
+        void queryClient.invalidateQueries({ queryKey: ['groups'] });
       } else {
         alert('Join request sent! You will be notified when approved.');
       }
@@ -99,6 +102,7 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
       setActionLoading(true);
       await leaveGroup(group.id);
       setGroup({ ...group, isMember: false, memberRole: null });
+      void queryClient.invalidateQueries({ queryKey: ['groups'] });
     } catch (err: unknown) {
       alert(asApiError(err).response?.data?.error || 'Failed to leave group');
     } finally {

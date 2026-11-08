@@ -3,6 +3,7 @@
 import { asApiError } from '@/lib/api/errors';
 import { createGroup, GroupPrivacy } from '@/lib/api/groups';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 interface CreateGroupModalProps {
@@ -26,6 +27,7 @@ const CATEGORIES = [
 ];
 
 export default function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModalProps) {
+  const router = useRouter();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [privacy, setPrivacy] = useState<GroupPrivacy>('PUBLIC');
@@ -60,13 +62,14 @@ export default function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateG
     setIsSubmitting(true);
 
     try {
-      await createGroup({
+      const created = await createGroup({
         name: name.trim(),
         description: description.trim() || undefined,
         privacy,
         category: category || undefined,
         rules: rules.filter((r) => r.trim()),
       });
+      const createdPrivacy = privacy;
 
       // Reset form
       setName('');
@@ -77,6 +80,10 @@ export default function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateG
 
       onSuccess();
       onClose();
+      // Private and secret groups grow by invitation, so land on the invite step.
+      if (createdPrivacy !== 'PUBLIC' && created?.slug) {
+        router.push(`/groups/${created.slug}/settings?tab=invites`);
+      }
     } catch (err: unknown) {
       setError(asApiError(err).response?.data?.error || 'Failed to create group');
     } finally {

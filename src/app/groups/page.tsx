@@ -163,10 +163,11 @@ function GroupsPageInner() {
             : current
       );
 
-      if (action === 'accept' && result.groupSlug) {
-        // Refresh my groups and navigate to the group
+      const destination = result.groupSlug ?? result.groupId;
+      if (action === 'accept' && destination) {
+        // Refresh my groups and navigate to the group (the API accepts an id or a slug)
         await myGroupsQuery.refetch();
-        router.push(`/groups/${result.groupSlug}`);
+        router.push(`/groups/${destination}`);
       }
     } catch (error: unknown) {
       alert(getApiErrorMessage(error, 'Failed to respond to invite'));

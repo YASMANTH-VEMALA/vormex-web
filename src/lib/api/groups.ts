@@ -3,6 +3,7 @@ import type {
   Group,
   GroupCategory,
   GroupInvite,
+  GroupInviteLink,
   GroupInviteStatus,
   GroupJoinRequest,
   GroupJoinRequestStatus,
@@ -12,10 +13,13 @@ import type {
   GroupPost,
   GroupPostsResponse,
   GroupPrivacy,
+  GroupRequestSource,
   GroupsResponse,
   GroupUser,
 } from './groups.types';
 export type {
+  GroupInviteLink,
+  GroupRequestSource,
   Group,
   GroupCategory,
   GroupInvite,
@@ -165,18 +169,21 @@ export async function getJoinRequests(
   groupId: string,
   status?: GroupJoinRequestStatus
 ): Promise<GroupJoinRequest[]> {
-  const params = status ? `?status=${status}` : '';
-  const response = (await apiClient.get(
-    `/groups/${groupId}/join-requests${params}`
-  )) as unknown as {
+  // The unified inbox only lists pending items: invite-link / join requests
+  // plus hackathon team applications for the group's hackathon team.
+  void status;
+  const response = (await apiClient.get(`/groups/${groupId}/requests`)) as unknown as {
     requests: Array<{
       id: string;
+      source: GroupRequestSource;
       groupId: string;
       requesterId: string;
       requester: GroupUser;
-      status: string;
       requestedAt: string;
-      respondedAt: string | null;
+      message: string | null;
+      role: string | null;
+      skills: string[];
+      hackathon: GroupJoinRequest['hackathon'];
     }>;
   };
   return response.requests.map((request) => ({
@@ -184,11 +191,15 @@ export async function getJoinRequests(
     groupId: request.groupId,
     userId: request.requesterId,
     user: request.requester,
-    status: request.status.toUpperCase() as GroupJoinRequestStatus,
-    message: null,
+    status: 'PENDING' as GroupJoinRequestStatus,
+    source: request.source,
+    role: request.role,
+    skills: request.skills,
+    hackathon: request.hackathon,
+    message: request.message,
     reviewedById: null,
     reviewedBy: null,
-    reviewedAt: request.respondedAt,
+    reviewedAt: null,
     createdAt: request.requestedAt,
   }));
 }
@@ -196,11 +207,46 @@ export async function getJoinRequests(
 export async function handleJoinRequest(
   groupId: string,
   requestId: string,
-  action: 'approve' | 'reject'
+  action: 'approve' | 'reject',
+  source?: GroupRequestSource
 ): Promise<{ success: boolean }> {
+  if (source === 'hackathon') {
+    return apiClient.post(`/hackathons/team-applications/${requestId}/respond`, {
+      action: action === 'approve' ? 'accept' : 'reject',
+    });
+  }
   return apiClient.post(`/groups/${groupId}/join-requests/${requestId}/respond`, {
     action: action === 'approve' ? 'accept' : 'decline',
   });
+}
+
+// ============================================
+// Invite links
+// ============================================
+
+export async function getGroupInviteLink(groupId: string): Promise<GroupInviteLink> {
+  return apiClient.get(`/groups/${groupId}/invite-link`);
+}
+
+export async function resetGroupInviteLink(groupId: string): Promise<GroupInviteLink> {
+  return apiClient.post(`/groups/${groupId}/invite-link/reset`);
+}
+
+export async function updateGroupInviteLinkSettings(
+  groupId: string,
+  visibility: 'ADMINS' | 'MEMBERS'
+): Promise<GroupInviteLink> {
+  return apiClient.patch(`/groups/${groupId}/invite-link/settings`, { visibility });
+}
+
+export async function previewGroupInviteLink(code: string): Promise<GroupInviteLink> {
+  return apiClient.get(`/groups/invites/link/${encodeURIComponent(code)}`);
+}
+
+export async function joinGroupByInviteLink(
+  code: string
+): Promise<{ status: 'joined' | 'pending' | 'already_member'; message: string; groupId: string }> {
+  return apiClient.post(`/groups/invites/link/${encodeURIComponent(code)}/join`);
 }
 
 // ============================================
@@ -230,7 +276,7 @@ export async function getUserPendingInvites(): Promise<{ invites: GroupInvite[] 
 export async function respondToInvite(
   inviteId: string,
   action: 'accept' | 'decline'
-): Promise<{ success: boolean; message: string; groupSlug?: string }> {
+): Promise<{ success?: boolean; status?: string; message: string; groupId?: string; groupSlug?: string }> {
   return apiClient.post(`/groups/invites/${inviteId}/respond`, { action });
 }
 

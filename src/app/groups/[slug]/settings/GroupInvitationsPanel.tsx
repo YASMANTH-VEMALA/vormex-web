@@ -8,6 +8,10 @@ interface GroupInvitationsPanelProps {
   group: import('@/lib/api/groups.types').Group;
   handleCancelInvite: (inviteId: string) => Promise<void>;
   handleInviteUser: (userId: string) => Promise<void>;
+  handleCopyInviteLink: () => void;
+  handleResetInviteLink: () => Promise<void>;
+  handleInviteLinkVisibility: (visibility: 'ADMINS' | 'MEMBERS') => Promise<void>;
+  inviteLink: import('@/lib/api/groups.types').GroupInviteLink | null;
   inviting: string | null;
   pendingInvites: import('@/lib/api/groups.types').GroupInvite[];
   processingRequest: string | null;
@@ -22,6 +26,10 @@ export function GroupInvitationsPanel({
   group,
   handleCancelInvite,
   handleInviteUser,
+  handleCopyInviteLink,
+  handleResetInviteLink,
+  handleInviteLinkVisibility,
+  inviteLink,
   inviting,
   pendingInvites,
   processingRequest,
@@ -32,7 +40,7 @@ export function GroupInvitationsPanel({
 }: GroupInvitationsPanelProps) {
   return (
     <>
-      {activeTab === 'invites' && group.privacy === 'SECRET' && (
+      {activeTab === 'invites' && (
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -41,6 +49,52 @@ export function GroupInvitationsPanel({
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">
             Invite Members
           </h2>
+
+          {/* Shareable invite link */}
+          <div className="mb-6 p-4 rounded-xl bg-gray-50 dark:bg-gray-700/50">
+            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Invite link
+            </h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
+              {group.privacy === 'PUBLIC'
+                ? 'Anyone with this link can join.'
+                : 'Anyone with this link can ask to join; an admin approves each request.'}
+            </p>
+            {inviteLink?.inviteUrl ? (
+              <div className="flex flex-col sm:flex-row gap-2">
+                <input
+                  readOnly
+                  value={inviteLink.inviteUrl}
+                  onFocus={(e) => e.currentTarget.select()}
+                  className="flex-1 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white"
+                />
+                <button
+                  onClick={handleCopyInviteLink}
+                  className="px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Copy
+                </button>
+                <button
+                  onClick={handleResetInviteLink}
+                  className="px-3 py-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 text-sm font-medium rounded-lg transition-colors"
+                >
+                  Reset
+                </button>
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500 dark:text-gray-400">Loading invite link...</p>
+            )}
+            {inviteLink && (
+              <label className="flex items-center gap-2 mt-3 text-sm text-gray-600 dark:text-gray-300">
+                <input
+                  type="checkbox"
+                  checked={inviteLink.visibility === 'MEMBERS'}
+                  onChange={(e) => handleInviteLinkVisibility(e.target.checked ? 'MEMBERS' : 'ADMINS')}
+                />
+                Let all members share this link
+              </label>
+            )}
+          </div>
 
           {/* Search to invite */}
           <div className="mb-6">

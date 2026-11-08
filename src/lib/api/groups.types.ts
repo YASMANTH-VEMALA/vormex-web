@@ -58,12 +58,30 @@ export interface GroupMember {
   mutedUntil: string | null;
 }
 
+export type GroupRequestSource = 'invite_link' | 'join_request' | 'hackathon';
+
+export interface GroupInviteLink {
+  inviteCode: string;
+  inviteUrl: string | null;
+  visibility: 'ADMINS' | 'MEMBERS';
+  canShare: boolean;
+  requiresApproval: boolean;
+  group: Pick<Group, 'id' | 'name' | 'slug' | 'description' | 'coverImage' | 'iconImage' | 'privacy' | 'memberCount'> & {
+    isMember?: boolean;
+  };
+}
+
 export interface GroupJoinRequest {
   id: string;
   groupId: string;
   userId: string;
   user: GroupUser;
   status: GroupJoinRequestStatus;
+  /** Where the request came from; hackathon requests carry role/skills/hackathon. */
+  source?: GroupRequestSource;
+  role?: string | null;
+  skills?: string[];
+  hackathon?: { id: string; title: string; teamId: string; teamName: string } | null;
   message: string | null;
   reviewedById: string | null;
   reviewedBy: GroupUser | null;

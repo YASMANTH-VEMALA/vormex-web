@@ -85,6 +85,11 @@ function getNotificationMessage(notification: Notification): string {
       return `${actorName} requested to join your group`;
     case 'GROUP_JOIN_APPROVED':
       return `Your request to join ${notification.content || 'the group'} was approved`;
+    case 'group_join_request':
+    case 'hackathon_team_application':
+    case 'hackathon_team_application_accepted':
+    case 'hackathon_team_application_rejected':
+      return notification.body || notification.title;
     default:
       return `${actorName} interacted with your content`;
   }
@@ -133,8 +138,13 @@ function NotificationItem({
     }
 
     // Navigate based on notification type
+    const groupId = typeof notification.data?.groupId === 'string' ? notification.data.groupId : null;
     if (notification.type === 'GROUP_INVITE' || notification.type === 'GROUP_JOIN_APPROVED') {
       router.push('/groups?tab=invites');
+    } else if (notification.type === 'group_join_request' && groupId) {
+      router.push(`/groups/${groupId}/settings?tab=requests`);
+    } else if (notification.type.startsWith('hackathon_team_application')) {
+      router.push('/hackathons');
     } else if (notification.reelId) {
       router.push(`/reels/${notification.reelId}`);
     } else if (notification.postId) {

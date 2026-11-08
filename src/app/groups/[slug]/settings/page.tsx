@@ -11,17 +11,22 @@ import {
   cancelInvite,
   deleteGroup,
   getGroup,
+  getGroupInviteLink,
   getGroupInvites,
   getGroupMembers,
   getJoinRequests,
   Group,
   GroupInvite,
+  GroupInviteLink,
   GroupJoinRequest,
   GroupMember,
+  GroupRequestSource,
   handleJoinRequest,
   inviteToGroup,
   removeMember,
+  resetGroupInviteLink,
   updateGroup,
+  updateGroupInviteLinkSettings,
   updateMemberRole,
 } from '@/lib/api/groups';
 import { searchUsers } from '@/lib/api/people';
@@ -36,6 +41,7 @@ export default function GroupSettingsPage({ params }: GroupSettingsPageProps) {
   const [members, setMembers] = useState<GroupMember[]>([]);
   const [pendingRequests, setPendingRequests] = useState<GroupJoinRequest[]>([]);
   const [pendingInvites, setPendingInvites] = useState<GroupInvite[]>([]);
+  const [inviteLink, setInviteLink] = useState<GroupInviteLink | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -81,6 +87,10 @@ export default function GroupSettingsPage({ params }: GroupSettingsPageProps) {
 
         setGroup(groupData);
         setMembers(membersData.members || []);
+        const requestedTab = new URLSearchParams(window.location.search).get('tab');
+        if (requestedTab === 'invites' || requestedTab === 'requests') {
+          setActiveTab(requestedTab);
+        }
         setFormData({
           name: groupData.name,
           description: groupData.description || '',
@@ -91,8 +101,8 @@ export default function GroupSettingsPage({ params }: GroupSettingsPageProps) {
           privacy: groupData.privacy,
         });
 
-        // Fetch pending join requests for private groups
-        if (groupData.privacy === 'PRIVATE') {
+        // Pending requests (invite-link, join and hackathon) for non-public groups
+        if (groupData.privacy !== 'PUBLIC') {
           try {
             const requests = await getJoinRequests(groupData.id, 'PENDING');
             setPendingRequests(requests);
@@ -101,14 +111,17 @@ export default function GroupSettingsPage({ params }: GroupSettingsPageProps) {
           }
         }
 
-        // Fetch pending invites for secret groups
-        if (groupData.privacy === 'SECRET') {
-          try {
-            const { invites } = await getGroupInvites(groupData.id, 'PENDING');
-            setPendingInvites(invites);
-          } catch {
-            // Silently fail
-          }
+        // Invites and the shareable link are available for every group type
+        try {
+          const { invites } = await getGroupInvites(groupData.id, 'PENDING');
+          setPendingInvites(invites);
+        } catch {
+          // Silently fail
+        }
+        try {
+          setInviteLink(await getGroupInviteLink(groupData.id));
+        } catch {
+          // Silently fail
         }
       } catch (err: unknown) {
         setError(asApiError(err).response?.data?.error || 'Failed to load group settings');
@@ -198,13 +211,49 @@ export default function GroupSettingsPage({ params }: GroupSettingsPageProps) {
     }
   };
 
-  const handleRequest = async (requestId: string, action: 'approve' | 'reject') => {
+  const flash = (message: string) => {
+    setSuccessMessage(message);
+    setTimeout(() => setSuccessMessage(null), 3000);
+  };
+
+  const handleCopyInviteLink = () => {
+    if (!inviteLink?.inviteUrl) return;
+    navigator.clipboard
+      .writeText(inviteLink.inviteUrl)
+      .then(() => flash('Invite link copied'))
+      .catch(() => setError('Could not copy the link'));
+  };
+
+  const handleResetInviteLink = async () => {
+    if (!group || !confirm('Reset the invite link? The old link will stop working.')) return;
+    try {
+      setInviteLink(await resetGroupInviteLink(group.id));
+      flash('Invite link reset');
+    } catch (err: unknown) {
+      setError(asApiError(err).response?.data?.error || 'Failed to reset invite link');
+    }
+  };
+
+  const handleInviteLinkVisibility = async (visibility: 'ADMINS' | 'MEMBERS') => {
+    if (!group) return;
+    try {
+      setInviteLink(await updateGroupInviteLinkSettings(group.id, visibility));
+    } catch (err: unknown) {
+      setError(asApiError(err).response?.data?.error || 'Failed to update link settings');
+    }
+  };
+
+  const handleRequest = async (
+    requestId: string,
+    action: 'approve' | 'reject',
+    source?: GroupRequestSource
+  ) => {
     if (!group) return;
 
     try {
       setProcessingRequest(requestId);
       setError(null);
-      await handleJoinRequest(group.id, requestId, action);
+      await handleJoinRequest(group.id, requestId, action, source);
 
       // Remove the request from the list
       setPendingRequests((prev) => prev.filter((r) => r.id !== requestId));
@@ -323,7 +372,7 @@ export default function GroupSettingsPage({ params }: GroupSettingsPageProps) {
       id: 'requests',
       label: 'Requests',
       badge: pendingRequests.length,
-      hidden: group?.privacy !== 'PRIVATE', // Only for PRIVATE groups
+      hidden: group?.privacy === 'PUBLIC', // Public groups have nothing to approve
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -339,7 +388,6 @@ export default function GroupSettingsPage({ params }: GroupSettingsPageProps) {
       id: 'invites',
       label: 'Invites',
       badge: pendingInvites.length,
-      hidden: group?.privacy !== 'SECRET', // Only for SECRET groups
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -405,6 +453,10 @@ export default function GroupSettingsPage({ params }: GroupSettingsPageProps) {
       handleDeleteGroup={handleDeleteGroup}
       handleIconUpdated={handleIconUpdated}
       handleInviteUser={handleInviteUser}
+      handleCopyInviteLink={handleCopyInviteLink}
+      handleResetInviteLink={handleResetInviteLink}
+      handleInviteLinkVisibility={handleInviteLinkVisibility}
+      inviteLink={inviteLink}
       handleRemoveMember={handleRemoveMember}
       handleRequest={handleRequest}
       handleSaveGeneral={handleSaveGeneral}

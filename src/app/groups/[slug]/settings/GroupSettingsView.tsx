@@ -27,8 +27,16 @@ interface GroupSettingsViewProps {
   handleDeleteGroup: () => Promise<void>;
   handleIconUpdated: (imageUrl: string) => void;
   handleInviteUser: (userId: string) => Promise<void>;
+  handleCopyInviteLink: () => void;
+  handleResetInviteLink: () => Promise<void>;
+  handleInviteLinkVisibility: (visibility: 'ADMINS' | 'MEMBERS') => Promise<void>;
+  inviteLink: import('@/lib/api/groups.types').GroupInviteLink | null;
   handleRemoveMember: (memberId: string) => Promise<void>;
-  handleRequest: (requestId: string, action: 'approve' | 'reject') => Promise<void>;
+  handleRequest: (
+    requestId: string,
+    action: 'approve' | 'reject',
+    source?: import('@/lib/api/groups.types').GroupRequestSource
+  ) => Promise<void>;
   handleSaveGeneral: () => Promise<void>;
   handleUpdateRole: (memberId: string, newRole: 'ADMIN' | 'MODERATOR' | 'MEMBER') => Promise<void>;
   inviting: string | null;
@@ -82,6 +90,10 @@ export function GroupSettingsView({
   handleDeleteGroup,
   handleIconUpdated,
   handleInviteUser,
+  handleCopyInviteLink,
+  handleResetInviteLink,
+  handleInviteLinkVisibility,
+  inviteLink,
   handleRemoveMember,
   handleRequest,
   handleSaveGeneral,
@@ -323,6 +335,10 @@ export function GroupSettingsView({
                 group={group}
                 handleCancelInvite={handleCancelInvite}
                 handleInviteUser={handleInviteUser}
+                handleCopyInviteLink={handleCopyInviteLink}
+                handleResetInviteLink={handleResetInviteLink}
+                handleInviteLinkVisibility={handleInviteLinkVisibility}
+                inviteLink={inviteLink}
                 inviting={inviting}
                 pendingInvites={pendingInvites}
                 processingRequest={processingRequest}
