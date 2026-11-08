@@ -7,14 +7,15 @@ function backendOrigin(): string {
   const configured = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_URL;
   return configured?.startsWith('http')
     ? configured.replace(/\/+$/, '')
-    : 'https://vormex-backend.onrender.com';
+    : 'https://vormex-backend-ten.vercel.app';
 }
 
 async function publicProfiles(): Promise<SitemapProfile[]> {
   try {
     const response = await fetch(
       `${backendOrigin()}/api/public/discovery/sitemap/profiles?limit=5000`,
-      { next: { revalidate: 300 } }
+      // A slow or unreachable backend must never stall a build: give up quickly and ship a static-only sitemap.
+      { next: { revalidate: 300 }, signal: AbortSignal.timeout(8000) }
     );
     if (!response.ok) return [];
     return ((await response.json()) as { profiles?: SitemapProfile[] }).profiles || [];

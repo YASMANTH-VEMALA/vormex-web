@@ -15,8 +15,8 @@ export function GET(): Response {
 - Public member profiles: ${SITE_URL}/people/{username}
 
 ## Live AI discovery
-- MCP endpoint: https://vormex-backend.onrender.com/mcp
-- OpenAPI document: https://vormex-backend.onrender.com/api/public/discovery/openapi.json
+- MCP endpoint: https://vormex-backend-ten.vercel.app/mcp
+- OpenAPI document: https://vormex-backend-ten.vercel.app/api/public/discovery/openapi.json
 
 Only public, eligible profile fields are returned. Private messages, contact data, email addresses, phone numbers, precise location, and private activity are never part of public discovery.
 `;

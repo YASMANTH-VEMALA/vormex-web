@@ -11,7 +11,7 @@ cp .env.example .env.local
 The checked-in example uses the production routing shape:
 
 - `NEXT_PUBLIC_API_URL=/api` keeps REST and its HttpOnly auth cookies same-origin through the Next.js proxy.
-- `NEXT_PUBLIC_SOCKET_URL=https://vormex-backend.onrender.com` connects Socket.IO directly to Render with a short-lived ticket obtained from the REST API.
+- `NEXT_PUBLIC_SOCKET_URL=https://vormex-backend-ten.vercel.app` connects Socket.IO directly to the backend with a short-lived ticket obtained from the REST API.
 
 For local development, uncomment the local override values at the bottom of `.env.example` after copying it to `.env.local`.
 
