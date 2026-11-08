@@ -189,23 +189,24 @@ export default function GroupSettingsPage({ params }: GroupSettingsPageProps) {
     }
   };
 
-  const handleUpdateRole = async (memberId: string, newRole: 'ADMIN' | 'MODERATOR' | 'MEMBER') => {
+  // The members API is keyed by user id (not the membership row id).
+  const handleUpdateRole = async (userId: string, newRole: 'ADMIN' | 'MODERATOR' | 'MEMBER') => {
     if (!group) return;
 
     try {
-      await updateMemberRole(group.id, memberId, newRole);
-      setMembers((prev) => prev.map((m) => (m.id === memberId ? { ...m, role: newRole } : m)));
+      await updateMemberRole(group.id, userId, newRole);
+      setMembers((prev) => prev.map((m) => (m.user.id === userId ? { ...m, role: newRole } : m)));
     } catch (err: unknown) {
       setError(asApiError(err).response?.data?.error || 'Failed to update role');
     }
   };
 
-  const handleRemoveMember = async (memberId: string) => {
+  const handleRemoveMember = async (userId: string) => {
     if (!group || !confirm('Are you sure you want to remove this member?')) return;
 
     try {
-      await removeMember(group.id, memberId);
-      setMembers((prev) => prev.filter((m) => m.id !== memberId));
+      await removeMember(group.id, userId);
+      setMembers((prev) => prev.filter((m) => m.user.id !== userId));
     } catch (err: unknown) {
       setError(asApiError(err).response?.data?.error || 'Failed to remove member');
     }

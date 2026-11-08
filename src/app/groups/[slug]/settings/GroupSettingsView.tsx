@@ -277,7 +277,7 @@ export function GroupSettingsView({
                                 value={member.role}
                                 onChange={(e) =>
                                   handleUpdateRole(
-                                    member.id,
+                                    member.user.id,
                                     e.target.value as 'ADMIN' | 'MODERATOR' | 'MEMBER'
                                   )
                                 }
@@ -288,7 +288,7 @@ export function GroupSettingsView({
                                 <option value="MEMBER">Member</option>
                               </select>
                               <button
-                                onClick={() => handleRemoveMember(member.id)}
+                                onClick={() => handleRemoveMember(member.user.id)}
                                 className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                                 title="Remove member"
                               >
