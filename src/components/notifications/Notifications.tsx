@@ -6,66 +6,45 @@ import {
   markAllNotificationsAsRead,
   markNotificationsAsRead,
   type Notification,
-  type NotificationType,
 } from '@/lib/api/notifications';
+import { acceptConnectionRequest, getPendingRequests, rejectConnectionRequest } from '@/lib/api/connections';
 import { initializeSocket } from '@/lib/socket';
-import { formatDistanceToNow } from 'date-fns';
+import {
+  format,
+  formatDistanceToNowStrict,
+  isToday,
+} from 'date-fns';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
-  AtSign,
   Bell,
   CheckCheck,
-  HandHeart,
-  Heart,
-  HelpCircle,
-  Lightbulb,
-  Loader2,
-  MessageCircle,
-  PartyPopper,
   Settings,
-  ThumbsUp,
-  UserPlus,
-  Users,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { cn } from '@/lib/utils';
 
-// Get icon for notification type
-function getNotificationIcon(type: NotificationType, reactionType?: string | null) {
-  switch (type) {
-    case 'POST_REACTION':
-      // Show specific reaction icon
-      switch (reactionType) {
-        case 'CELEBRATE':
-          return <PartyPopper className="w-5 h-5 text-yellow-500" />;
-        case 'SUPPORT':
-          return <HandHeart className="w-5 h-5 text-green-500" />;
-        case 'INSIGHTFUL':
-          return <Lightbulb className="w-5 h-5 text-amber-500" />;
-        case 'CURIOUS':
-          return <HelpCircle className="w-5 h-5 text-purple-500" />;
-        default:
-          return <ThumbsUp className="w-5 h-5 text-blue-500" />;
-      }
-    case 'POST_LIKE':
-      return <ThumbsUp className="w-5 h-5 text-blue-500" />;
-    case 'COMMENT':
-      return <MessageCircle className="w-5 h-5 text-green-500" />;
-    case 'COMMENT_LIKE':
-      return <Heart className="w-5 h-5 text-red-500" />;
-    case 'MENTION':
-      return <AtSign className="w-5 h-5 text-purple-500" />;
-    case 'CONNECTION_REQUEST':
-    case 'CONNECTION_ACCEPTED':
-      return <UserPlus className="w-5 h-5 text-blue-500" />;
-    case 'GROUP_INVITE':
-    case 'GROUP_JOIN_REQUEST':
-    case 'GROUP_JOIN_APPROVED':
-      return <Users className="w-5 h-5 text-indigo-500" />;
+type FilterTab = 'all' | 'unread' | 'connections' | 'mentions';
+
+const FILTER_TABS: { value: FilterTab; label: string }[] = [
+  { value: 'all', label: 'View all' },
+  { value: 'unread', label: 'Unread' },
+  { value: 'connections', label: 'Connections' },
+  { value: 'mentions', label: 'Mentions' },
+];
+
+function matchesFilter(n: Notification, tab: FilterTab) {
+  switch (tab) {
+    case 'unread':
+      return !n.isRead;
+    case 'connections':
+      return n.type === 'CONNECTION_REQUEST' || n.type === 'CONNECTION_ACCEPTED';
+    case 'mentions':
+      return n.type === 'MENTION';
     default:
-      return <Bell className="w-5 h-5 text-gray-500" />;
+      return true;
   }
 }
 
@@ -114,10 +93,38 @@ function getNotificationMessage(notification: Notification): string {
 interface NotificationItemProps {
   notification: Notification;
   onMarkRead: (id: string) => void;
+  /** Pending connection id for this actor, when the request can still be answered here. */
+  connectionId?: string;
+  onConnectionResolved?: (connectionId: string) => void;
 }
 
-function NotificationItem({ notification, onMarkRead }: NotificationItemProps) {
+function NotificationItem({
+  notification,
+  onMarkRead,
+  connectionId,
+  onConnectionResolved,
+}: NotificationItemProps) {
   const router = useRouter();
+  const [requestState, setRequestState] = useState<'idle' | 'busy' | 'accepted' | 'declined'>(
+    'idle'
+  );
+  const canRespond =
+    notification.type === 'CONNECTION_REQUEST' && (!!connectionId || requestState !== 'idle');
+
+  const respond = async (accept: boolean) => {
+    if (!connectionId || requestState === 'busy') return;
+    setRequestState('busy');
+    try {
+      if (accept) await acceptConnectionRequest(connectionId);
+      else await rejectConnectionRequest(connectionId);
+      setRequestState(accept ? 'accepted' : 'declined');
+      if (!notification.isRead) onMarkRead(notification.id);
+      onConnectionResolved?.(connectionId);
+    } catch (error) {
+      console.error('Error responding to connection request:', error);
+      setRequestState('idle');
+    }
+  };
 
   const handleClick = () => {
     // Mark as read
@@ -146,64 +153,105 @@ function NotificationItem({ notification, onMarkRead }: NotificationItemProps) {
     }
   };
 
+  const message = getNotificationMessage(notification);
+  const actorName = notification.actor?.name || 'Someone';
+  const hasActor = message.startsWith(actorName);
+  const rest = hasActor ? message.slice(actorName.length) : ` ${message}`;
+  const created = new Date(notification.createdAt);
+  
   return (
-    <motion.button
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.18 }}
+      role="button"
+      tabIndex={0}
       onClick={handleClick}
-      className={`w-full flex items-start gap-3 p-4 text-left transition-colors ${
-        notification.isRead
-          ? 'bg-transparent hover:bg-gray-50 dark:hover:bg-neutral-800/50'
-          : 'bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30'
-      }`}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleClick();
+        }
+      }}
+      className="flex w-full cursor-pointer gap-3 py-4 text-left first:pt-0 last:pb-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
     >
-      {/* Avatar */}
-      <div className="relative flex-shrink-0">
-        <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200 dark:bg-neutral-700">
+      <div className="relative h-11 w-11 flex-shrink-0">
+        <div className="h-11 w-11 overflow-hidden rounded-full bg-muted">
           {notification.actor?.profileImage ? (
             <Image
               src={notification.actor.profileImage}
               alt={notification.actor.name}
-              width={48}
-              height={48}
-              className="w-full h-full object-cover"
+              width={44}
+              height={44}
+              className="h-full w-full object-cover"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center font-bold text-gray-500">
+            <div className="flex h-full w-full items-center justify-center text-sm font-semibold text-muted-foreground">
               {notification.actor?.name?.charAt(0).toUpperCase() || '?'}
             </div>
           )}
         </div>
-        <div className="absolute -bottom-1 -right-1 p-1 rounded-full bg-white dark:bg-neutral-900">
-          {getNotificationIcon(notification.type, notification.reactionType)}
-        </div>
       </div>
 
-      {/* Content */}
-      <div className="flex-1 min-w-0">
-        <p className="text-sm text-gray-900 dark:text-white">
-          {getNotificationMessage(notification)}
-        </p>
-        {notification.content && (
-          <p className="text-sm text-gray-500 dark:text-neutral-400 line-clamp-2 mt-1">
-            &quot;{notification.content}&quot;
-          </p>
+      <div className="flex min-w-0 flex-1 flex-col gap-2">
+        <div>
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-sm text-muted-foreground">
+              {hasActor && <span className="font-medium text-foreground">{actorName}</span>}
+              {rest}
+            </p>
+            {!notification.isRead && (
+              <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-emerald-500" />
+            )}
+          </div>
+          <div className="mt-0.5 flex items-center justify-between gap-2 text-xs text-muted-foreground">
+            <span>{format(created, isToday(created) ? "'Today' h:mm a" : 'EEEE h:mm a')}</span>
+            <span>{formatDistanceToNowStrict(created, { addSuffix: true })}</span>
+          </div>
+        </div>
+
+        {notification.content && !canRespond && (
+          <div className="line-clamp-3 rounded-lg bg-muted p-2.5 text-sm tracking-[-0.006em]">
+            {notification.content}
+          </div>
+        )}
+        {canRespond && (
+          <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+            {requestState === 'accepted' || requestState === 'declined' ? (
+              <span className="text-xs font-medium text-muted-foreground">
+                {requestState === 'accepted' ? 'Connected' : 'Request declined'}
+              </span>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  disabled={requestState === 'busy'}
+                  onClick={() => respond(false)}
+                  className="h-7 rounded-md border border-border bg-background px-3 text-xs font-medium text-foreground transition-colors hover:bg-accent disabled:opacity-50"
+                >
+                  Decline
+                </button>
+                <button
+                  type="button"
+                  disabled={requestState === 'busy'}
+                  onClick={() => respond(true)}
+                  className="h-7 rounded-md bg-foreground px-3 text-xs font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-50"
+                >
+                  Accept
+                </button>
+              </>
+            )}
+          </div>
         )}
         {notification.postPreview && !notification.content && (
-          <p className="text-sm text-gray-500 dark:text-neutral-400 line-clamp-1 mt-1">
+          <div className="line-clamp-1 text-xs text-muted-foreground">
             {notification.postPreview}
-          </p>
+          </div>
         )}
-        <p className="text-xs text-gray-400 dark:text-neutral-500 mt-1">
-          {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
-        </p>
       </div>
-
-      {/* Unread indicator */}
-      {!notification.isRead && (
-        <div className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0 mt-2" />
-      )}
-    </motion.button>
+    </motion.div>
   );
 }
 
@@ -217,6 +265,8 @@ export function Notifications({ isOpen = true, isDropdown = false }: Notificatio
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [activeTab, setActiveTab] = useState<FilterTab>('all');
+  const [pendingByUser, setPendingByUser] = useState<Record<string, string>>({});
 
   // Fetch notifications
   useEffect(() => {
@@ -230,6 +280,13 @@ export function Notifications({ isOpen = true, isDropdown = false }: Notificatio
           getUnreadNotificationCount(),
         ]);
         setNotifications((notifResponse as { notifications: Notification[] }).notifications);
+        getPendingRequests(1, 100)
+          .then((res) =>
+            setPendingByUser(
+              Object.fromEntries(res.connections.map((c) => [c.user.id, c.id]))
+            )
+          )
+          .catch(() => undefined);
         setUnreadCount((countRes as unknown as { count: number }).count);
       } catch (error) {
         console.error('Error fetching notifications:', error);
@@ -285,63 +342,114 @@ export function Notifications({ isOpen = true, isDropdown = false }: Notificatio
     }
   };
 
+  const tabCounts = useMemo(
+    () => ({
+      all: notifications.length,
+      unread: notifications.filter((n) => !n.isRead).length,
+      connections: notifications.filter((n) => matchesFilter(n, 'connections')).length,
+      mentions: notifications.filter((n) => matchesFilter(n, 'mentions')).length,
+    }),
+    [notifications]
+  );
+
+  const filtered = useMemo(
+    () => notifications.filter((n) => matchesFilter(n, activeTab)),
+    [notifications, activeTab]
+  );
+
   const content = (
     <>
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-neutral-800">
-        <div className="flex items-center gap-2">
-          <Bell className="w-5 h-5 text-gray-600 dark:text-neutral-400" />
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Notifications</h2>
-          {unreadCount > 0 && (
-            <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-blue-500 text-white">
-              {unreadCount}
-            </span>
-          )}
-        </div>
-
-        <div className="flex items-center gap-2">
-          {unreadCount > 0 && (
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-base font-semibold leading-none tracking-[-0.006em]">
+            Your notifications
+          </h2>
+          <div className="flex items-center gap-1">
             <button
               onClick={handleMarkAllRead}
-              className="flex items-center gap-1 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+              disabled={unreadCount === 0}
+              aria-label="Mark all as read"
+              title="Mark all as read"
+              className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-40"
             >
-              <CheckCheck className="w-4 h-4" />
-              Mark all read
+              <CheckCheck className="h-[18px] w-[18px]" />
             </button>
-          )}
-          {!isDropdown && (
-            <Link
-              href="/notifications/settings"
-              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors"
-            >
-              <Settings className="w-5 h-5 text-gray-500 dark:text-neutral-400" />
-            </Link>
-          )}
+            {!isDropdown && (
+              <Link
+                href="/notifications/settings"
+                aria-label="Notification settings"
+                className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+              >
+                <Settings className="h-[18px] w-[18px]" />
+              </Link>
+            )}
+          </div>
+        </div>
+
+        {/* Segmented tabs */}
+        <div
+          role="tablist"
+          className="flex w-full max-w-full items-center gap-1 overflow-x-auto rounded-md bg-muted p-1 text-muted-foreground [scrollbar-width:none]"
+        >
+          {FILTER_TABS.map((tab) => {
+            const active = activeTab === tab.value;
+            const count = tabCounts[tab.value];
+            return (
+              <button
+                key={tab.value}
+                role="tab"
+                aria-selected={active}
+                onClick={() => setActiveTab(tab.value)}
+                className={cn(
+                  'inline-flex h-8 items-center gap-2 whitespace-nowrap rounded-sm px-4 text-sm font-medium transition-all',
+                  active ? 'bg-background text-foreground shadow-sm' : 'hover:text-foreground'
+                )}
+              >
+                {tab.label}
+                <span className="flex size-5 items-center justify-center rounded-full bg-muted-foreground/30 text-xs text-foreground">
+                  {count}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {/* Notifications List */}
-      <div className={`overflow-y-auto ${isDropdown ? 'max-h-96' : 'flex-1'}`}>
+      {/* List */}
+      <div className={cn('overflow-y-auto', isDropdown ? 'max-h-96' : 'flex-1 pb-24')}>
         {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+          <div className="divide-y divide-dashed divide-border" aria-label="Loading notifications">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="flex animate-pulse gap-3 py-4 first:pt-0">
+                <div className="h-11 w-11 rounded-full bg-muted" />
+                <div className="flex-1 space-y-2 pt-1">
+                  <div className="h-3.5 w-3/4 rounded bg-muted" />
+                  <div className="h-3 w-1/3 rounded bg-muted/70" />
+                </div>
+              </div>
+            ))}
           </div>
-        ) : notifications.length === 0 ? (
-          <div className="text-center py-12 px-4">
-            <Bell className="w-12 h-12 mx-auto text-gray-300 dark:text-neutral-600 mb-2" />
-            <p className="text-gray-500 dark:text-neutral-400">No notifications yet</p>
-            <p className="text-sm text-gray-400 dark:text-neutral-500">
-              When someone interacts with your content, it will appear here
+        ) : filtered.length === 0 ? (
+          <div className="flex flex-col items-center justify-center space-y-2.5 py-12 text-center">
+            <div className="rounded-full bg-muted p-4">
+              <Bell className="h-6 w-6 text-muted-foreground" />
+            </div>
+            <p className="text-sm font-medium text-muted-foreground">
+              {activeTab === 'all' ? 'No notifications yet.' : 'Nothing here.'}
             </p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-100 dark:divide-neutral-800">
-            <AnimatePresence>
-              {notifications.map((notification) => (
+          <div className="divide-y divide-dashed divide-border">
+            <AnimatePresence initial={false}>
+              {filtered.map((notification) => (
                 <NotificationItem
                   key={notification.id}
                   notification={notification}
                   onMarkRead={handleMarkRead}
+                  connectionId={
+                    notification.actor ? pendingByUser[notification.actor.id] : undefined
+                  }
                 />
               ))}
             </AnimatePresence>
@@ -351,19 +459,16 @@ export function Notifications({ isOpen = true, isDropdown = false }: Notificatio
     </>
   );
 
+  const cardClass =
+    'flex w-full flex-col gap-6 rounded-xl border border-border bg-card p-4 text-card-foreground md:p-8';
+
   if (isDropdown) {
-    return (
-      <div className="w-80 bg-white dark:bg-neutral-900 rounded-xl border border-gray-200 dark:border-neutral-800 shadow-xl overflow-hidden">
-        {content}
-      </div>
-    );
+    return <div className={cn(cardClass, 'w-[26rem] max-w-[calc(100vw-2rem)] p-4 shadow-2xl md:p-5')}>{content}</div>;
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-neutral-950">
-      <div className="max-w-2xl mx-auto bg-white dark:bg-neutral-900 min-h-screen border-x border-gray-200 dark:border-neutral-800">
-        {content}
-      </div>
+    <div className="flex min-h-screen justify-center bg-background px-3 py-6 md:py-10">
+      <div className={cn(cardClass, 'max-w-[520px] self-start')}>{content}</div>
     </div>
   );
 }
