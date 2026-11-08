@@ -1,6 +1,7 @@
 import { AgentProvider } from '@/components/agent/AgentContext';
 import { AgentSurface } from '@/components/agent/AgentSurface';
 import ChatOutboxCoordinator from '@/components/chat/ChatOutboxCoordinator';
+import { MessagesDock } from '@/components/chat/MessagesDock';
 import EngagementProvider from '@/components/engagement/EngagementProvider';
 import { NotificationToastProvider } from '@/components/notifications/NotificationToast';
 import { AppInstallProvider } from '@/components/providers/AppInstallProvider';
@@ -162,6 +163,7 @@ export default function RootLayout({
                         <EngagementProvider>{children}</EngagementProvider>
                         <AgentSurface />
                         <VormexDock />
+                        <MessagesDock />
                       </PostingStatusProvider>
                     </AgentProvider>
                   </NotificationToastProvider>
