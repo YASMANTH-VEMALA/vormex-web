@@ -3,6 +3,12 @@ import { type NearbyUser } from '@/lib/api/location';
 import { Loader2, MapPin, UserPlus, X } from 'lucide-react';
 import Link from 'next/link';
 
+/** Distances arrive as whole km rounded up; never imply more precision than that. */
+export function formatNearbyDistance(distance: number | null | undefined): string {
+  if (typeof distance !== 'number' || !Number.isFinite(distance)) return 'Nearby';
+  return distance <= 1 ? 'Within 1 km' : `About ${Math.round(distance)} km away`;
+}
+
 export const NearbyUserProfileCard = ({
   user,
   onClose,
@@ -61,9 +67,7 @@ export const NearbyUserProfileCard = ({
         <div className="flex items-center gap-2 mb-4">
           <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full text-sm font-medium">
             <MapPin className="w-3.5 h-3.5" />
-            {user.distance < 1
-              ? `${Math.round(user.distance * 1000)}m away`
-              : `${user.distance.toFixed(1)}km away`}
+            {formatNearbyDistance(user.distance)}
           </span>
           {user.location?.city && (
             <span className="text-sm text-gray-500 dark:text-neutral-400">

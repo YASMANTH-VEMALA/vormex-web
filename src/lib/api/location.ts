@@ -16,6 +16,14 @@ export interface LocationData {
   lastUpdated: string | null;
 }
 
+export interface NearbyLocation {
+  city: string | null;
+  region: string | null;
+  country: string | null;
+  distanceBucket?: string | null;
+}
+
+/** Exact coordinates are never sent by the server; distance is rounded up to whole km. */
 export interface NearbyUser {
   id: string;
   name: string;
@@ -25,15 +33,12 @@ export interface NearbyUser {
   headline: string | null;
   skills: string[];
   interests: string[];
-  distance: number; // in km
+  distance: number | null; // whole km, rounded up
   isOnline: boolean;
-  location: {
-    lat: number;
-    lng: number;
-    city: string | null;
-    state: string | null;
-    country: string | null;
-  };
+  isVerified?: boolean;
+  /** Approximate map position (grid-snapped and offset by the server); not real coordinates. */
+  approxPosition?: { lat: number; lng: number } | null;
+  location: NearbyLocation | null;
 }
 
 export interface NearbyUsersResponse {
@@ -41,15 +46,17 @@ export interface NearbyUsersResponse {
   total?: number;
   page?: number;
   hasMore?: boolean;
-  locationRequired: boolean;
-  message?: string;
-  userLocation?: {
-    lat: number;
-    lng: number;
-    city: string | null;
-    state: string | null;
-    country: string | null;
-  };
+  radiusKm?: number;
+  /** No saved location yet: the client must send one first. */
+  locationRequired?: boolean;
+  /** The viewer turned location off in settings. */
+  locationPermissionDenied?: boolean;
+  /** Whether the viewer appears in other people's Nearby results. */
+  viewerSharing?: boolean;
+  /** Smallest larger radius that would return someone (only on empty first pages). */
+  suggestedRadiusKm?: number | null;
+  yourLocation?: NearbyLocation | null;
+  yourPosition?: { lat: number; lng: number };
 }
 
 export interface LocationSettings {
@@ -68,13 +75,13 @@ export async function updateLocation(
   lat: number,
   lng: number,
   accuracy?: number,
-  activity?: string
+  place?: { city: string; state?: string | null; country?: string | null; countryCode?: string | null }
 ): Promise<LocationData> {
   return apiClient.post('/location/update', {
     lat,
     lng,
     accuracy,
-    activity,
+    ...(place ? { city: place.city, state: place.state, country: place.country, countryCode: place.countryCode } : {}),
   });
 }
 
@@ -85,27 +92,22 @@ export async function getMyLocation(): Promise<LocationData> {
   return apiClient.get('/location/me');
 }
 
+/** Radius choices (km); the server accepts 1-200. */
+export const NEARBY_RADIUS_OPTIONS = [5, 10, 25, 50, 100, 200] as const;
+
 /**
- * Get nearby users
- * @param radius - Search radius in km (default: 50)
- * @param limit - Max number of results (default: 20)
- * @param lat - Optional: device latitude for real-time search
- * @param lng - Optional: device longitude for real-time search
+ * Get nearby users, measured from the viewer's last saved location.
+ * @param radius - Search radius in km (1-200)
+ * @param limit - Page size (max 50)
  * @param search - Optional: filter by name, username, college, skills
  */
 export async function getNearbyUsers(
   radius: number = 50,
-  limit: number = 20,
-  lat?: number,
-  lng?: number,
+  limit: number = 50,
   search?: string,
   page: number = 1
 ): Promise<NearbyUsersResponse> {
   const params: Record<string, string | number> = { radius, limit, page };
-  if (lat != null && lng != null) {
-    params.lat = lat;
-    params.lng = lng;
-  }
   if (search?.trim()) params.search = search.trim();
   return apiClient.get('/location/nearby', { params });
 }
