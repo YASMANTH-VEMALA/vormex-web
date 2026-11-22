@@ -5,7 +5,30 @@ export interface StoryMusic {
   thumbnail: string;
   startOffset: number;
   duration: number;
+  /** Sticker layout as fractions of the story frame. Older stories omit it. */
+  placement?: StoryMusicPlacement;
 }
+
+export type StoryMusicStyle = 'classic' | 'compact' | 'cover' | 'minimal';
+
+export interface StoryMusicPlacement {
+  x: number;
+  y: number;
+  scale: number;
+  rotation: number;
+  style: StoryMusicStyle;
+}
+
+export const MUSIC_STICKER_STYLES: StoryMusicStyle[] = ['classic', 'compact', 'cover', 'minimal'];
+
+// Matches where the sticker sat before placement existed, so old stories look unchanged.
+export const DEFAULT_MUSIC_PLACEMENT: StoryMusicPlacement = {
+  x: 0.5,
+  y: 0.18,
+  scale: 1,
+  rotation: -3,
+  style: 'classic',
+};
 
 export interface MusicSearchResult {
   id: string;

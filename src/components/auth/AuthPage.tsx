@@ -10,7 +10,7 @@ export function AuthPage() {
   const auth = useAuthForm();
   return (
     <main className={styles.page}>
-      <div className={styles.main}>
+      <div className={styles.main} data-auth-signup={auth.isSignUp ? 'true' : 'false'}>
         <AuthShowcase />
         <AuthPanel auth={auth} />
       </div>

@@ -2,6 +2,7 @@
 import { Image as ImageIcon, Pencil, Plus, Trash2, Video, X } from 'lucide-react';
 import React from 'react';
 import { ArticleEditor } from './ArticleEditor';
+import { DefaultVideoPicker } from './DefaultVideoPicker';
 
 interface CreatePostFieldsProps {
   CELEBRATION_TYPES: {
@@ -17,6 +18,7 @@ interface CreatePostFieldsProps {
   colorPickerRef: React.RefObject<HTMLDivElement | null>;
   content: string;
   contentRef: React.RefObject<HTMLTextAreaElement | null>;
+  defaultVideoId: string | null;
   error: string | null;
   fileInputRef: React.RefObject<HTMLInputElement | null>;
   handleAddTag: () => void;
@@ -43,6 +45,7 @@ interface CreatePostFieldsProps {
   postType: import('@/types/post').PostType;
   removeImage: (index: number) => void;
   removePollOption: (index: number) => void;
+  setDefaultVideoId: React.Dispatch<React.SetStateAction<string | null>>;
   setArticleTags: React.Dispatch<React.SetStateAction<string[]>>;
   setArticleTitle: React.Dispatch<React.SetStateAction<string>>;
   setCelebrationType: React.Dispatch<
@@ -74,6 +77,7 @@ export function CreatePostFields({
   colorPickerRef,
   content,
   contentRef,
+  defaultVideoId,
   error,
   fileInputRef,
   handleAddTag,
@@ -100,6 +104,7 @@ export function CreatePostFields({
   postType,
   removeImage,
   removePollOption,
+  setDefaultVideoId,
   setArticleTags,
   setArticleTitle,
   setCelebrationType,
@@ -144,6 +149,8 @@ export function CreatePostFields({
         showColorPicker={showColorPicker}
         showMentionDropdown={showMentionDropdown}
       />
+
+      <DefaultVideoPicker defaultVideoId={defaultVideoId} setDefaultVideoId={setDefaultVideoId} />
 
       {/* Post Type Specific Content */}
       {postType === 'IMAGE' && (

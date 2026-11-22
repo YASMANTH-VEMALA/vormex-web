@@ -18,26 +18,27 @@
  * there) and a floating card from `sm` up.
  */
 export const FEED_SURFACE = [
-  'overflow-hidden bg-white dark:bg-neutral-900',
-  'border-y border-gray-200/80 dark:border-neutral-800/80',
-  'sm:rounded-[20px] sm:border',
-  'sm:shadow-[0_18px_45px_-40px_rgba(15,23,42,0.55)]',
+  'overflow-hidden bg-white dark:bg-white/[0.04] dark:backdrop-blur-xl',
+  'border-y border-gray-200/80 dark:border-white/10',
+  'sm:rounded-[22px] sm:border',
+  'sm:shadow-[0_1px_2px_rgba(15,23,42,0.04),0_18px_40px_-28px_rgba(15,23,42,0.35)]',
+  'transition-shadow duration-200 sm:hover:shadow-[0_1px_2px_rgba(15,23,42,0.05),0_24px_48px_-28px_rgba(15,23,42,0.42)]',
 ].join(' ');
 
 /** Rounded at every breakpoint — sidebar cards, the left nav, the composer. */
 export const PANEL_SURFACE = [
-  'overflow-hidden rounded-[18px] bg-white dark:bg-neutral-900',
-  'border border-gray-200/80 dark:border-neutral-800/80',
-  'shadow-[0_18px_45px_-40px_rgba(15,23,42,0.55)]',
+  'overflow-hidden rounded-[18px] bg-white dark:bg-white/[0.04] dark:backdrop-blur-xl',
+  'border border-gray-200/80 dark:border-white/10',
+  'shadow-[0_1px_2px_rgba(15,23,42,0.04),0_18px_40px_-28px_rgba(15,23,42,0.35)]',
 ].join(' ');
 
 /** The small cards inside a horizontal rail (people, reels, jobs, events). */
 export const RAIL_CARD = [
   'flex-shrink-0 overflow-hidden rounded-2xl',
-  'border border-gray-200/70 bg-white dark:border-neutral-800 dark:bg-neutral-900/60',
+  'border border-gray-200/70 bg-white dark:border-white/10 dark:bg-white/[0.04]',
   'transition-all duration-200',
   'hover:-translate-y-0.5 hover:border-gray-300 hover:shadow-md',
-  'dark:hover:border-neutral-700',
+  'dark:hover:border-white/25',
 ].join(' ');
 
 /** Section label above a rail. */

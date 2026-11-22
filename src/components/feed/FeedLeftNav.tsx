@@ -15,6 +15,7 @@ import {
   Sparkles,
   Users,
 } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import React from 'react';
@@ -63,19 +64,28 @@ export function FeedLeftNav() {
       {user && (
         <Link
           href="/profile"
-          className={`${PANEL_SURFACE} flex items-center gap-3 p-3 transition-colors hover:bg-gray-50 dark:hover:bg-neutral-800/60`}
+          className={`${PANEL_SURFACE} group block transition-shadow hover:shadow-md`}
         >
-          <UserAvatar
-            imageSrc={user.profileImage}
-            name={user.name}
-            className="h-10 w-10 flex-shrink-0 bg-gray-200 text-base font-bold text-gray-500 dark:bg-neutral-700"
-            fallbackClassName="text-base font-bold"
-          />
-          <div className="min-w-0">
-            <p className="truncate text-[13.5px] font-semibold text-gray-900 dark:text-white">
+          <div className="relative h-16 bg-neutral-100 dark:bg-neutral-800">
+            <Image
+              src="/vormex-profile-cover.png"
+              alt=""
+              fill
+              sizes="228px"
+              className="object-cover object-center"
+            />
+          </div>
+          <div className="-mt-7 px-4 pb-4">
+            <UserAvatar
+              imageSrc={user.profileImage}
+              name={user.name}
+              className="h-14 w-14 flex-shrink-0 bg-gray-200 text-lg font-bold text-gray-500 ring-4 ring-white dark:bg-neutral-700 dark:ring-neutral-900"
+              fallbackClassName="text-lg font-bold"
+            />
+            <p className="mt-2 truncate text-sm font-semibold text-gray-900 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400">
               {user.name}
             </p>
-            <p className="truncate text-[11.5px] text-gray-500 dark:text-neutral-400">
+            <p className="truncate text-xs text-gray-500 dark:text-neutral-400">
               View your profile
             </p>
           </div>
@@ -92,9 +102,9 @@ export function FeedLeftNav() {
                 <Link
                   href={item.href}
                   aria-current={active ? 'page' : undefined}
-                  className={`flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-colors ${
+                  className={`relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
                     active
-                      ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300'
+                      ? 'bg-blue-50 font-semibold text-blue-700 before:absolute before:left-0 before:top-2 before:bottom-2 before:w-[3px] before:rounded-full before:bg-blue-600 dark:bg-blue-950/50 dark:text-blue-300'
                       : 'text-gray-700 hover:bg-gray-100 dark:text-neutral-300 dark:hover:bg-neutral-800/70'
                   }`}
                 >

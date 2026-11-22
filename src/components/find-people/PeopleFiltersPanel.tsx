@@ -1,13 +1,5 @@
 'use client';
-import {
-  BookOpen,
-  Briefcase,
-  CalendarDays,
-  GraduationCap,
-  MapPin,
-  RotateCcw,
-  SlidersHorizontal,
-} from 'lucide-react';
+import { BookOpen, CalendarDays, GraduationCap, MapPin } from 'lucide-react';
 import React from 'react';
 
 interface PeopleFiltersPanelProps {
@@ -22,12 +14,10 @@ interface PeopleFiltersPanelProps {
   filterOptions: import('@/lib/api/people').FilterOptions | null;
   hasActiveFilters: boolean;
   onClearAll: () => void;
-  openToOpportunities: boolean;
   selectedBranch: string;
   selectedCollege: string;
   selectedLocation: string;
   selectedYear: number | undefined;
-  setOpenToOpportunities: (v: boolean) => void;
   setSelectedBranch: (v: string) => void;
   setSelectedCollege: (v: string) => void;
   setSelectedLocation: (v: string) => void;
@@ -40,34 +30,32 @@ export function PeopleFiltersPanel({
   filterOptions,
   hasActiveFilters,
   onClearAll,
-  openToOpportunities,
   selectedBranch,
   selectedCollege,
   selectedLocation,
   selectedYear,
-  setOpenToOpportunities,
   setSelectedBranch,
   setSelectedCollege,
   setSelectedLocation,
   setSelectedYear,
   userCollege,
 }: PeopleFiltersPanelProps) {
+  const activeCount = [selectedCollege, selectedBranch, selectedYear, selectedLocation].filter(
+    Boolean
+  ).length;
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between border-b border-gray-100 pb-3 dark:border-neutral-800">
-        <h2 className="flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-white">
-          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400">
-            <SlidersHorizontal className="h-4 w-4" />
-          </span>
-          Filters
+        <h2 className="text-sm font-semibold text-gray-900 dark:text-white">
+          Filters{activeCount > 0 ? ` (${activeCount})` : ''}
         </h2>
         {hasActiveFilters && (
           <button
             onClick={onClearAll}
-            className="flex items-center gap-1 text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline"
+            className="text-xs font-medium text-gray-500 underline-offset-2 hover:text-gray-900 hover:underline dark:text-neutral-400 dark:hover:text-white"
           >
-            <RotateCcw className="w-3 h-3" />
-            Reset all
+            Clear all
           </button>
         )}
       </div>
@@ -140,28 +128,6 @@ export function PeopleFiltersPanel({
           ))}
         </FilterSelect>
       )}
-
-      <label className="flex cursor-pointer select-none items-center justify-between gap-3 rounded-xl border border-gray-200 bg-gray-50 p-3 dark:border-neutral-700 dark:bg-neutral-800">
-        <span className="flex items-center gap-1.5 text-sm font-medium text-gray-700 dark:text-neutral-300">
-          <Briefcase className="w-4 h-4 text-gray-500 dark:text-neutral-400" />
-          Open to opportunities
-        </span>
-        <button
-          type="button"
-          role="switch"
-          aria-checked={openToOpportunities}
-          onClick={() => setOpenToOpportunities(!openToOpportunities)}
-          className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors ${
-            openToOpportunities ? 'bg-blue-600' : 'bg-gray-300 dark:bg-neutral-700'
-          }`}
-        >
-          <span
-            className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform ${
-              openToOpportunities ? 'translate-x-[18px]' : 'translate-x-1'
-            }`}
-          />
-        </button>
-      </label>
     </div>
   );
 }

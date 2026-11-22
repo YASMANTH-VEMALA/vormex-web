@@ -180,7 +180,7 @@ export function StoryCarousel({ onOpenStory, onCreateStory }: StoryCarouselProps
   }
 
   return (
-    <div className="group relative w-full py-3 sm:py-4">
+    <div className="group relative w-full py-2.5 sm:py-3">
       {/* Left Scroll Button */}
       <AnimatePresence>
         {canScrollLeft && (
@@ -279,8 +279,8 @@ export function StoryCarousel({ onOpenStory, onCreateStory }: StoryCarouselProps
           nothing, which read as the loudest element on an empty feed.
         */}
         {otherStoryGroups.length === 0 && (
-          <p className="flex flex-1 items-center px-1 text-[11.5px] leading-snug text-gray-400 dark:text-neutral-500">
-            Post a story to start your streak — your network&apos;s stories show up here.
+          <p className="my-auto flex-1 rounded-2xl bg-gray-50 px-4 py-3 text-xs leading-snug text-gray-500 dark:bg-neutral-800/50 dark:text-neutral-400">
+            Share a moment to start your streak. Stories from your network appear here.
           </p>
         )}
       </div>

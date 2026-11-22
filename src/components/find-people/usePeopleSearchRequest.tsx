@@ -14,7 +14,6 @@ import React, { useEffect } from 'react';
 interface usePeopleSearchRequestOptions {
   activeFilters: import('@/lib/api/people').PeopleFilters;
   activePeopleRequestKey: string;
-  activeTab: import('@/components/find-people/FindPeople.types').TabType;
   debouncedSearchQuery: string;
   hasActiveFilters: boolean;
   initialData:
@@ -23,10 +22,6 @@ interface usePeopleSearchRequestOptions {
         total: number;
         hasMore: boolean;
         nextCursor: string | null | undefined;
-        suggestions: never[];
-        suggestionsHasMore: boolean;
-        colleaguePeople: never[];
-        colleagueHasMore: boolean;
       }
     | undefined;
   initialLoading: boolean;
@@ -53,7 +48,6 @@ interface usePeopleSearchRequestOptions {
 export function usePeopleSearchRequest({
   activeFilters,
   activePeopleRequestKey,
-  activeTab,
   debouncedSearchQuery,
   hasActiveFilters,
   initialData,
@@ -80,7 +74,6 @@ export function usePeopleSearchRequest({
 }: usePeopleSearchRequestOptions) {
   useEffect(() => {
     const requestVersion = ++searchRequestVersionRef.current;
-    if (activeTab !== 'all') return;
 
     const controller = new AbortController();
     setPage(1);
@@ -179,7 +172,6 @@ export function usePeopleSearchRequest({
   }, [
     activeFilters,
     activePeopleRequestKey,
-    activeTab,
     debouncedSearchQuery,
     hasActiveFilters,
     initialData,

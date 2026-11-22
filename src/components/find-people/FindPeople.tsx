@@ -1,24 +1,18 @@
 'use client';
 import { ActivePeopleFilters } from './ActivePeopleFilters';
 import { FindPeopleView } from './FindPeopleView';
-import { getActiveTabFromParam } from './PeopleFilterControls';
 
-import type { FilterPanelProps, FindPeopleInitialCache, TabType } from './FindPeople.types';
-import { useCampusPeople } from './useCampusPeople';
+import type { FilterPanelProps, FindPeopleInitialCache } from './FindPeople.types';
 import { usePeoplePagination } from './usePeoplePagination';
 import { usePeopleRelationshipUpdates } from './usePeopleRelationshipUpdates';
 import { usePeopleSearchRequest } from './usePeopleSearchRequest';
-import { useSuggestedPeople } from './useSuggestedPeople';
 export type {
   FilterPanelProps,
   FilterSelectProps,
   FindPeopleInitialCache,
-  TabItem,
-  TabType,
 } from './FindPeople.types';
 
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
-import { useSyncedState } from '@/hooks/useSyncedState';
 import {
   getFilterOptions,
   getPeople,
@@ -43,7 +37,6 @@ import {
 import { FIND_PEOPLE_STALE_TIME, queryKeys } from '@/lib/queryKeys';
 import { isApiTimeoutError } from '@/lib/utils/errorHandler';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 function appendUniquePeople(
@@ -65,19 +58,13 @@ function isCancelledRequest(error: unknown): boolean {
 // ─────────────────────────────────────────────────────────────────────────────
 
 function FindPeopleSession() {
-  const searchParams = useSearchParams();
   const queryClient = useQueryClient();
   const { user } = useAuth();
-  const tabParam = searchParams.get('tab');
   const cachedInitialData = queryClient.getQueryData<FindPeopleInitialCache>(
     queryKeys.findPeopleInitial(user?.id)
   );
   const cachedFilterOptions = queryClient.getQueryData<FilterOptions>(
     queryKeys.peopleFilterOptions(user?.id)
-  );
-  const [activeTab, setActiveTab] = useSyncedState<TabType>(
-    getActiveTabFromParam(tabParam),
-    tabParam
   );
   const [searchQuery, setSearchQuery] = useState('');
   const [searchFocused, setSearchFocused] = useState(false);
@@ -90,16 +77,8 @@ function FindPeopleSession() {
     readRecentPeopleProfiles(user?.id)
   );
   const [people, setPeople] = useState<PersonCardType[]>(() => cachedInitialData?.people ?? []);
-  const [suggestions, setSuggestions] = useState<PersonCardType[]>(
-    () => cachedInitialData?.suggestions ?? []
-  );
-  const [colleaguePeople, setColleaguePeople] = useState<PersonCardType[]>(
-    () => cachedInitialData?.colleaguePeople ?? []
-  );
   const [loading, setLoading] = useState(() => !cachedInitialData);
-  const [sectionLoading, setSectionLoading] = useState(false);
   const [sectionError, setSectionError] = useState<string | null>(null);
-  const [sectionRetryVersion, setSectionRetryVersion] = useState(0);
   const [loadingMore, setLoadingMore] = useState(false);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
 
@@ -108,26 +87,11 @@ function FindPeopleSession() {
   const [nextCursor, setNextCursor] = useState<string | null>(
     () => cachedInitialData?.nextCursor ?? null
   );
-  const [suggestionsPage, setSuggestionsPage] = useState(1);
-  const [suggestionsHasMore, setSuggestionsHasMore] = useState(
-    () => cachedInitialData?.suggestionsHasMore ?? false
-  );
-  const [suggestionsLoaded, setSuggestionsLoaded] = useState(() =>
-    Boolean(cachedInitialData?.suggestions.length)
-  );
-  const [colleaguePage, setColleaguePage] = useState(1);
-  const [colleagueHasMore, setColleagueHasMore] = useState(
-    () => cachedInitialData?.colleagueHasMore ?? false
-  );
-  const [colleagueLoaded, setColleagueLoaded] = useState(() =>
-    Boolean(cachedInitialData?.colleaguePeople.length)
-  );
   const [total, setTotal] = useState(() => cachedInitialData?.total ?? 0);
   const [selectedCollege, setSelectedCollege] = useState<string>('');
   const [selectedBranch, setSelectedBranch] = useState<string>('');
   const [selectedYear, setSelectedYear] = useState<number | undefined>(undefined);
   const [selectedLocation, setSelectedLocation] = useState<string>('');
-  const [openToOpportunities, setOpenToOpportunities] = useState(false);
   const debouncedSearchQuery = useDebouncedValue(searchQuery, SEARCH_DEBOUNCE_MS);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
@@ -136,7 +100,7 @@ function FindPeopleSession() {
   const inFlightCursorsRef = useRef(new Set<string>());
   const normalizedSearchQuery = normalizePeopleSearch(searchQuery);
   const normalizedDebouncedSearch = normalizePeopleSearch(debouncedSearchQuery);
-  const isSearchMode = activeTab === 'all' && (searchFocused || normalizedSearchQuery.length > 0);
+  const isSearchMode = searchFocused || normalizedSearchQuery.length > 0;
   const isAuthoritativeSearch = normalizedDebouncedSearch.length >= SEARCH_MIN_CHARACTERS;
 
   // Filters auto-apply — no apply button, LinkedIn-style
@@ -146,9 +110,8 @@ function FindPeopleSession() {
       branch: selectedBranch || undefined,
       graduationYear: selectedYear,
       location: selectedLocation || undefined,
-      isOpenToOpportunities: openToOpportunities || undefined,
     }),
-    [selectedCollege, selectedBranch, selectedYear, selectedLocation, openToOpportunities]
+    [selectedCollege, selectedBranch, selectedYear, selectedLocation]
   );
   const activePeopleRequestKey = useMemo(
     () =>
@@ -160,14 +123,13 @@ function FindPeopleSession() {
     [activeFilters, isAuthoritativeSearch, normalizedDebouncedSearch, user?.id]
   );
   const hasActiveFilters = Boolean(
-    selectedCollege || selectedBranch || selectedYear || selectedLocation || openToOpportunities
+    selectedCollege || selectedBranch || selectedYear || selectedLocation
   );
   const activeFilterCount = [
     selectedCollege,
     selectedBranch,
     selectedYear,
     selectedLocation,
-    openToOpportunities,
   ].filter(Boolean).length;
 
   // Cached initial data - instant when navigating back from profile
@@ -185,10 +147,6 @@ function FindPeopleSession() {
         total: allPeopleRes.total,
         hasMore: allPeopleRes.hasMore,
         nextCursor: allPeopleRes.nextCursor,
-        suggestions: [],
-        suggestionsHasMore: false,
-        colleaguePeople: [],
-        colleagueHasMore: false,
       };
     },
     staleTime: FIND_PEOPLE_STALE_TIME,
@@ -199,40 +157,15 @@ function FindPeopleSession() {
     queryKey: queryKeys.peopleFilterOptions(user?.id),
     queryFn: getFilterOptions,
     staleTime: FIND_PEOPLE_STALE_TIME,
-    enabled: activeTab === 'all' && !isSearchMode,
+    enabled: !isSearchMode,
   });
 
   const filterOptions = filterOptionsData ?? cachedFilterOptions ?? null;
-  useSuggestedPeople({
-    activeTab,
-    sectionRetryVersion,
-    setSectionError,
-    setSectionLoading,
-    setSuggestions,
-    setSuggestionsHasMore,
-    setSuggestionsLoaded,
-    setSuggestionsPage,
-    suggestionsLoaded,
-  });
-
-  useCampusPeople({
-    activeTab,
-    colleagueLoaded,
-    sectionRetryVersion,
-    setColleagueHasMore,
-    setColleagueLoaded,
-    setColleaguePage,
-    setColleaguePeople,
-    setSectionError,
-    setSectionLoading,
-  });
-
   // Indexed search is authoritative. Every new query aborts the prior request and
   // stale responses are rejected even if a transport cannot be cancelled promptly.
   usePeopleSearchRequest({
     activeFilters,
     activePeopleRequestKey,
-    activeTab,
     debouncedSearchQuery,
     hasActiveFilters,
     initialData,
@@ -264,17 +197,13 @@ function FindPeopleSession() {
     setSelectedBranch('');
     setSelectedYear(undefined);
     setSelectedLocation('');
-    setOpenToOpportunities(false);
   };
 
   // Load more people
   const { loadMore } = usePeoplePagination({
     activeFilters,
     activePeopleRequestKey,
-    activeTab,
     appendUniquePeople,
-    colleagueHasMore,
-    colleaguePage,
     hasMore,
     inFlightCursorsRef,
     isAuthoritativeSearch,
@@ -286,20 +215,12 @@ function FindPeopleSession() {
     queryClient,
     requestedCursorsRef,
     searchRequestVersionRef,
-    setColleagueHasMore,
-    setColleaguePage,
-    setColleaguePeople,
     setHasMore,
     setLoadingMore,
     setNextCursor,
     setPage,
     setPeople,
     setSectionError,
-    setSuggestions,
-    setSuggestionsHasMore,
-    setSuggestionsPage,
-    suggestionsHasMore,
-    suggestionsPage,
     user,
   });
 
@@ -311,11 +232,7 @@ function FindPeopleSession() {
 
     observerRef.current = new IntersectionObserver(
       (entries) => {
-        const canLoad =
-          (activeTab === 'all' && hasMore) ||
-          (activeTab === 'suggestions' && suggestionsHasMore) ||
-          (activeTab === 'college' && colleagueHasMore);
-        if (entries[0].isIntersecting && canLoad && !loadingMore) {
+        if (entries[0].isIntersecting && hasMore && !loadingMore) {
           void loadMore();
         }
       },
@@ -331,17 +248,13 @@ function FindPeopleSession() {
         observerRef.current.disconnect();
       }
     };
-  }, [activeTab, colleagueHasMore, hasMore, loadMore, loadingMore, suggestionsHasMore]);
+  }, [hasMore, loadMore, loadingMore]);
 
   // Handle connection status change
   const { handleConnectionChange } = usePeopleRelationshipUpdates({
-    colleaguePeople,
     people,
     queryClient,
-    setColleaguePeople,
     setPeople,
-    setSuggestions,
-    suggestions,
   });
 
   const handleProfileIntent = useCallback(
@@ -351,20 +264,8 @@ function FindPeopleSession() {
     [user?.id]
   );
 
-  // Get current display list (dedupe by id to avoid React key errors from API overlap)
-  const getDisplayedPeople = () => {
-    switch (activeTab) {
-      case 'suggestions':
-        return suggestions;
-      case 'college':
-        return colleaguePeople;
-      default:
-        return people;
-    }
-  };
-
   const displayedPeople = (() => {
-    const list = getDisplayedPeople();
+    const list = people;
     const seen = new Set<string>();
     return list.filter((p) => {
       if (seen.has(p.id)) return false;
@@ -373,32 +274,20 @@ function FindPeopleSession() {
     });
   })();
 
-  const isSearchResultsVisible = activeTab === 'all' && isSearchMode;
+  const isSearchResultsVisible = isSearchMode;
   const isSearchDebouncing =
     normalizedSearchQuery.length >= SEARCH_MIN_CHARACTERS &&
     normalizedSearchQuery !== normalizedDebouncedSearch;
-  const isGridTab =
-    (activeTab === 'all' && !isSearchMode) ||
-    activeTab === 'suggestions' ||
-    activeTab === 'college';
-  const isGridLoading = loading || sectionLoading;
-  const activeGridHasMore =
-    (activeTab === 'all' && hasMore) ||
-    (activeTab === 'suggestions' && suggestionsHasMore) ||
-    (activeTab === 'college' && colleagueHasMore);
-  const showSidebar = activeTab === 'all' && !isSearchMode;
+  const isGridTab = !isSearchMode;
+  const isGridLoading = loading;
+  const activeGridHasMore = hasMore;
+  const showSidebar = !isSearchMode;
   const prefetchIndex = Math.max(0, displayedPeople.length - PREFETCH_REMAINING_ITEMS);
 
   const retryActiveGrid = () => {
     setSectionError(null);
-    if (activeTab === 'all') {
-      // Only load-more failures use this error state for the main grid.
-      void loadMore(true);
-      return;
-    }
-    if (activeTab === 'suggestions') setSuggestionsLoaded(false);
-    if (activeTab === 'college') setColleagueLoaded(false);
-    setSectionRetryVersion((version) => version + 1);
+    // Only load-more failures use this error state for the main grid.
+    void loadMore(true);
   };
 
   const filterPanelProps: FilterPanelProps = {
@@ -412,20 +301,16 @@ function FindPeopleSession() {
     setSelectedYear,
     selectedLocation,
     setSelectedLocation,
-    openToOpportunities,
-    setOpenToOpportunities,
     hasActiveFilters,
     onClearAll: clearFilters,
   };
 
   const activeFilterChips = (
     <ActivePeopleFilters
-      openToOpportunities={openToOpportunities}
       selectedBranch={selectedBranch}
       selectedCollege={selectedCollege}
       selectedLocation={selectedLocation}
       selectedYear={selectedYear}
-      setOpenToOpportunities={setOpenToOpportunities}
       setSelectedBranch={setSelectedBranch}
       setSelectedCollege={setSelectedCollege}
       setSelectedLocation={setSelectedLocation}
@@ -438,7 +323,6 @@ function FindPeopleSession() {
       activeFilterChips={activeFilterChips}
       activeFilterCount={activeFilterCount}
       activeGridHasMore={activeGridHasMore}
-      activeTab={activeTab}
       clearFilters={clearFilters}
       displayedPeople={displayedPeople}
       filterPanelProps={filterPanelProps}
@@ -467,11 +351,9 @@ function FindPeopleSession() {
       searchError={searchError}
       searchQuery={searchQuery}
       sectionError={sectionError}
-      setActiveTab={setActiveTab}
       setSearchFocused={setSearchFocused}
       setSearchQuery={setSearchQuery}
       setSearchRetryVersion={setSearchRetryVersion}
-      setSectionError={setSectionError}
       setShowMobileFilters={setShowMobileFilters}
       showMobileFilters={showMobileFilters}
       showSidebar={showSidebar}

@@ -18,6 +18,7 @@ import Image from 'next/image';
 import React from 'react';
 import { StoryMusicPicker } from './StoryMusicPicker';
 import { StoryDetailsPanel } from './StoryDetailsPanel';
+import type { StoryBackdrop } from './StoryMusicPlacementEditor';
 import type { StoryMusic } from '@/lib/stories/music';
 
 interface StoryCreatorViewProps {
@@ -98,6 +99,10 @@ export function StoryCreatorView({
   textContent,
   visibility,
 }: StoryCreatorViewProps) {
+  const backdrop: StoryBackdrop =
+    storyType === 'text'
+      ? { type: 'text', background: textBackground, text: textContent }
+      : { type: storyType === 'video' ? 'video' : 'image', src: mediaPreview };
   return (
     <AnimatePresence>
       <motion.div
@@ -334,7 +339,7 @@ export function StoryCreatorView({
 
             {step === 'edit' && (
               <div className="px-6 py-4">
-                <StoryMusicPicker music={music} onChange={setMusic} />
+                <StoryMusicPicker music={music} onChange={setMusic} backdrop={backdrop} />
               </div>
             )}
             {step === 'details' && (
@@ -347,6 +352,7 @@ export function StoryCreatorView({
                 setVisibility={setVisibility}
                 music={music}
                 setMusic={setMusic}
+                backdrop={backdrop}
                 linkUrl={linkUrl}
                 setLinkUrl={setLinkUrl}
                 linkTitle={linkTitle}

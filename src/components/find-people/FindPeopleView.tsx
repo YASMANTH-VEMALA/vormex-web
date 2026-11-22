@@ -3,14 +3,13 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { X } from 'lucide-react';
 import type * as React from 'react';
 import { PeopleBrowseLayout } from './PeopleBrowseLayout';
-import { FilterPanel, tabItems } from './PeopleFilterControls';
+import { FilterPanel } from './PeopleFilterControls';
 import { PeopleSearchHeader } from './PeopleSearchHeader';
 
 interface FindPeopleViewProps {
   activeFilterChips: React.JSX.Element;
   activeFilterCount: number;
   activeGridHasMore: boolean;
-  activeTab: import('@/components/find-people/FindPeople.types').TabType;
   clearFilters: () => void;
   displayedPeople: import('@/lib/api/people').PersonCard[];
   filterPanelProps: import('@/components/find-people/FindPeople.types').FilterPanelProps;
@@ -44,10 +43,6 @@ interface FindPeopleViewProps {
         total: number;
         hasMore: boolean;
         nextCursor: string | null | undefined;
-        suggestions: never[];
-        suggestionsHasMore: boolean;
-        colleaguePeople: never[];
-        colleagueHasMore: boolean;
       },
       Error
     >
@@ -56,13 +51,9 @@ interface FindPeopleViewProps {
   searchError: string | null;
   searchQuery: string;
   sectionError: string | null;
-  setActiveTab: React.Dispatch<
-    React.SetStateAction<import('@/components/find-people/FindPeople.types').TabType>
-  >;
   setSearchFocused: React.Dispatch<React.SetStateAction<boolean>>;
   setSearchQuery: React.Dispatch<React.SetStateAction<string>>;
   setSearchRetryVersion: React.Dispatch<React.SetStateAction<number>>;
-  setSectionError: React.Dispatch<React.SetStateAction<string | null>>;
   setShowMobileFilters: React.Dispatch<React.SetStateAction<boolean>>;
   showMobileFilters: boolean;
   showSidebar: boolean;
@@ -74,7 +65,6 @@ export function FindPeopleView({
   activeFilterChips,
   activeFilterCount,
   activeGridHasMore,
-  activeTab,
   clearFilters,
   displayedPeople,
   filterPanelProps,
@@ -103,11 +93,9 @@ export function FindPeopleView({
   searchError,
   searchQuery,
   sectionError,
-  setActiveTab,
   setSearchFocused,
   setSearchQuery,
   setSearchRetryVersion,
-  setSectionError,
   setShowMobileFilters,
   showMobileFilters,
   showSidebar,
@@ -119,18 +107,14 @@ export function FindPeopleView({
       {/* Header */}
       <PeopleSearchHeader
         activeFilterCount={activeFilterCount}
-        activeTab={activeTab}
         hasActiveFilters={hasActiveFilters}
         isAuthoritativeSearch={isAuthoritativeSearch}
         isSearchMode={isSearchMode}
         loading={loading}
         searchQuery={searchQuery}
-        setActiveTab={setActiveTab}
         setSearchFocused={setSearchFocused}
         setSearchQuery={setSearchQuery}
-        setSectionError={setSectionError}
         setShowMobileFilters={setShowMobileFilters}
-        tabItems={tabItems}
       />
 
       {/* Body */}
@@ -138,7 +122,6 @@ export function FindPeopleView({
         FilterPanel={FilterPanel}
         activeFilterChips={activeFilterChips}
         activeGridHasMore={activeGridHasMore}
-        activeTab={activeTab}
         clearFilters={clearFilters}
         displayedPeople={displayedPeople}
         filterPanelProps={filterPanelProps}

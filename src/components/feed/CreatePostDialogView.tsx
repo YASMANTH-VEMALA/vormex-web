@@ -33,6 +33,7 @@ interface CreatePostDialogViewProps {
   colorPickerRef: React.RefObject<HTMLDivElement | null>;
   content: string;
   contentRef: React.RefObject<HTMLTextAreaElement | null>;
+  defaultVideoId: string | null;
   editingImageIndex: number | null;
   error: string | null;
   fileInputRef: React.RefObject<HTMLInputElement | null>;
@@ -69,6 +70,7 @@ interface CreatePostDialogViewProps {
   setCelebrationType: React.Dispatch<
     React.SetStateAction<import('@/types/post').CelebrationType | null>
   >;
+  setDefaultVideoId: React.Dispatch<React.SetStateAction<string | null>>;
   setEditingImageIndex: React.Dispatch<React.SetStateAction<number | null>>;
   setLinkUrl: React.Dispatch<React.SetStateAction<string>>;
   setPollDuration: React.Dispatch<React.SetStateAction<number>>;
@@ -103,6 +105,7 @@ export function CreatePostDialogView({
   colorPickerRef,
   content,
   contentRef,
+  defaultVideoId,
   editingImageIndex,
   error,
   fileInputRef,
@@ -137,6 +140,7 @@ export function CreatePostDialogView({
   setArticleTags,
   setArticleTitle,
   setCelebrationType,
+  setDefaultVideoId,
   setEditingImageIndex,
   setLinkUrl,
   setPollDuration,
@@ -292,6 +296,7 @@ export function CreatePostDialogView({
             colorPickerRef={colorPickerRef}
             content={content}
             contentRef={contentRef}
+            defaultVideoId={defaultVideoId}
             error={error}
             fileInputRef={fileInputRef}
             handleAddTag={handleAddTag}
@@ -321,6 +326,7 @@ export function CreatePostDialogView({
             setArticleTags={setArticleTags}
             setArticleTitle={setArticleTitle}
             setCelebrationType={setCelebrationType}
+            setDefaultVideoId={setDefaultVideoId}
             setEditingImageIndex={setEditingImageIndex}
             setLinkUrl={setLinkUrl}
             setPollDuration={setPollDuration}

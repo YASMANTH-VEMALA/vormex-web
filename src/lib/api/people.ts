@@ -42,7 +42,6 @@ export interface PeopleFilters {
   skills?: string[];
   interests?: string[];
   location?: string;
-  isOpenToOpportunities?: boolean;
 }
 
 export interface PeoplePagination {
@@ -65,13 +64,6 @@ export interface PeopleSectionResponse {
   total?: number;
   page?: number;
   totalPages?: number;
-  hasMore?: boolean;
-}
-
-export interface SuggestionsResponse {
-  suggestions: PersonCard[];
-  total?: number;
-  page?: number;
   hasMore?: boolean;
 }
 
@@ -130,9 +122,6 @@ export async function getPeople(
   if (filters?.skills?.length) params.append('skills', filters.skills.join(','));
   if (filters?.interests?.length) params.append('interests', filters.interests.join(','));
   if (filters?.location) params.append('location', filters.location);
-  if (filters?.isOpenToOpportunities !== undefined) {
-    params.append('isOpenToOpportunities', filters.isOpenToOpportunities.toString());
-  }
 
   if (pagination?.page) params.append('page', pagination.page.toString());
   if (pagination?.limit) params.append('limit', pagination.limit.toString());
@@ -154,16 +143,6 @@ export async function searchPeople(
 }
 
 /**
- * Get personalized suggestions (People You May Know)
- */
-export async function getSuggestions(
-  limit: number = 10,
-  page: number = 1
-): Promise<SuggestionsResponse> {
-  return apiClient.get(`/people/suggestions?limit=${limit}&page=${page}`);
-}
-
-/**
  * Get people from the same college
  */
 export async function getPeopleFromSameCollege(
@@ -171,13 +150,6 @@ export async function getPeopleFromSameCollege(
   page: number = 1
 ): Promise<PeopleSectionResponse> {
   return apiClient.get(`/people/same-college?limit=${limit}&page=${page}`);
-}
-
-/**
- * Get people near the current user
- */
-export async function getPeopleNearMe(limit: number = 10): Promise<{ people: PersonCard[] }> {
-  return apiClient.get(`/people/near-me?limit=${limit}`);
 }
 
 /**

@@ -65,6 +65,9 @@ export interface Post {
   mediaUrls: string[];
   mediaCount: number;
 
+  /** Built-in animation id from the shared Android/web catalog (lib/defaultVideos). */
+  defaultVideoId?: string | null;
+
   // VIDEO specific
   videoUrl: string | null;
   videoThumbnail: string | null;

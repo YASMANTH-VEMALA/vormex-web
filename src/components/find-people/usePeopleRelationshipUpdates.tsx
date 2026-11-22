@@ -12,35 +12,23 @@ import React, { useCallback } from 'react';
 import type { FindPeopleInitialCache } from './FindPeople.types';
 
 interface usePeopleRelationshipUpdatesOptions {
-  colleaguePeople: import('@/lib/api/people').PersonCard[];
   people: import('@/lib/api/people').PersonCard[];
   queryClient: import('@tanstack/react-query').QueryClient;
-  setColleaguePeople: React.Dispatch<React.SetStateAction<import('@/lib/api/people').PersonCard[]>>;
   setPeople: React.Dispatch<React.SetStateAction<import('@/lib/api/people').PersonCard[]>>;
-  setSuggestions: React.Dispatch<React.SetStateAction<import('@/lib/api/people').PersonCard[]>>;
-  suggestions: import('@/lib/api/people').PersonCard[];
 }
 export function usePeopleRelationshipUpdates({
-  colleaguePeople,
   people,
   queryClient,
-  setColleaguePeople,
   setPeople,
-  setSuggestions,
-  suggestions,
 }: usePeopleRelationshipUpdatesOptions) {
   const viewerId = useAuth().user?.id;
   const handleConnectionChange = useCallback(
     (personId: string, relationship: PersonRelationship) => {
       const updateList = (list: PersonCardType[]) =>
         list.map((p) => (p.id === personId ? withPersonRelationship(p, relationship) : p));
-      const targetPerson = [people, suggestions, colleaguePeople]
-        .flat()
-        .find((person) => person.id === personId);
+      const targetPerson = people.find((person) => person.id === personId);
 
       setPeople(updateList);
-      setSuggestions(updateList);
-      setColleaguePeople(updateList);
 
       queryClient.setQueriesData<PeopleResponse>({ queryKey: ['people-search'] }, (cached) =>
         cached ? { ...cached, people: updateList(cached.people) } : cached
@@ -56,8 +44,6 @@ export function usePeopleRelationshipUpdates({
             ? {
                 ...cached,
                 people: updateList(cached.people),
-                suggestions: updateList(cached.suggestions),
-                colleaguePeople: updateList(cached.colleaguePeople),
               }
             : cached
       );
@@ -96,16 +82,7 @@ export function usePeopleRelationshipUpdates({
         );
       });
     },
-    [
-      colleaguePeople,
-      people,
-      queryClient,
-      setColleaguePeople,
-      setPeople,
-      setSuggestions,
-      suggestions,
-      viewerId,
-    ]
+    [people, queryClient, setPeople, viewerId]
   );
   return { handleConnectionChange };
 }

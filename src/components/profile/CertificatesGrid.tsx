@@ -3,16 +3,10 @@
 import type { Certificate } from '@/types/profile';
 import * as Dialog from '@radix-ui/react-dialog';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Award, Building, Calendar, Edit2, ExternalLink, Eye, X } from 'lucide-react';
+import { Award, Building, Calendar, ExternalLink, Eye, X } from 'lucide-react';
 import { useState } from 'react';
-import { ProfileEntryLogo } from './ProfileEntryLogo';
-import {
-  ProfileSection,
-  RevealItem,
-  SectionAddButton,
-  SectionEditButton,
-  SectionEmptyState,
-} from './ProfileSection';
+import { ProfileSection, SectionAddButton, SectionEmptyState } from './ProfileSection';
+import { ShowcaseVisual, VerticalShowcase } from './VerticalShowcase';
 
 interface CertificatesGridProps {
   certificates: Certificate[];
@@ -28,7 +22,6 @@ export function CertificatesGrid({
   onEditCertificate,
 }: CertificatesGridProps) {
   const [selectedCertificate, setSelectedCertificate] = useState<Certificate | null>(null);
-  const [editing, setEditing] = useState(false);
 
   if (certificates.length === 0 && !isOwner) {
     return null;
@@ -93,16 +86,6 @@ export function CertificatesGrid({
             {onAddCertificate && (
               <SectionAddButton onClick={onAddCertificate} label="Add Certificate" />
             )}
-            {onEditCertificate && certificates.length > 0 && (
-              <SectionEditButton
-                onClick={() => {
-                  if (certificates.length === 1) onEditCertificate(certificates[0]);
-                  else setEditing((current) => !current);
-                }}
-                label="Edit Certifications"
-                active={editing}
-              />
-            )}
           </>
         ) : undefined
       }
@@ -115,73 +98,68 @@ export function CertificatesGrid({
           onAction={isOwner && onAddCertificate ? onAddCertificate : undefined}
         />
       ) : (
-        <div className="divide-y divide-neutral-100 dark:divide-neutral-800">
-          {certificates.map((cert, index) => (
-            <RevealItem key={cert.id} index={index} className="group py-5 first:pt-0 last:pb-0">
-              <div className="flex items-start gap-3 sm:gap-4">
-                <ProfileEntryLogo
-                  logo={
-                    cert.credentialUrl && isImageUrl(cert.credentialUrl) ? cert.credentialUrl : null
-                  }
-                  label={cert.issuingOrg}
-                  fallback={<Building className="h-5 w-5 text-neutral-400" />}
-                />
-
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-start justify-between gap-2 sm:gap-4">
-                    <div className="min-w-0">
-                      <h4 className="break-words text-[15px] font-semibold text-neutral-900 dark:text-white">
-                        {cert.name}
-                      </h4>
-                      <p className="mt-1 break-words text-sm font-medium text-neutral-600 dark:text-neutral-300">
-                        {cert.issuingOrg}
-                      </p>
-                    </div>
-
-                    <div className="flex shrink-0 gap-1">
-                      {cert.credentialUrl && (
-                        <button
-                          onClick={() => setSelectedCertificate(cert)}
-                          className="p-2 text-neutral-400 transition-colors hover:text-neutral-950 dark:hover:text-white"
-                          title="View certificate"
-                        >
-                          <Eye className="h-3.5 w-3.5" />
-                        </button>
-                      )}
-                      {isOwner && onEditCertificate && editing && (
-                        <button
-                          onClick={() => onEditCertificate(cert)}
-                          className="p-2 text-neutral-400 transition-colors hover:text-neutral-950 dark:hover:text-white"
-                          title="Edit certificate"
-                        >
-                          <Edit2 className="h-3.5 w-3.5" />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-neutral-500 dark:text-neutral-400">
-                    <div className="flex items-center gap-1">
-                      <Calendar className="w-3.5 h-3.5" />
-                      {formatDate(cert.issueDate)}
-                    </div>
-                    {isExpired(cert) ? (
-                      <span className="rounded border border-neutral-200 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide dark:border-neutral-700">
-                        Expired
-                      </span>
-                    ) : cert.doesNotExpire ? (
-                      <span className="rounded border border-neutral-200 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide dark:border-neutral-700">
-                        No Expiration
-                      </span>
-                    ) : (
-                      cert.expiryDate && <span>Expires {formatDate(cert.expiryDate)}</span>
-                    )}
-                  </div>
+        <VerticalShowcase
+          label="Certifications"
+          items={certificates}
+          isOwner={isOwner}
+          onEdit={onEditCertificate}
+          getTitle={(cert) => cert.name}
+          renderVisual={(cert) => (
+            <ShowcaseVisual
+              image={cert.credentialUrl && isImageUrl(cert.credentialUrl) ? cert.credentialUrl : null}
+              label={cert.issuingOrg}
+              title={cert.name}
+              subtitle={cert.issuingOrg}
+              icon={<Award />}
+            />
+          )}
+          renderDetail={(cert) => (
+            <>
+              <p className="flex items-center gap-1.5 text-sm font-medium text-neutral-700 dark:text-neutral-200">
+                <Building className="h-3.5 w-3.5 shrink-0 text-neutral-400" />
+                <span className="break-words">{cert.issuingOrg}</span>
+              </p>
+              <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-neutral-500 dark:text-neutral-400">
+                <div className="flex items-center gap-1">
+                  <Calendar className="h-3.5 w-3.5" />
+                  {formatDate(cert.issueDate)}
                 </div>
+                {isExpired(cert) ? (
+                  <span className="rounded border border-neutral-200 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide dark:border-white/15">
+                    Expired
+                  </span>
+                ) : cert.doesNotExpire ? (
+                  <span className="rounded border border-neutral-200 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide dark:border-white/15">
+                    No Expiration
+                  </span>
+                ) : (
+                  cert.expiryDate && <span>Expires {formatDate(cert.expiryDate)}</span>
+                )}
               </div>
-            </RevealItem>
-          ))}
-        </div>
+              {cert.credentialId && (
+                <p className="mt-3 text-xs text-neutral-500 dark:text-neutral-400">
+                  Credential ID{' '}
+                  <span className="font-mono font-semibold text-neutral-700 dark:text-neutral-200">
+                    {cert.credentialId}
+                  </span>
+                </p>
+              )}
+            </>
+          )}
+          renderActions={(cert) =>
+            cert.credentialUrl ? (
+              <button
+                type="button"
+                onClick={() => setSelectedCertificate(cert)}
+                title="View certificate"
+                className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 px-3 py-1.5 text-xs font-semibold text-neutral-700 transition-colors hover:bg-neutral-100 dark:border-white/15 dark:text-neutral-200 dark:hover:bg-white/10"
+              >
+                <Eye className="h-3.5 w-3.5" />
+                View certificate
+              </button>
+            ) : null
+          }
+        />
       )}
 
       {/* Certificate View Modal */}

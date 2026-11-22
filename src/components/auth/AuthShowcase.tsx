@@ -29,8 +29,8 @@ export function AuthShowcase() {
           Find <span>your</span> people.
         </h1>
         <p className={styles.heroDescription}>
-          Meet students, creators, and builders who share what you
-          <br className={styles.wideBreak} /> want to learn, build, and achieve.
+          Meet students, creators, and builders who share what you want to learn, build, and
+          achieve.
         </p>
       </div>
       <div className={`${styles.note} ${styles.noteTop}`} aria-hidden="true">

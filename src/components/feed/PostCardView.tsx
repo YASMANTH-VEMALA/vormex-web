@@ -133,15 +133,15 @@ export function PostCardView({
     >
       {/* Header */}
       <div className="flex items-start justify-between p-4">
-        <ProfileLink profileId={post.author.username} className="flex items-center gap-3">
+        <ProfileLink profileId={post.author.username} className="flex min-w-0 items-center gap-3">
           <UserAvatar
             imageSrc={post.author.profileImage}
             name={post.author.name}
-            className="h-12 w-12 bg-gray-200 text-lg font-bold text-gray-500 dark:bg-neutral-700"
+            className="h-12 w-12 bg-gray-200 text-lg font-bold text-gray-500 shadow-sm ring-2 ring-white dark:bg-neutral-700 dark:ring-neutral-800"
             fallbackClassName="text-lg"
           />
-          <div>
-            <p className="flex items-center gap-1.5 font-semibold text-gray-900 dark:text-white hover:underline">
+          <div className="min-w-0">
+            <p className="flex items-center gap-1.5 font-semibold leading-tight text-gray-900 hover:text-blue-600 hover:underline dark:text-white dark:hover:text-blue-400">
               <span className="truncate">{post.author.name}</span>
               <VerificationBadge
                 profileBadgeStyle={post.author.profileBadgeStyle}
@@ -149,7 +149,7 @@ export function PostCardView({
                 size="small"
               />
             </p>
-            <p className="text-sm text-gray-500 dark:text-neutral-400">
+            <p className="line-clamp-1 text-[13px] leading-snug text-gray-500 dark:text-neutral-400">
               {post.author.headline || `@${post.author.username}`}
             </p>
             <p className="flex items-center gap-1 text-xs text-gray-400 dark:text-neutral-500">
@@ -263,7 +263,7 @@ export function PostCardView({
       </div>
 
       {/* Actions */}
-      <div className="px-4 py-2 flex items-center justify-between border-t border-gray-100 dark:border-neutral-800">
+      <div className="grid grid-cols-4 gap-1 border-t border-gray-100 px-2 py-1.5 dark:border-neutral-800 sm:px-3">
         {/* Reaction Button with Picker */}
         <div
           className="relative"
@@ -272,7 +272,7 @@ export function PostCardView({
         >
           <button
             onClick={handleLike}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+            className={`flex w-full items-center justify-center gap-2 rounded-xl px-2 py-2.5 transition-colors ${
               isLiked && currentReaction
                 ? `${getReactionConfig(currentReaction).color} ${getReactionConfig(currentReaction).bgColor}`
                 : 'text-gray-600 dark:text-neutral-400 hover:bg-gray-100 dark:hover:bg-neutral-800'
@@ -305,7 +305,7 @@ export function PostCardView({
 
         <button
           onClick={onCommentClick}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-gray-600 dark:text-neutral-400 hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors"
+          className="flex items-center justify-center gap-2 rounded-xl px-2 py-2.5 text-gray-600 transition-colors hover:bg-gray-100 dark:text-neutral-400 dark:hover:bg-neutral-800"
         >
           <MessageCircle className="w-5 h-5" />
           <span className="text-sm font-medium">Comment</span>
@@ -313,7 +313,7 @@ export function PostCardView({
 
         <button
           onClick={handleShare}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-gray-600 dark:text-neutral-400 hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors"
+          className="flex items-center justify-center gap-2 rounded-xl px-2 py-2.5 text-gray-600 transition-colors hover:bg-gray-100 dark:text-neutral-400 dark:hover:bg-neutral-800"
         >
           <Share2 className="w-5 h-5" />
           <span className="text-sm font-medium">Share</span>
@@ -321,7 +321,7 @@ export function PostCardView({
 
         <button
           onClick={handleSave}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+          className={`flex items-center justify-center gap-2 rounded-xl px-2 py-2.5 transition-colors ${
             isSaved
               ? 'text-blue-500 bg-blue-50 dark:bg-blue-900/20'
               : 'text-gray-600 dark:text-neutral-400 hover:bg-gray-100 dark:hover:bg-neutral-800'

@@ -3,6 +3,7 @@ import { asApiError } from '@/lib/api/errors';
 import React from 'react';
 
 interface usePostSubmissionOptions {
+  defaultVideoId: string | null;
   articleCoverImage: File | null;
   articleTags: string[];
   articleTitle: string;
@@ -24,6 +25,7 @@ interface usePostSubmissionOptions {
   visibility: import('@/types/post').PostVisibility;
 }
 export function usePostSubmission({
+  defaultVideoId,
   articleCoverImage,
   articleTags,
   articleTitle,
@@ -61,6 +63,12 @@ export function usePostSubmission({
 
       if (mentions.length > 0) {
         formData.append('mentions', JSON.stringify(mentions));
+      }
+
+      // Orthogonal to post type, exactly as on Android: any post may carry
+      // one built-in animation, stored by the backend as metadata.
+      if (defaultVideoId) {
+        formData.append('defaultVideoId', defaultVideoId);
       }
 
       switch (postType) {

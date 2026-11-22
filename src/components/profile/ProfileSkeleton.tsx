@@ -16,7 +16,7 @@ function Skeleton({ className }: { className?: string }) {
 
 export function ProfileSkeleton() {
   return (
-    <div className="min-h-screen bg-white dark:bg-neutral-950">
+    <div className="mono-theme min-h-screen bg-white dark:bg-transparent">
       {/* Banner Skeleton */}
       <Skeleton className="h-48 md:h-64 w-full rounded-b-2xl" />
 

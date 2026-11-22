@@ -141,7 +141,6 @@ export function MoreDashboardView({
                       'college-communities',
                       'jobs',
                       'challenges',
-                      'interviews',
                     ],
                   },
                   { title: 'More info and support', ids: ['help', 'terms', 'report'] },

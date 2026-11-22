@@ -6,12 +6,9 @@ import { SEARCH_MIN_CHARACTERS } from '@/lib/findPeoplePolicy';
 import { queryKeys } from '@/lib/queryKeys';
 import { AlertCircle, Loader2, RefreshCw, Search, Users } from 'lucide-react';
 import React from 'react';
-import { NearbyUsers } from './NearbyUsers';
-import { PeopleYouKnowTab } from './PeopleYouKnowTab';
 import { PersonCard } from './PersonCard';
 import { PersonCardSkeleton } from './PersonCardSkeleton';
 import { SearchPersonRow, SearchPersonRowSkeleton } from './SearchPersonRow';
-import { SmartMatchesTab } from './SmartMatchesTab';
 
 interface PeopleBrowseLayoutProps {
   FilterPanel: ({
@@ -25,14 +22,11 @@ interface PeopleBrowseLayoutProps {
     setSelectedYear,
     selectedLocation,
     setSelectedLocation,
-    openToOpportunities,
-    setOpenToOpportunities,
     hasActiveFilters,
     onClearAll,
   }: import('@/components/find-people/FindPeople.types').FilterPanelProps) => React.JSX.Element;
   activeFilterChips: React.JSX.Element;
   activeGridHasMore: boolean;
-  activeTab: import('@/components/find-people/FindPeople.types').TabType;
   clearFilters: () => void;
   displayedPeople: import('@/lib/api/people').PersonCard[];
   filterPanelProps: import('@/components/find-people/FindPeople.types').FilterPanelProps;
@@ -65,10 +59,6 @@ interface PeopleBrowseLayoutProps {
         total: number;
         hasMore: boolean;
         nextCursor: string | null | undefined;
-        suggestions: never[];
-        suggestionsHasMore: boolean;
-        colleaguePeople: never[];
-        colleagueHasMore: boolean;
       },
       Error
     >
@@ -88,7 +78,6 @@ export function PeopleBrowseLayout({
   FilterPanel,
   activeFilterChips,
   activeGridHasMore,
-  activeTab,
   clearFilters,
   displayedPeople,
   filterPanelProps,
@@ -127,7 +116,7 @@ export function PeopleBrowseLayout({
       {/* Desktop filter sidebar */}
       {showSidebar && (
         <aside className="sticky top-4 hidden w-72 shrink-0 lg:block">
-          <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+          <div className="rounded-xl border border-gray-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
             <FilterPanel {...filterPanelProps} />
           </div>
         </aside>
@@ -302,7 +291,7 @@ export function PeopleBrowseLayout({
         )}
 
         {/* Active filter chips + result count */}
-        {!isSearchMode && activeTab === 'all' && hasActiveFilters && !isGridLoading && (
+        {!isSearchMode && hasActiveFilters && !isGridLoading && (
           <div className="mb-4 flex flex-wrap items-center gap-2">
             {activeFilterChips}
             {hasActiveFilters && (
@@ -319,14 +308,6 @@ export function PeopleBrowseLayout({
           </div>
         )}
 
-        {activeTab === 'known' && <PeopleYouKnowTab />}
-
-        {/* Smart Matches Tab Content */}
-        {activeTab === 'smart' && <SmartMatchesTab />}
-
-        {/* Nearby Tab Content */}
-        {activeTab === 'nearby' && <NearbyUsers />}
-
         {/* Skeleton Loading */}
         {isGridTab && isGridLoading && (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -337,7 +318,7 @@ export function PeopleBrowseLayout({
         )}
 
         {/* Error State */}
-        {!isSearchMode && activeTab === 'all' && !isGridLoading && initialError && (
+        {!isSearchMode && !isGridLoading && initialError && (
           <div className="text-center py-16 bg-white dark:bg-neutral-900 rounded-xl border border-gray-200 dark:border-neutral-800">
             <AlertCircle className="w-12 h-12 mx-auto text-red-400 mb-4" />
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
@@ -372,7 +353,7 @@ export function PeopleBrowseLayout({
         {/* Empty State */}
         {isGridTab &&
           !isGridLoading &&
-          !(activeTab === 'all' && initialError) &&
+          !initialError &&
           !sectionError &&
           displayedPeople.length === 0 && (
             <div className="text-center py-16 bg-white dark:bg-neutral-900 rounded-xl border border-gray-200 dark:border-neutral-800">
@@ -380,24 +361,14 @@ export function PeopleBrowseLayout({
                 <Users className="w-8 h-8 text-gray-400 dark:text-neutral-500" />
               </div>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                {activeTab === 'suggestions'
-                  ? 'No suggestions yet'
-                  : activeTab === 'college'
-                    ? 'No colleagues found'
-                    : searchQuery || hasActiveFilters
-                      ? 'No results found'
-                      : 'No people found'}
+                {searchQuery || hasActiveFilters ? 'No results found' : 'No people found'}
               </h3>
               <p className="text-gray-500 dark:text-neutral-400 max-w-md mx-auto">
-                {activeTab === 'suggestions'
-                  ? 'Complete your profile to get personalized suggestions'
-                  : activeTab === 'college'
-                    ? 'Add your college information to find colleagues'
-                    : searchQuery || hasActiveFilters
-                      ? 'Try a different search term or adjust your filters'
-                      : 'Check back later for new users'}
+                {searchQuery || hasActiveFilters
+                  ? 'Try a different search term or adjust your filters'
+                  : 'Check back later for new users'}
               </p>
-              {hasActiveFilters && activeTab === 'all' && (
+              {hasActiveFilters && (
                 <button
                   onClick={clearFilters}
                   className="mt-4 px-5 py-2 rounded-full border border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400 text-sm font-semibold hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-colors"

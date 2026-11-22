@@ -15,10 +15,10 @@ export function ComposerAction({
   return (
     <button
       onClick={onClick}
-      className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-gray-600 transition-colors hover:bg-gray-100 dark:text-neutral-400 dark:hover:bg-neutral-800"
+      className="group flex flex-1 items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-gray-700 transition-colors hover:bg-gray-100/80 dark:text-neutral-300 dark:hover:bg-neutral-800"
     >
-      <Icon className={`h-[18px] w-[18px] ${tone}`} />
-      <span className="text-xs font-medium sm:text-[13px]">{label}</span>
+      <Icon className={`h-5 w-5 transition-transform group-hover:scale-110 ${tone}`} />
+      <span className="text-[13px] font-semibold">{label}</span>
     </button>
   );
 }

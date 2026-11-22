@@ -15,93 +15,102 @@ import {
   type ToneType,
 } from '@/lib/api/ai-chat';
 import { cn } from '@/lib/utils';
-import { AnimatePresence, motion } from 'framer-motion';
-import {
-  ArrowUpRight,
-  Check,
-  ChevronDown,
-  Languages,
-  Loader2,
-  MessageSquarePlus,
-  Palette,
-  RefreshCw,
-  Sparkles,
-  SpellCheck,
-  X,
-  Zap,
-} from 'lucide-react';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { useState } from 'react';
+import { AssistantMark } from './aiAssistantIcons';
+import {
+  DRAFT_FEATURES,
+  LANGUAGE_OPTIONS,
+  REPLY_FEATURES,
+  TONE_OPTIONS,
+  findFeature,
+} from './aiAssistantOptions';
+import { WritingIndicator } from './AIAssistantWriting';
 
 // ============================================
 // Constants
 // ============================================
 
-const FEATURES: FeatureOption[] = [
-  {
-    id: 'starters',
-    label: 'Ice Breakers',
-    icon: <MessageSquarePlus className="w-4 h-4" />,
-    description: 'Personalized conversation starters',
-  },
-  {
-    id: 'revival',
-    label: 'Continue Chat',
-    icon: <RefreshCw className="w-4 h-4" />,
-    description: 'Revive a stalled conversation',
-  },
-  {
-    id: 'smart-reply',
-    label: 'Quick Reply',
-    icon: <Zap className="w-4 h-4" />,
-    description: 'Smart reply suggestions',
-    requiresReceivedMessage: true,
-  },
-  {
-    id: 'grammar',
-    label: 'Fix Grammar',
-    icon: <SpellCheck className="w-4 h-4" />,
-    description: 'Fix grammar & spelling',
-    requiresMessage: true,
-  },
-  {
-    id: 'tone',
-    label: 'Change Tone',
-    icon: <Palette className="w-4 h-4" />,
-    description: 'Rewrite in different tone',
-    requiresMessage: true,
-  },
-  {
-    id: 'translate',
-    label: 'Translate',
-    icon: <Languages className="w-4 h-4" />,
-    description: 'Translate to another language',
-    requiresMessage: true,
-  },
-  {
-    id: 'expand',
-    label: 'Expand',
-    icon: <ArrowUpRight className="w-4 h-4" />,
-    description: 'Expand short message',
-    requiresMessage: true,
-  },
-];
+// ============================================
+// Small pieces
+// ============================================
 
-const TONE_OPTIONS: { value: ToneType; label: string; emoji: string }[] = [
-  { value: 'professional', label: 'Professional', emoji: '💼' },
-  { value: 'casual', label: 'Casual', emoji: '😎' },
-  { value: 'friendly', label: 'Friendly', emoji: '🤗' },
-  { value: 'formal', label: 'Formal', emoji: '🎩' },
-  { value: 'enthusiastic', label: 'Enthusiastic', emoji: '🔥' },
-  { value: 'concise', label: 'Concise', emoji: '⚡' },
-];
+function OptionChips<T extends string>({
+  options,
+  value,
+  onSelect,
+  label,
+}: {
+  options: { value: T; label: string }[];
+  value: T;
+  onSelect: (value: T) => void;
+  label: string;
+}) {
+  return (
+    <div
+      role="radiogroup"
+      aria-label={label}
+      className="-mx-1 mb-3 flex gap-1.5 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+    >
+      {options.map((option) => {
+        const active = option.value === value;
+        return (
+          <button
+            key={option.value}
+            type="button"
+            role="radio"
+            aria-checked={active}
+            onClick={() => onSelect(option.value)}
+            className={cn(
+              'shrink-0 rounded-full border px-3.5 py-1.5 text-[13px] font-medium transition-colors',
+              active
+                ? 'border-neutral-900 bg-neutral-900 text-white dark:border-white dark:bg-white dark:text-neutral-900'
+                : 'border-neutral-200 text-neutral-600 hover:border-neutral-300 hover:bg-neutral-100 dark:border-white/10 dark:text-neutral-300 dark:hover:bg-white/10'
+            )}
+          >
+            {option.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
 
-const LANGUAGE_OPTIONS: { value: LanguageType; label: string }[] = [
-  { value: 'english', label: 'English' },
-  { value: 'hindi', label: 'Hindi' },
-  { value: 'telugu', label: 'Telugu' },
-  { value: 'hinglish', label: 'Hinglish' },
-  { value: 'tenglish', label: 'Tenglish' },
-];
+function FeatureButton({
+  feature,
+  disabledReason,
+  onClick,
+}: {
+  feature: FeatureOption;
+  disabledReason: string | null;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={Boolean(disabledReason)}
+      className={cn(
+        'group flex items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition-colors',
+        disabledReason
+          ? 'cursor-not-allowed border-transparent opacity-45'
+          : 'border-transparent hover:border-neutral-200 hover:bg-neutral-100 active:scale-[0.99] dark:hover:border-white/10 dark:hover:bg-white/[0.07]'
+      )}
+    >
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-neutral-100 text-neutral-700 transition-transform duration-200 group-hover:-rotate-6 group-hover:scale-110 dark:bg-white/10 dark:text-neutral-200">
+        {feature.icon}
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-sm font-medium text-neutral-900 dark:text-white">
+          {feature.label}
+        </span>
+        <span className="block truncate text-xs text-neutral-500 dark:text-neutral-400">
+          {disabledReason || feature.description}
+        </span>
+      </span>
+    </button>
+  );
+}
 
 // ============================================
 // Component
@@ -115,46 +124,27 @@ export default function AIChatAssistant({
   onSuggestionSelect,
   onClose,
 }: AIChatAssistantProps) {
+  const reduceMotion = useReducedMotion();
   const [selectedFeature, setSelectedFeature] = useState<AIFeature | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [selectedTone, setSelectedTone] = useState<ToneType>('casual');
   const [selectedLanguage, setSelectedLanguage] = useState<LanguageType>('english');
-  const [showToneDropdown, setShowToneDropdown] = useState(false);
-  const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
 
-  // Handle feature selection
-  const handleFeatureClick = async (feature: AIFeature) => {
-    // Check requirements
-    if (FEATURES.find((f) => f.id === feature)?.requiresMessage && !currentMessage.trim()) {
-      setError('Please type a message first');
-      return;
-    }
-    if (FEATURES.find((f) => f.id === feature)?.requiresReceivedMessage && !lastReceivedMessage) {
-      setError('No message to reply to');
-      return;
-    }
-
-    setSelectedFeature(feature);
-    setError(null);
-    setSuggestions([]);
-
-    // For tone and translate, just show the options
-    if (feature === 'tone' || feature === 'translate') {
-      return;
-    }
-
-    await fetchSuggestions(feature);
+  const disabledReasonFor = (feature: FeatureOption): string | null => {
+    if (feature.requiresMessage && !currentMessage.trim()) return 'Type a message first';
+    if (feature.requiresReceivedMessage && !lastReceivedMessage) return 'Nothing to reply to yet';
+    return null;
   };
 
-  // Fetch suggestions based on feature
   const fetchSuggestions = async (
     feature: AIFeature,
     extraParams?: { tone?: ToneType; language?: LanguageType }
   ) => {
     setLoading(true);
     setError(null);
+    setSuggestions([]);
 
     try {
       let result: string[] = [];
@@ -201,294 +191,286 @@ export default function AIChatAssistant({
       }
 
       setSuggestions(result);
-    } catch (error) {
-      console.error('AI suggestion error:', error);
-      setError(getAIErrorMessage(error, 'AI is temporarily unavailable.'));
+    } catch (caught) {
+      console.error('AI suggestion error:', caught);
+      setError(getAIErrorMessage(caught, 'The assistant is unavailable right now.'));
     } finally {
       setLoading(false);
     }
   };
 
-  // Handle tone selection
-  const handleToneSelect = async (tone: ToneType) => {
-    setSelectedTone(tone);
-    setShowToneDropdown(false);
-    await fetchSuggestions('tone', { tone });
+  const handleFeatureClick = async (feature: AIFeature) => {
+    if (disabledReasonFor(findFeature(feature))) return;
+    setSelectedFeature(feature);
+    setError(null);
+    setSuggestions([]);
+    // Tone and translate wait for the user to pick an option.
+    if (feature === 'tone' || feature === 'translate') return;
+    await fetchSuggestions(feature);
   };
 
-  // Handle language selection
-  const handleLanguageSelect = async (language: LanguageType) => {
-    setSelectedLanguage(language);
-    setShowLanguageDropdown(false);
-    await fetchSuggestions('translate', { language });
-  };
-
-  // Handle suggestion selection
-  const handleSuggestionClick = (suggestion: string) => {
-    onSuggestionSelect(suggestion);
-    onClose?.();
-  };
-
-  // Reset to feature selection
   const handleBack = () => {
     setSelectedFeature(null);
     setSuggestions([]);
     setError(null);
   };
 
+  const handleSuggestionClick = (suggestion: string) => {
+    onSuggestionSelect(suggestion);
+    onClose?.();
+  };
+
+  const active = selectedFeature ? findFeature(selectedFeature) : null;
+  const canRegenerate =
+    selectedFeature !== null &&
+    selectedFeature !== 'tone' &&
+    selectedFeature !== 'translate' &&
+    suggestions.length > 0 &&
+    !loading;
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 10 }}
-      className="absolute bottom-full left-0 right-0 mb-3 mx-0 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50"
-      style={{ maxHeight: 'calc(100vh - 200px)' }}
+      role="dialog"
+      aria-label="Message assistant"
+      initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 12, scale: 0.97 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 8, scale: 0.98 }}
+      transition={{ type: 'spring', stiffness: 420, damping: 34 }}
+      style={{ maxHeight: 'calc(100vh - 200px)', transformOrigin: 'bottom center' }}
+      className="absolute bottom-full left-0 right-0 z-50 mb-3 overflow-hidden rounded-2xl border border-neutral-200 bg-white/95 shadow-[0_24px_60px_-20px_rgba(0,0,0,0.35)] backdrop-blur-xl dark:border-white/10 dark:bg-neutral-900/90"
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
-            <Sparkles className="w-4 h-4 text-white" />
-          </div>
-          <div>
-            <h3 className="font-semibold text-sm text-gray-900 dark:text-white">AI Assistant</h3>
-            <p className="text-xs text-gray-500">
-              {selectedFeature
-                ? FEATURES.find((f) => f.id === selectedFeature)?.description
-                : 'Choose an action'}
-            </p>
-          </div>
+      <div className="flex items-center gap-3 border-b border-neutral-200 px-4 py-3 dark:border-white/10">
+        {active ? (
+          <button
+            type="button"
+            onClick={handleBack}
+            aria-label="Back to all options"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-neutral-600 transition-colors hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-white/10"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              className="h-4 w-4"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={1.9}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="m15 5-7 7 7 7" />
+            </svg>
+          </button>
+        ) : (
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-neutral-900 text-white dark:bg-white dark:text-neutral-900">
+            <AssistantMark className="h-4 w-4" />
+          </span>
+        )}
+        <div className="min-w-0 flex-1">
+          <h3 className="truncate text-sm font-semibold text-neutral-900 dark:text-white">
+            {active ? active.label : 'Message assistant'}
+          </h3>
+          <p className="truncate text-xs text-neutral-500 dark:text-neutral-400">
+            {active ? active.description : 'Help writing this message'}
+          </p>
         </div>
         <button
+          type="button"
           onClick={onClose}
-          className="p-1.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+          aria-label="Close assistant"
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-neutral-500 transition-colors hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-white/10"
         >
-          <X className="w-4 h-4 text-gray-500" />
+          <svg
+            viewBox="0 0 24 24"
+            className="h-4 w-4"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={1.9}
+            strokeLinecap="round"
+            aria-hidden="true"
+          >
+            <path d="m6 6 12 12M18 6 6 18" />
+          </svg>
         </button>
       </div>
 
-      {/* Content */}
-      <div className="p-3 max-h-80 overflow-y-auto">
-        <AnimatePresence mode="wait">
+      {/* Body */}
+      <div className="max-h-80 overflow-y-auto p-3">
+        <AnimatePresence mode="wait" initial={false}>
           {!selectedFeature ? (
-            // Feature Selection Grid
             <motion.div
-              key="features"
+              key="menu"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="grid grid-cols-2 gap-2"
+              transition={{ duration: 0.12 }}
             >
-              {FEATURES.map((feature) => {
-                const isDisabled =
-                  (feature.requiresMessage && !currentMessage.trim()) ||
-                  (feature.requiresReceivedMessage && !lastReceivedMessage);
-
-                return (
-                  <button
-                    key={feature.id}
-                    onClick={() => handleFeatureClick(feature.id)}
-                    disabled={isDisabled}
-                    className={cn(
-                      'flex items-center gap-3 p-3 rounded-xl text-left transition-all',
-                      isDisabled
-                        ? 'opacity-50 cursor-not-allowed bg-gray-50 dark:bg-gray-800'
-                        : 'hover:bg-gray-100 dark:hover:bg-gray-700 bg-gray-50 dark:bg-gray-800/50 hover:scale-[1.02]'
-                    )}
-                  >
-                    <div
-                      className={cn(
-                        'w-9 h-9 rounded-xl flex items-center justify-center',
-                        feature.id === 'starters' &&
-                          'bg-green-100 dark:bg-green-900/30 text-green-600',
-                        feature.id === 'revival' &&
-                          'bg-orange-100 dark:bg-orange-900/30 text-orange-600',
-                        feature.id === 'smart-reply' &&
-                          'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600',
-                        feature.id === 'grammar' && 'bg-blue-100 dark:bg-blue-900/30 text-blue-600',
-                        feature.id === 'tone' &&
-                          'bg-purple-100 dark:bg-purple-900/30 text-purple-600',
-                        feature.id === 'translate' &&
-                          'bg-pink-100 dark:bg-pink-900/30 text-pink-600',
-                        feature.id === 'expand' && 'bg-cyan-100 dark:bg-cyan-900/30 text-cyan-600'
-                      )}
-                    >
-                      {feature.icon}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm text-gray-900 dark:text-white truncate">
-                        {feature.label}
-                      </p>
-                      <p className="text-xs text-gray-500 truncate">{feature.description}</p>
-                    </div>
-                  </button>
-                );
-              })}
+              {[
+                { title: 'Reply', ids: REPLY_FEATURES },
+                { title: 'Polish your draft', ids: DRAFT_FEATURES },
+              ].map((group) => (
+                <div key={group.title} className="mb-2 last:mb-0">
+                  <p className="px-3 pb-1 pt-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-neutral-400 dark:text-neutral-500">
+                    {group.title}
+                  </p>
+                  <div className="grid grid-cols-1 gap-0.5 sm:grid-cols-2">
+                    {group.ids.map((id) => {
+                      const feature = findFeature(id);
+                      return (
+                        <FeatureButton
+                          key={id}
+                          feature={feature}
+                          disabledReason={disabledReasonFor(feature)}
+                          onClick={() => handleFeatureClick(id)}
+                        />
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
             </motion.div>
           ) : (
-            // Suggestions View
             <motion.div
-              key="suggestions"
+              key="result"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
+              transition={{ duration: 0.12 }}
             >
-              {/* Back button */}
-              <button
-                onClick={handleBack}
-                className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 mb-3"
-              >
-                <ChevronDown className="w-4 h-4 rotate-90" />
-                Back to options
-              </button>
-
-              {/* Tone/Language Selector for those features */}
               {selectedFeature === 'tone' && (
-                <div className="mb-3 relative">
-                  <button
-                    onClick={() => setShowToneDropdown(!showToneDropdown)}
-                    className="w-full flex items-center justify-between px-4 py-2.5 bg-gray-100 dark:bg-gray-700 rounded-xl text-sm"
-                  >
-                    <span className="flex items-center gap-2">
-                      <span>{TONE_OPTIONS.find((t) => t.value === selectedTone)?.emoji}</span>
-                      <span>{TONE_OPTIONS.find((t) => t.value === selectedTone)?.label}</span>
-                    </span>
-                    <ChevronDown
-                      className={cn(
-                        'w-4 h-4 transition-transform',
-                        showToneDropdown && 'rotate-180'
-                      )}
-                    />
-                  </button>
-                  {showToneDropdown && (
-                    <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden z-10">
-                      {TONE_OPTIONS.map((tone) => (
-                        <button
-                          key={tone.value}
-                          onClick={() => handleToneSelect(tone.value)}
-                          className="w-full flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 text-left"
-                        >
-                          <span>{tone.emoji}</span>
-                          <span>{tone.label}</span>
-                          {selectedTone === tone.value && (
-                            <Check className="w-4 h-4 ml-auto text-green-500" />
-                          )}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                <OptionChips
+                  label="Tone"
+                  options={TONE_OPTIONS}
+                  value={selectedTone}
+                  onSelect={(tone) => {
+                    setSelectedTone(tone);
+                    void fetchSuggestions('tone', { tone });
+                  }}
+                />
               )}
-
               {selectedFeature === 'translate' && (
-                <div className="mb-3 relative">
-                  <button
-                    onClick={() => setShowLanguageDropdown(!showLanguageDropdown)}
-                    className="w-full flex items-center justify-between px-4 py-2.5 bg-gray-100 dark:bg-gray-700 rounded-xl text-sm"
-                  >
-                    <span>{LANGUAGE_OPTIONS.find((l) => l.value === selectedLanguage)?.label}</span>
-                    <ChevronDown
-                      className={cn(
-                        'w-4 h-4 transition-transform',
-                        showLanguageDropdown && 'rotate-180'
-                      )}
-                    />
-                  </button>
-                  {showLanguageDropdown && (
-                    <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden z-10">
-                      {LANGUAGE_OPTIONS.map((lang) => (
-                        <button
-                          key={lang.value}
-                          onClick={() => handleLanguageSelect(lang.value)}
-                          className="w-full flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 text-left"
-                        >
-                          <span>{lang.label}</span>
-                          {selectedLanguage === lang.value && (
-                            <Check className="w-4 h-4 ml-auto text-green-500" />
-                          )}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                <OptionChips
+                  label="Language"
+                  options={LANGUAGE_OPTIONS}
+                  value={selectedLanguage}
+                  onSelect={(language) => {
+                    setSelectedLanguage(language);
+                    void fetchSuggestions('translate', { language });
+                  }}
+                />
               )}
 
-              {/* Loading State */}
-              {loading && (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
-                  <span className="ml-2 text-sm text-gray-500">Generating suggestions...</span>
-                </div>
-              )}
+              {(selectedFeature === 'tone' || selectedFeature === 'translate') &&
+                !loading &&
+                !error &&
+                suggestions.length === 0 && (
+                  <p className="px-1 py-6 text-center text-sm text-neutral-500 dark:text-neutral-400">
+                    {selectedFeature === 'tone'
+                      ? 'Pick a tone to rewrite your message.'
+                      : 'Pick a language to translate your message.'}
+                  </p>
+                )}
 
-              {/* Error State */}
-              {error && (
-                <div className="p-4 bg-red-50 dark:bg-red-900/20 rounded-xl text-center">
-                  <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+              {loading && <WritingIndicator reduceMotion={Boolean(reduceMotion)} />}
+
+              {error && !loading && (
+                <div
+                  role="alert"
+                  className="flex items-center gap-3 rounded-xl border border-neutral-200 px-4 py-3 dark:border-white/10"
+                >
+                  <p className="min-w-0 flex-1 text-sm text-neutral-600 dark:text-neutral-300">
+                    {error}
+                  </p>
                   <button
+                    type="button"
                     onClick={() => fetchSuggestions(selectedFeature)}
-                    className="mt-2 text-sm text-blue-600 hover:underline"
+                    className="shrink-0 rounded-full border border-neutral-300 px-3 py-1.5 text-xs font-semibold text-neutral-800 transition-colors hover:bg-neutral-100 dark:border-white/20 dark:text-white dark:hover:bg-white/10"
                   >
                     Try again
                   </button>
                 </div>
               )}
 
-              {/* Suggestions List */}
               {!loading && !error && suggestions.length > 0 && (
-                <div className="space-y-2">
+                <ul className="space-y-2">
                   {suggestions.map((suggestion, index) => (
-                    <motion.button
-                      key={index}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                      onClick={() => handleSuggestionClick(suggestion)}
-                      className={cn(
-                        'w-full p-3 text-left rounded-xl transition-all',
-                        'bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700',
-                        'hover:shadow-md hover:scale-[1.01]',
-                        'border border-transparent hover:border-blue-200 dark:hover:border-blue-800'
-                      )}
+                    <motion.li
+                      key={`${selectedFeature}-${index}-${suggestion.slice(0, 12)}`}
+                      initial={reduceMotion ? false : { opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{
+                        type: 'spring',
+                        stiffness: 380,
+                        damping: 30,
+                        delay: reduceMotion ? 0 : index * 0.06,
+                      }}
                     >
-                      <p className="text-sm text-gray-800 dark:text-gray-200 leading-relaxed">
-                        {suggestion}
-                      </p>
-                      {index === 0 && selectedFeature === 'grammar' && (
-                        <span className="inline-flex items-center gap-1 mt-1 text-xs text-green-600 dark:text-green-400">
-                          <Check className="w-3 h-3" />
-                          Best correction
+                      <button
+                        type="button"
+                        onClick={() => handleSuggestionClick(suggestion)}
+                        className="group flex w-full items-start gap-3 rounded-2xl rounded-bl-md bg-neutral-100 px-4 py-3 text-left transition-colors hover:bg-neutral-200/70 dark:bg-white/[0.07] dark:hover:bg-white/[0.12]"
+                      >
+                        <span className="min-w-0 flex-1 text-sm leading-relaxed text-neutral-800 dark:text-neutral-100">
+                          {suggestion}
+                          {index === 0 && selectedFeature === 'grammar' && (
+                            <span className="mt-1 block text-xs font-medium text-neutral-500 dark:text-neutral-400">
+                              Corrected version
+                            </span>
+                          )}
                         </span>
-                      )}
-                    </motion.button>
+                        <span className="mt-0.5 flex h-6 shrink-0 items-center gap-1 text-xs font-medium text-neutral-400 transition-colors group-hover:text-neutral-900 dark:group-hover:text-white">
+                          Use
+                          <svg
+                            viewBox="0 0 24 24"
+                            className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth={2}
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            aria-hidden="true"
+                          >
+                            <path d="M7 17 17 7M8 7h9v9" />
+                          </svg>
+                        </span>
+                      </button>
+                    </motion.li>
                   ))}
-                </div>
+                </ul>
               )}
 
-              {/* Regenerate button */}
-              {!loading &&
-                suggestions.length > 0 &&
-                selectedFeature !== 'tone' &&
-                selectedFeature !== 'translate' && (
-                  <button
-                    onClick={() => fetchSuggestions(selectedFeature)}
-                    className="w-full mt-3 flex items-center justify-center gap-2 py-2.5 text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors"
+              {canRegenerate && (
+                <button
+                  type="button"
+                  onClick={() => fetchSuggestions(selectedFeature!)}
+                  className="mx-auto mt-3 flex items-center gap-2 rounded-full px-3.5 py-2 text-[13px] font-medium text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-white/10 dark:hover:text-white"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    className="h-4 w-4"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={1.8}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
                   >
-                    <RefreshCw className="w-4 h-4" />
-                    Generate new suggestions
-                  </button>
-                )}
+                    <path d="M20 12a8 8 0 1 1-2.4-5.7M20 4.5v4h-4" />
+                  </svg>
+                  Show different options
+                </button>
+              )}
             </motion.div>
           )}
         </AnimatePresence>
       </div>
 
-      {/* Footer tip */}
-      <div className="px-4 py-2 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-700">
-        <p className="text-xs text-gray-500 text-center">
+      {/* Draft context */}
+      <div className="border-t border-neutral-200 px-4 py-2 dark:border-white/10">
+        <p className="truncate text-xs text-neutral-500 dark:text-neutral-400">
           {currentMessage.trim()
-            ? `Message: "${currentMessage.slice(0, 30)}${currentMessage.length > 30 ? '...' : ''}"`
-            : 'Type a message to use grammar, tone, or translate features'}
+            ? `Your draft: “${currentMessage.trim().slice(0, 48)}${currentMessage.trim().length > 48 ? '…' : ''}”`
+            : 'Write a draft to unlock grammar, tone and translate.'}
         </p>
       </div>
     </motion.div>

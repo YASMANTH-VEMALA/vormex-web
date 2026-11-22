@@ -296,6 +296,3 @@ export async function deleteUpload(
 ): Promise<{ success: boolean }> {
   return apiClient.delete('/upload', { data: { fileUrl, type } });
 }
-
-// ============================================
-// Location endpoints live in '@/lib/api/location'

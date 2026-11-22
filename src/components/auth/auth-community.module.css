@@ -1,14 +1,17 @@
 .page {
-  --coral: #2563eb;
+  --coral: #ffffff;
   min-height: 100svh;
-  color: #171719;
-  background: #ffffff;
+  color: #f2f4f8;
+  background:
+    radial-gradient(52rem 38rem at 8% -8%, rgba(255, 255, 255, 0.08), transparent 60%),
+    radial-gradient(44rem 34rem at 100% 100%, rgba(255, 255, 255, 0.048), transparent 60%),
+    #07080d;
   font-family: var(--font-geist-sans), Arial, sans-serif;
-  color-scheme: light;
+  color-scheme: dark;
 }
 .main {
   display: grid;
-  grid-template-columns: 64.6% 35.4%;
+  grid-template-columns: minmax(0, 1fr) clamp(380px, 36vw, 520px);
   min-height: calc(100svh - 66px);
 }
 .panel {
@@ -16,17 +19,16 @@
   align-items: center;
   justify-content: center;
   padding: 48px 42px 36px;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.04);
+  border-left: 1px solid rgba(255, 255, 255, 0.09);
+  -webkit-backdrop-filter: blur(22px) saturate(140%);
+  backdrop-filter: blur(22px) saturate(140%);
+  box-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.04);
 }
 .panelContent {
   width: 100%;
   max-width: 420px;
   text-align: center;
-}
-.panelMark {
-  width: 102px;
-  height: 64px;
-  margin: 0 auto 29px;
 }
 .panel h2 {
   margin: 0;
@@ -37,7 +39,7 @@
 }
 .panelDescription {
   margin: 13px 0 25px;
-  color: #66707f;
+  color: #9aa3b5;
   font-size: clamp(16px, 1.35vw, 22px);
   line-height: 1.48;
   letter-spacing: -0.4px;
@@ -79,13 +81,13 @@
   align-items: center;
   gap: 16px;
   margin: 21px 0 18px;
-  color: #697383;
+  color: #8892a6;
   font-size: 12px;
 }
 .divider span {
   flex: 1;
   height: 1px;
-  background: #dfe2e8;
+  background: rgba(255, 255, 255, 0.1);
 }
 .form fieldset {
   display: grid;
@@ -101,18 +103,18 @@
   gap: 15px;
   min-height: 52px;
   padding: 0 16px;
-  border: 1px solid #d9dce3;
-  border-radius: 11px;
-  color: #737a85;
-  background: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  color: #8892a6;
+  background: rgba(255, 255, 255, 0.05);
   text-align: left;
   transition:
     border-color 0.2s,
     box-shadow 0.2s;
 }
 .inputField:focus-within {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px #2563eb33;
+  border-color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
 }
 .inputField > svg {
   flex-shrink: 0;
@@ -125,12 +127,12 @@
   border: 0;
   outline: 0;
   background: transparent;
-  color: #27272a;
+  color: #f2f4f8;
   font: inherit;
   font-size: 14px;
 }
 .inputField input::placeholder {
-  color: #7c8492;
+  color: #667085;
   opacity: 1;
 }
 .passwordToggle {
@@ -143,7 +145,7 @@
   padding: 0;
   border: 0;
   background: transparent;
-  color: #707783;
+  color: #8892a6;
   cursor: pointer;
 }
 .submit {
@@ -154,21 +156,21 @@
   width: 100%;
   min-height: 53px;
   padding: 12px;
-  background: linear-gradient(110deg, #292929, #353535);
-  color: #fff;
+  background: linear-gradient(180deg, #ffffff, #d4d4d8);
+  color: #0a0a0a;
   border: 0;
-  border-radius: 11px;
+  border-radius: 14px;
   font: inherit;
   font-size: 16px;
   font-weight: 500;
   cursor: pointer;
-  box-shadow: 0 3px 8px #0000000a;
+  box-shadow: 0 0 28px -6px rgba(255, 255, 255, 0.26);
   transition:
     background 0.2s,
     transform 0.2s;
 }
 .submit:hover:not(:disabled) {
-  background: #171717;
+  filter: brightness(1.1);
   transform: translateY(-1px);
 }
 .form fieldset:disabled {
@@ -177,7 +179,7 @@
 .forgot {
   display: inline-block;
   margin-top: 16px;
-  color: #2563eb;
+  color: #e5e7eb;
   font-size: 14px;
   text-decoration: none;
 }
@@ -189,15 +191,15 @@
 .switch {
   margin: 23px 0 0;
   padding-top: 21px;
-  border-top: 1px solid #e3e5ea;
-  color: #6c7380;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  color: #8892a6;
   font-size: 14px;
 }
 .switch button {
   border: 0;
   padding: 0;
   background: transparent;
-  color: #2563eb;
+  color: #e5e7eb;
   font: inherit;
   cursor: pointer;
 }
@@ -205,7 +207,7 @@
 .legal {
   font-size: 11px;
   line-height: 1.55;
-  color: #747b85;
+  color: #8892a6;
   text-align: left;
   margin: -3px 0 0;
 }
@@ -215,7 +217,7 @@
 }
 .legal a {
   text-decoration: underline;
-  color: #2563eb;
+  color: #e5e7eb;
 }
 .error,
 .success {
@@ -227,12 +229,12 @@
   text-align: left;
 }
 .error {
-  color: #a52c29;
-  background: #fff0ee;
+  color: #fca5a5;
+  background: rgba(239, 68, 68, 0.12);
 }
 .success {
-  color: #236442;
-  background: #edf7f0;
+  color: #86efac;
+  background: rgba(34, 197, 94, 0.12);
 }
 .footer {
   display: flex;
@@ -241,9 +243,9 @@
   gap: 24px;
   min-height: 66px;
   padding: 15px 42px;
-  border-top: 1px solid #e5e7eb;
-  color: #68717e;
-  background: #f9fafb;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  color: #8892a6;
+  background: rgba(255, 255, 255, 0.02);
   font-size: 11px;
 }
 .footer nav {
@@ -258,7 +260,7 @@
   text-decoration: none;
 }
 .footer a:hover {
-  color: #2563eb;
+  color: #e5e7eb;
 }
 .language {
   display: flex;
@@ -279,7 +281,7 @@
 }
 .page button:focus-visible,
 .page a:focus-visible {
-  outline: 3px solid #2563eb;
+  outline: 3px solid #e5e7eb;
   outline-offset: 4px;
 }
 .spinner {
@@ -291,9 +293,6 @@
   }
 }
 @media (max-width: 1199px) {
-  .main {
-    grid-template-columns: 59% 41%;
-  }
   .panel {
     padding: 38px 28px;
   }
@@ -306,21 +305,27 @@
 }
 @media (max-width: 900px) {
   .main {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
+    min-height: 0;
   }
   .panel {
-    padding: 42px 28px 38px;
+    padding: 28px 20px 40px;
+    background: transparent;
+    border-left: 0;
+    box-shadow: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  .panelContent {
+    padding: 32px 24px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    background: rgba(255, 255, 255, 0.04);
+    -webkit-backdrop-filter: blur(22px);
+    backdrop-filter: blur(22px);
   }
   .panelMark {
-    width: 76px;
-    height: 48px;
-    margin-bottom: 22px;
-  }
-  .panel h2 {
-    font-size: 35px;
-  }
-  .panelDescription {
-    font-size: 18px;
+    display: none;
   }
   .footer {
     flex-wrap: wrap;
@@ -335,22 +340,12 @@
   }
 }
 @media (max-width: 540px) {
-  .main {
-    display: flex;
-    flex-direction: column;
-  }
   .panel {
-    padding: 36px 25px 32px;
+    padding: 20px 14px 32px;
   }
-  .panelMark {
-    display: none;
-  }
-  .panel h2 {
-    font-size: 31px;
-  }
-  .panelDescription {
-    font-size: 16px;
-    margin-bottom: 22px;
+  .panelContent {
+    padding: 26px 18px;
+    border-radius: 20px;
   }
   .footer {
     font-size: 10px;
@@ -362,5 +357,135 @@
   .page *::after {
     animation: none !important;
     transition: none !important;
+  }
+}
+
+.panelMark {
+  filter: invert(1) brightness(1.15) drop-shadow(0 0 14px rgba(255, 255, 255, 0.18));
+}
+
+/* ---- Fixed-viewport layout: the whole page fits 100svh, never scrolls. ---- */
+.page {
+  height: 100svh;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.main {
+  flex: 1;
+  min-height: 0;
+  grid-template-rows: minmax(0, 1fr);
+}
+.footer {
+  flex: none;
+  min-height: 0;
+  height: clamp(36px, 5.5vh, 48px);
+  padding-block: 0;
+}
+.panel {
+  min-height: 0;
+  overflow: hidden;
+  padding: clamp(10px, 3vh, 40px) clamp(20px, 3vw, 42px);
+}
+.panelMark {
+  width: auto;
+  height: clamp(30px, 6vh, 64px);
+  aspect-ratio: 102 / 64;
+  margin: 0 auto clamp(6px, 2vh, 26px);
+}
+.panel h2 {
+  font-size: clamp(24px, 4.4vh, 42px);
+}
+.panelDescription {
+  margin: clamp(6px, 1.2vh, 13px) 0 clamp(10px, 2.4vh, 25px);
+  font-size: clamp(13px, 2vh, 20px);
+  line-height: 1.4;
+}
+.provider {
+  min-height: clamp(40px, 6vh, 53px);
+}
+.divider {
+  margin: clamp(8px, 1.8vh, 21px) 0 clamp(8px, 1.6vh, 18px);
+}
+.form fieldset {
+  gap: clamp(8px, 1.6vh, 14px);
+}
+.inputField {
+  min-height: clamp(40px, 6vh, 52px);
+}
+.inputField input {
+  height: clamp(38px, 5.8vh, 50px);
+}
+.submit {
+  min-height: clamp(42px, 6.2vh, 53px);
+}
+.forgot {
+  margin-top: clamp(8px, 1.6vh, 16px);
+}
+.switch {
+  margin-top: clamp(10px, 2vh, 23px);
+  padding-top: clamp(10px, 1.8vh, 21px);
+}
+.legal {
+  margin-top: clamp(8px, 1.4vh, 15px);
+}
+
+@media (max-width: 900px) {
+  .main {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+  }
+  .panel {
+    padding: 4px 12px 8px;
+    overflow: visible;
+  }
+  .panelContent {
+    padding: clamp(12px, 2.2vh, 28px) clamp(16px, 5vw, 28px);
+  }
+  .panel h2 {
+    font-size: clamp(22px, 3.8vh, 32px);
+  }
+  .footer {
+    justify-content: center;
+    padding-inline: 12px;
+    flex-wrap: nowrap;
+    overflow: hidden;
+  }
+  .footer > span {
+    display: none;
+  }
+  .footer nav {
+    order: 0;
+    width: auto;
+    flex-wrap: nowrap;
+    gap: 14px;
+    white-space: nowrap;
+  }
+  /* Keep only the legal/help links in the one-line mobile footer. */
+  .footer nav a:nth-child(1),
+  .footer nav a:nth-child(2),
+  .footer nav a:nth-child(6) {
+    display: none;
+  }
+}
+
+/* Short phones / landscape: drop the description to keep everything on screen. */
+@media (max-height: 680px) {
+  .panelDescription {
+    display: none;
+  }
+  .panelMark {
+    display: none;
+  }
+}
+
+/* Mobile: the form is the priority; drop the intro line to free room for the photos. */
+@media (max-width: 900px) {
+  .panelDescription {
+    display: none;
+  }
+  .panel h2 {
+    margin-bottom: clamp(10px, 2vh, 18px);
   }
 }

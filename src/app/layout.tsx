@@ -142,7 +142,7 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <ThemeProvider
           attribute="class"
-          defaultTheme="light"
+          defaultTheme="dark"
           enableSystem
           disableTransitionOnChange={false}
         >
@@ -172,7 +172,7 @@ export default function RootLayout({
             </QueryProvider>
           </AppInstallProvider>
         </ThemeProvider>
-        <Analytics />
+        {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>
   );

@@ -96,6 +96,9 @@ function CreatePostModalSession({
   // Celebration state
   const [celebrationType, setCelebrationType] = useState<CelebrationType | null>(null);
 
+  // Built-in animation (Android parity); orthogonal to post type.
+  const [defaultVideoId, setDefaultVideoId] = useState<string | null>(null);
+
   // Mention state
   const mentionRequest = useRef(0);
   const mentionCursor = useRef(0);
@@ -248,6 +251,7 @@ function CreatePostModalSession({
 
   // Submit post
   const { handleSubmit } = usePostSubmission({
+    defaultVideoId,
     articleCoverImage,
     articleTags,
     articleTitle,
@@ -284,6 +288,7 @@ function CreatePostModalSession({
       colorPickerRef={colorPickerRef}
       content={content}
       contentRef={contentRef}
+      defaultVideoId={defaultVideoId}
       editingImageIndex={editingImageIndex}
       error={error}
       fileInputRef={fileInputRef}
@@ -318,6 +323,7 @@ function CreatePostModalSession({
       setArticleTags={setArticleTags}
       setArticleTitle={setArticleTitle}
       setCelebrationType={setCelebrationType}
+      setDefaultVideoId={setDefaultVideoId}
       setEditingImageIndex={setEditingImageIndex}
       setLinkUrl={setLinkUrl}
       setPollDuration={setPollDuration}

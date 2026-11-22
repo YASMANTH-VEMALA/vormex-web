@@ -1,5 +1,5 @@
 'use client';
-import { Rss } from 'lucide-react';
+import { Award, Briefcase, FolderGit2, GraduationCap, Rss, Sparkles, Trophy } from 'lucide-react';
 import type * as React from 'react';
 import { Achievements } from './Achievements';
 import { ActivityCalendar } from './ActivityCalendar';
@@ -18,6 +18,7 @@ import { ImageUploadModal } from './ImageUploadModal';
 import { ProfileAbout } from './ProfileAbout';
 import { ProfileFeed } from './ProfileFeed';
 import { ProfileHeader } from './ProfileHeader';
+import { ProfileHighlights } from './ProfileHighlights';
 import { ProfileSection, Reveal } from './ProfileSection';
 import { ProjectsGrid } from './ProjectsGrid';
 import { SkillsGrid } from './SkillsGrid';
@@ -171,7 +172,7 @@ export function ProfilePageView({
   skillToEdit,
 }: ProfilePageViewProps) {
   return (
-    <div className="min-h-screen overflow-x-hidden bg-neutral-50 pb-24 dark:bg-neutral-950">
+    <div className="mono-theme min-h-screen overflow-x-hidden bg-neutral-50 pb-24 dark:bg-transparent">
       <ProfileHeader
         user={{
           ...profile.user,
@@ -219,71 +220,143 @@ export function ProfilePageView({
             />
           </Reveal>
 
-          <SkillsGrid
-            skills={profile.skills}
+          <ProfileHighlights
             isOwner={!!isOwner}
-            onAddSkill={() => {
-              setSkillToEdit(null);
-              setAddSkillModalOpen(true);
-            }}
-            onRemoveSkill={handleRemoveSkill}
-            onEditSkill={handleEditSkill}
-          />
-
-          <ProjectsGrid
-            projects={profile.projects}
-            isOwner={!!isOwner}
-            onAddProject={() => {
-              setProjectToEdit(null);
-              setAddProjectModalOpen(true);
-            }}
-            onEditProject={handleEditProject}
-          />
-
-          <ExperienceTimeline
-            experiences={profile.experiences}
-            isOwner={!!isOwner}
-            onAddExperience={() => {
-              setExperienceToEdit(null);
-              setAddExperienceModalOpen(true);
-            }}
-            onEditExperience={(experience) => {
-              setExperienceToEdit(experience);
-              setAddExperienceModalOpen(true);
-            }}
-          />
-
-          <EducationTimeline
-            education={profile.education}
-            isOwner={!!isOwner}
-            onAddEducation={() => {
-              setEducationToEdit(null);
-              setAddEducationModalOpen(true);
-            }}
-            onEditEducation={(education) => {
-              setEducationToEdit(education);
-              setAddEducationModalOpen(true);
-            }}
-          />
-
-          <CertificatesGrid
-            certificates={profile.certificates}
-            isOwner={!!isOwner}
-            onAddCertificate={() => {
-              setCertificateToEdit(null);
-              setAddCertificateModalOpen(true);
-            }}
-            onEditCertificate={handleEditCertificate}
-          />
-
-          <Achievements
-            achievements={profile.achievements}
-            isOwner={!!isOwner}
-            onAddAchievement={() => {
-              setAchievementToEdit(null);
-              setAddAchievementModalOpen(true);
-            }}
-            onEditAchievement={handleEditAchievement}
+            sections={[
+              {
+                key: 'skills',
+                label: 'Skills',
+                icon: <Sparkles className="h-4 w-4" />,
+                count: profile.skills.length,
+                onAdd: () => {
+                  setSkillToEdit(null);
+                  setAddSkillModalOpen(true);
+                },
+                render: () => (
+                  <SkillsGrid
+                    skills={profile.skills}
+                    isOwner={!!isOwner}
+                    onAddSkill={() => {
+                      setSkillToEdit(null);
+                      setAddSkillModalOpen(true);
+                    }}
+                    onRemoveSkill={handleRemoveSkill}
+                    onEditSkill={handleEditSkill}
+                  />
+                ),
+              },
+              {
+                key: 'projects',
+                label: 'Projects',
+                icon: <FolderGit2 className="h-4 w-4" />,
+                count: profile.projects.length,
+                onAdd: () => {
+                  setProjectToEdit(null);
+                  setAddProjectModalOpen(true);
+                },
+                render: () => (
+                  <ProjectsGrid
+                    projects={profile.projects}
+                    isOwner={!!isOwner}
+                    onAddProject={() => {
+                      setProjectToEdit(null);
+                      setAddProjectModalOpen(true);
+                    }}
+                    onEditProject={handleEditProject}
+                  />
+                ),
+              },
+              {
+                key: 'experience',
+                label: 'Experience',
+                icon: <Briefcase className="h-4 w-4" />,
+                count: profile.experiences.length,
+                onAdd: () => {
+                  setExperienceToEdit(null);
+                  setAddExperienceModalOpen(true);
+                },
+                render: () => (
+                  <ExperienceTimeline
+                    experiences={profile.experiences}
+                    isOwner={!!isOwner}
+                    onAddExperience={() => {
+                      setExperienceToEdit(null);
+                      setAddExperienceModalOpen(true);
+                    }}
+                    onEditExperience={(experience) => {
+                      setExperienceToEdit(experience);
+                      setAddExperienceModalOpen(true);
+                    }}
+                  />
+                ),
+              },
+              {
+                key: 'education',
+                label: 'Education',
+                icon: <GraduationCap className="h-4 w-4" />,
+                count: profile.education.length,
+                onAdd: () => {
+                  setEducationToEdit(null);
+                  setAddEducationModalOpen(true);
+                },
+                render: () => (
+                  <EducationTimeline
+                    education={profile.education}
+                    isOwner={!!isOwner}
+                    onAddEducation={() => {
+                      setEducationToEdit(null);
+                      setAddEducationModalOpen(true);
+                    }}
+                    onEditEducation={(education) => {
+                      setEducationToEdit(education);
+                      setAddEducationModalOpen(true);
+                    }}
+                  />
+                ),
+              },
+              {
+                key: 'certificates',
+                label: 'Certificates',
+                icon: <Award className="h-4 w-4" />,
+                count: profile.certificates.length,
+                onAdd: () => {
+                  setCertificateToEdit(null);
+                  setAddCertificateModalOpen(true);
+                },
+                render: () => (
+                  <CertificatesGrid
+                    certificates={profile.certificates}
+                    isOwner={!!isOwner}
+                    onAddCertificate={() => {
+                      setCertificateToEdit(null);
+                      setAddCertificateModalOpen(true);
+                    }}
+                    onEditCertificate={handleEditCertificate}
+                  />
+                ),
+              },
+              {
+                key: 'achievements',
+                label: 'Achievements',
+                icon: <Trophy className="h-4 w-4" />,
+                count: profile.achievements.length,
+                onAdd: () => {
+                  setAchievementToEdit(null);
+                  setAddAchievementModalOpen(true);
+                },
+                render: () => (
+                  <Achievements
+                    achievements={profile.achievements}
+                    isOwner={!!isOwner}
+                    onAddAchievement={() => {
+                      setAchievementToEdit(null);
+                      setAddAchievementModalOpen(true);
+                    }}
+                    onEditAchievement={handleEditAchievement}
+                  />
+                ),
+              },
+            ]}
           />
 
           <ProfileSection

@@ -4,6 +4,7 @@ import { Check, ChevronDown, Link2, Plus } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import type { StoryCategory, StoryVisibility } from '@/lib/api/stories';
 import type { StoryMusic } from '@/lib/stories/music';
+import type { StoryBackdrop } from './StoryMusicPlacementEditor';
 import { StoryMusicPicker } from './StoryMusicPicker';
 
 interface StoryDetailsPanelProps {
@@ -15,6 +16,7 @@ interface StoryDetailsPanelProps {
   setVisibility: (visibility: StoryVisibility) => void;
   music: StoryMusic | null;
   setMusic: (music: StoryMusic | null) => void;
+  backdrop?: StoryBackdrop;
   linkUrl: string;
   setLinkUrl: (url: string) => void;
   linkTitle: string;
@@ -31,6 +33,7 @@ export function StoryDetailsPanel({
   setVisibility,
   music,
   setMusic,
+  backdrop,
   linkUrl,
   setLinkUrl,
   linkTitle,
@@ -95,7 +98,7 @@ export function StoryDetailsPanel({
           <h3 className="text-sm font-semibold">Soundtrack</h3>
           <span className="text-xs text-neutral-400">Optional</span>
         </div>
-        <StoryMusicPicker music={music} onChange={setMusic} />
+        <StoryMusicPicker music={music} onChange={setMusic} backdrop={backdrop} />
       </section>
 
       <section className="border-t border-neutral-100 pt-4 dark:border-neutral-800">

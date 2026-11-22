@@ -127,7 +127,7 @@ function UserNetworkPageInner({ userId }: { userId: string }) {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50 dark:bg-neutral-950">
+      <div className="mono-theme min-h-screen bg-gray-50 dark:bg-transparent">
         {/* Header */}
         <header className="sticky top-0 z-50 bg-white dark:bg-neutral-900 border-b border-gray-200 dark:border-neutral-800">
           <div className="max-w-3xl mx-auto px-4 py-3 flex items-center gap-4">

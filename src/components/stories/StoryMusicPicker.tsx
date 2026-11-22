@@ -7,11 +7,13 @@ import { cachedMusicSearch, searchStoryMusic } from '@/lib/api/music';
 import { loadYouTubeMusicAPI } from '@/lib/stories/youtubeMusic';
 import { useYouTubeMusic } from './useYouTubeMusic';
 import {
+  DEFAULT_MUSIC_PLACEMENT,
   clipTime,
   songDurationSeconds,
   type MusicSearchResult,
   type StoryMusic,
 } from '@/lib/stories/music';
+import { StoryMusicPlacementEditor, type StoryBackdrop } from './StoryMusicPlacementEditor';
 
 const CATEGORIES = [
   'Trending',
@@ -28,11 +30,16 @@ const CATEGORIES = [
 export function StoryMusicPicker({
   music,
   onChange,
+  backdrop,
 }: {
   music: StoryMusic | null;
   onChange: (music: StoryMusic | null) => void;
+  /** The story being edited, shown behind the sticker while choosing where it goes. */
+  backdrop?: StoryBackdrop;
 }) {
   const [open, setOpen] = useState(false);
+  const [stage, setStage] = useState<'pick' | 'place'>('pick');
+  const [draft, setDraft] = useState<StoryMusic | null>(null);
   const [query, setQuery] = useState('');
   const [retryAttempt, setRetryAttempt] = useState(0);
   const [category, setCategory] = useState('Trending');
@@ -109,6 +116,8 @@ export function StoryMusicPicker({
           setSelected(null);
           setPreviewPaused(true);
           setOffset(0);
+          setStage('pick');
+          setDraft(null);
         }
       }}
     >
@@ -133,6 +142,21 @@ export function StoryMusicPicker({
           </span>
         </Dialog.Trigger>
         {music && (
+          <button
+            aria-label="Adjust music position"
+            onClick={() => {
+              setSelected(null);
+              setPreviewPaused(true);
+              setDraft(music);
+              setStage('place');
+              setOpen(true);
+            }}
+            className="rounded-lg border border-neutral-200 px-2.5 py-1.5 text-xs font-medium dark:border-neutral-700"
+          >
+            Position
+          </button>
+        )}
+        {music && (
           <button aria-label="Remove music" onClick={() => onChange(null)} className="p-2">
             <X className="h-4 w-4" />
           </button>
@@ -148,163 +172,201 @@ export function StoryMusicPicker({
             </Dialog.Close>
           </div>
           <Dialog.Description className="mb-4 text-sm text-neutral-500">
-            Find a song and choose your favorite 15 seconds.
+            {stage === 'place'
+              ? 'Place the music sticker on your story.'
+              : 'Find a song and choose your favorite 15 seconds.'}
           </Dialog.Description>
-          <label className="flex items-center gap-2 rounded-xl bg-neutral-100 px-3 dark:bg-neutral-800">
-            <Search className="h-4 w-4" />
-            <input
-              autoComplete="off"
-              aria-label="Search songs or artists"
-              placeholder="Search songs or artists"
-              value={query}
-              maxLength={200}
-              onChange={(event) => {
-                setQuery(event.target.value);
-                setLoading(true);
-                setError('');
-                setSelected(null);
-              }}
-              className="w-full bg-transparent py-3 outline-none"
-            />
-          </label>
-          <div className="my-4 flex shrink-0 flex-wrap gap-1.5">
-            {CATEGORIES.map((item) => (
-              <button
-                key={item}
-                aria-pressed={!query && category === item}
-                onClick={() => {
-                  setCategory(item);
-                  setRetryAttempt((value) => value + 1);
-                  setLoading(true);
-                  setError('');
-                  setQuery('');
-                  setSelected(null);
-                }}
-                className={`shrink-0 rounded-full px-3 py-1.5 text-xs ${!query && category === item ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900' : 'bg-neutral-100 dark:bg-neutral-800'}`}
-              >
-                {item}
-              </button>
-            ))}
-          </div>
-          <div aria-live="polite" className="min-h-48 flex-1 overflow-y-auto">
-            {loading ? (
-              <div role="status" aria-label="Searching music" className="space-y-3 py-3">
-                {[0, 1, 2].map((row) => (
-                  <div key={row} className="flex animate-pulse items-center gap-3">
-                    <div className="h-12 w-12 rounded-lg bg-neutral-100 dark:bg-neutral-800" />
-                    <div className="flex-1 space-y-2">
-                      <div className="h-3 w-2/3 rounded bg-neutral-100 dark:bg-neutral-800" />
-                      <div className="h-2.5 w-1/3 rounded bg-neutral-100 dark:bg-neutral-800" />
-                    </div>
-                  </div>
-                ))}
-                <p className="pt-1 text-center text-xs text-neutral-500">
-                  Finding your soundtrack…
-                </p>
-              </div>
-            ) : error ? (
-              <div className="flex min-h-44 flex-col items-center justify-center px-4 py-6 text-center">
-                <Music2 className="mb-3 h-6 w-6 text-neutral-400" />
-                <p role="alert" className="text-sm font-medium">
-                  Music couldn’t load
-                </p>
-                <p className="mt-1 text-xs text-neutral-500">
-                  The catalog may be waking up. Give it another try.
-                </p>
-                <button
-                  onClick={() => {
-                    setLoading(true);
-                    setError('');
-                    setRetryAttempt((value) => value + 1);
-                  }}
-                  className="mt-4 flex items-center gap-2 rounded-lg border border-neutral-200 px-4 py-2 text-xs font-semibold hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-800"
-                >
-                  <RefreshCw className="h-3.5 w-3.5" />
-                  Try again
-                </button>
-              </div>
-            ) : !results.length ? (
-              <p className="py-6 text-center text-sm text-neutral-500">
-                No songs found. Try another search.
-              </p>
-            ) : (
-              results.map((song) => (
-                <button
-                  key={song.id}
-                  onClick={() => {
-                    setSelected(song);
-                    setPreviewPaused(true);
-                    setOffset(0);
-                  }}
-                  aria-pressed={selected?.id === song.id}
-                  className={`flex w-full items-center gap-3 rounded-xl p-2 text-left ${selected?.id === song.id ? 'bg-neutral-100 dark:bg-neutral-800' : 'hover:bg-neutral-100 dark:hover:bg-neutral-800'}`}
-                >
-                  {/* Catalog artwork is external and changes independently of the application. */}
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={song.thumbnail} alt="" className="h-12 w-12 rounded-lg object-cover" />
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-semibold">{song.title}</span>
-                    <span className="block truncate text-xs text-neutral-500">{song.artist}</span>
-                  </span>
-                  <span className="text-xs text-neutral-500">{song.duration}</span>
-                </button>
-              ))
-            )}
-          </div>
-          {selected && (
-            <div className="mt-4 shrink-0 border-t border-neutral-200 pt-4 dark:border-neutral-700">
-              <p className="truncate text-sm font-semibold">{selected.title}</p>
-              <label htmlFor="story-music-offset" className="mt-2 flex justify-between text-xs">
-                <span>15-second clip</span>
-                <span>
-                  {clipTime(offset)}–{clipTime(offset + 15)}
-                </span>
-              </label>
-              <input
-                id="story-music-offset"
-                type="range"
-                min={0}
-                max={Math.max(0, songDurationSeconds(selected.duration) - 15)}
-                step={1}
-                value={offset}
-                onChange={(event) => {
-                  previewMusic.playerRef.current?.pause();
-                  setPreviewPaused(true);
-                  setOffset(Number(event.target.value));
-                }}
-                className="my-3 w-full accent-neutral-800 dark:accent-neutral-200"
+          {stage === 'place' && draft ? (
+            <div className="min-h-0 flex-1 overflow-y-auto">
+              <StoryMusicPlacementEditor
+                music={draft}
+                backdrop={backdrop}
+                playing={previewing}
+                onChange={(placement) => setDraft({ ...draft, placement })}
               />
-              {previewError && (
-                <p role="status" className="mb-2 text-xs text-amber-600">
-                  {previewError}
-                </p>
-              )}
-              <div className="flex gap-2">
+              <div className="mt-4 flex gap-2">
                 <button
-                  onClick={preview}
-                  className="flex items-center gap-2 rounded-xl border px-4 py-2 text-sm"
+                  onClick={() => setStage('pick')}
+                  className="rounded-xl border px-4 py-2.5 text-sm"
                 >
-                  {previewing ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}{' '}
-                  {previewing ? 'Pause preview' : 'Preview'}
+                  Back
                 </button>
                 <button
                   onClick={() => {
-                    onChange({
-                      songId: selected.id,
-                      title: selected.title,
-                      artist: selected.artist,
-                      thumbnail: selected.thumbnail,
-                      startOffset: offset,
-                      duration: 15,
-                    });
+                    onChange(draft);
                     setOpen(false);
                   }}
                   className="flex-1 rounded-xl bg-neutral-900 py-2.5 text-sm font-semibold text-white dark:bg-white dark:text-neutral-900"
                 >
-                  Use this clip
+                  Done
                 </button>
               </div>
             </div>
+          ) : (
+            <>
+              <label className="flex items-center gap-2 rounded-xl bg-neutral-100 px-3 dark:bg-neutral-800">
+                <Search className="h-4 w-4" />
+                <input
+                  autoComplete="off"
+                  aria-label="Search songs or artists"
+                  placeholder="Search songs or artists"
+                  value={query}
+                  maxLength={200}
+                  onChange={(event) => {
+                    setQuery(event.target.value);
+                    setLoading(true);
+                    setError('');
+                    setSelected(null);
+                  }}
+                  className="w-full bg-transparent py-3 outline-none"
+                />
+              </label>
+              <div className="my-4 flex shrink-0 flex-wrap gap-1.5">
+                {CATEGORIES.map((item) => (
+                  <button
+                    key={item}
+                    aria-pressed={!query && category === item}
+                    onClick={() => {
+                      setCategory(item);
+                      setRetryAttempt((value) => value + 1);
+                      setLoading(true);
+                      setError('');
+                      setQuery('');
+                      setSelected(null);
+                    }}
+                    className={`shrink-0 rounded-full px-3 py-1.5 text-xs ${!query && category === item ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900' : 'bg-neutral-100 dark:bg-neutral-800'}`}
+                  >
+                    {item}
+                  </button>
+                ))}
+              </div>
+              <div aria-live="polite" className="min-h-48 flex-1 overflow-y-auto">
+                {loading ? (
+                  <div role="status" aria-label="Searching music" className="space-y-3 py-3">
+                    {[0, 1, 2].map((row) => (
+                      <div key={row} className="flex animate-pulse items-center gap-3">
+                        <div className="h-12 w-12 rounded-lg bg-neutral-100 dark:bg-neutral-800" />
+                        <div className="flex-1 space-y-2">
+                          <div className="h-3 w-2/3 rounded bg-neutral-100 dark:bg-neutral-800" />
+                          <div className="h-2.5 w-1/3 rounded bg-neutral-100 dark:bg-neutral-800" />
+                        </div>
+                      </div>
+                    ))}
+                    <p className="pt-1 text-center text-xs text-neutral-500">
+                      Finding your soundtrack…
+                    </p>
+                  </div>
+                ) : error ? (
+                  <div className="flex min-h-44 flex-col items-center justify-center px-4 py-6 text-center">
+                    <Music2 className="mb-3 h-6 w-6 text-neutral-400" />
+                    <p role="alert" className="text-sm font-medium">
+                      Music couldn’t load
+                    </p>
+                    <p className="mt-1 text-xs text-neutral-500">
+                      The catalog may be waking up. Give it another try.
+                    </p>
+                    <button
+                      onClick={() => {
+                        setLoading(true);
+                        setError('');
+                        setRetryAttempt((value) => value + 1);
+                      }}
+                      className="mt-4 flex items-center gap-2 rounded-lg border border-neutral-200 px-4 py-2 text-xs font-semibold hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-800"
+                    >
+                      <RefreshCw className="h-3.5 w-3.5" />
+                      Try again
+                    </button>
+                  </div>
+                ) : !results.length ? (
+                  <p className="py-6 text-center text-sm text-neutral-500">
+                    No songs found. Try another search.
+                  </p>
+                ) : (
+                  results.map((song) => (
+                    <button
+                      key={song.id}
+                      onClick={() => {
+                        setSelected(song);
+                        setPreviewPaused(false);
+                        setOffset(0);
+                      }}
+                      aria-pressed={selected?.id === song.id}
+                      className={`flex w-full items-center gap-3 rounded-xl p-2 text-left ${selected?.id === song.id ? 'bg-neutral-100 dark:bg-neutral-800' : 'hover:bg-neutral-100 dark:hover:bg-neutral-800'}`}
+                    >
+                      {/* Catalog artwork is external and changes independently of the application. */}
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={song.thumbnail}
+                        alt=""
+                        className="h-12 w-12 rounded-lg object-cover"
+                      />
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm font-semibold">{song.title}</span>
+                        <span className="block truncate text-xs text-neutral-500">
+                          {song.artist}
+                        </span>
+                      </span>
+                      <span className="text-xs text-neutral-500">{song.duration}</span>
+                    </button>
+                  ))
+                )}
+              </div>
+              {selected && (
+                <div className="mt-4 shrink-0 border-t border-neutral-200 pt-4 dark:border-neutral-700">
+                  <p className="truncate text-sm font-semibold">{selected.title}</p>
+                  <label htmlFor="story-music-offset" className="mt-2 flex justify-between text-xs">
+                    <span>15-second clip</span>
+                    <span>
+                      {clipTime(offset)}–{clipTime(offset + 15)}
+                    </span>
+                  </label>
+                  <input
+                    id="story-music-offset"
+                    type="range"
+                    min={0}
+                    max={Math.max(0, songDurationSeconds(selected.duration) - 15)}
+                    step={1}
+                    value={offset}
+                    onChange={(event) => {
+                      setPreviewPaused(false);
+                      setOffset(Number(event.target.value));
+                    }}
+                    className="my-3 w-full accent-neutral-800 dark:accent-neutral-200"
+                  />
+                  {previewError && (
+                    <p role="status" className="mb-2 text-xs text-amber-600">
+                      {previewError}
+                    </p>
+                  )}
+                  <div className="flex gap-2">
+                    <button
+                      onClick={preview}
+                      className="flex items-center gap-2 rounded-xl border px-4 py-2 text-sm"
+                    >
+                      {previewing ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}{' '}
+                      {previewing ? 'Pause preview' : 'Preview'}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setDraft({
+                          songId: selected.id,
+                          title: selected.title,
+                          artist: selected.artist,
+                          thumbnail: selected.thumbnail,
+                          startOffset: offset,
+                          duration: 15,
+                          placement: music?.placement ?? DEFAULT_MUSIC_PLACEMENT,
+                        });
+                        setStage('place');
+                      }}
+                      className="flex-1 rounded-xl bg-neutral-900 py-2.5 text-sm font-semibold text-white dark:bg-white dark:text-neutral-900"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </Dialog.Content>
       </Dialog.Portal>

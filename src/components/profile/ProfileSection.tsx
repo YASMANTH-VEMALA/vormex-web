@@ -3,6 +3,14 @@
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { Pencil, Plus } from 'lucide-react';
+import { createContext, useContext } from 'react';
+
+/**
+ * When true, ProfileSection drops its own card chrome and title and only renders
+ * its action buttons + content. ProfileHighlights sets this so six sections can
+ * live inside one card.
+ */
+export const BareSectionContext = createContext(false);
 
 /* ────────────────────────────────────────────────────────────────────────────
    Scroll-reveal primitives — sections and items animate in as they enter
@@ -82,6 +90,16 @@ export function ProfileSection({
   className,
   contentClassName,
 }: ProfileSectionProps) {
+  const bare = useContext(BareSectionContext);
+  if (bare) {
+    return (
+      <div className={cn('min-w-0 max-w-full', className)}>
+        {action && <div className="mb-3 flex max-w-full items-center justify-end gap-2">{action}</div>}
+        {headerExtra}
+        <div className={cn('min-w-0 max-w-full', contentClassName)}>{children}</div>
+      </div>
+    );
+  }
   return (
     <Reveal className="min-w-0 max-w-full">
       <section

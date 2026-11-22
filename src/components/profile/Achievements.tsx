@@ -7,7 +7,6 @@ import {
   Award,
   Building,
   Calendar,
-  Edit2,
   ExternalLink,
   Eye,
   Gift,
@@ -18,14 +17,8 @@ import {
   X,
 } from 'lucide-react';
 import { useState } from 'react';
-import { ProfileEntryLogo } from './ProfileEntryLogo';
-import {
-  ProfileSection,
-  RevealItem,
-  SectionAddButton,
-  SectionEditButton,
-  SectionEmptyState,
-} from './ProfileSection';
+import { ProfileSection, SectionAddButton, SectionEmptyState } from './ProfileSection';
+import { ShowcaseVisual, VerticalShowcase } from './VerticalShowcase';
 
 interface AchievementsProps {
   achievements: Achievement[];
@@ -50,7 +43,6 @@ export function Achievements({
   onEditAchievement,
 }: AchievementsProps) {
   const [selectedAchievement, setSelectedAchievement] = useState<Achievement | null>(null);
-  const [editing, setEditing] = useState(false);
 
   if (achievements.length === 0 && !isOwner) {
     return null;
@@ -109,16 +101,6 @@ export function Achievements({
             {onAddAchievement && (
               <SectionAddButton onClick={onAddAchievement} label="Add Achievement" />
             )}
-            {onEditAchievement && achievements.length > 0 && (
-              <SectionEditButton
-                onClick={() => {
-                  if (achievements.length === 1) onEditAchievement(achievements[0]);
-                  else setEditing((current) => !current);
-                }}
-                label="Edit Achievements"
-                active={editing}
-              />
-            )}
           </>
         ) : undefined
       }
@@ -131,80 +113,61 @@ export function Achievements({
           onAction={isOwner && onAddAchievement ? onAddAchievement : undefined}
         />
       ) : (
-        <div className="divide-y divide-neutral-100 dark:divide-neutral-800">
-          {achievements.map((achievement, index) => {
-            const icon = TYPE_ICONS[achievement.type] || <Award className="h-5 w-5" />;
-            return (
-              <RevealItem
-                key={achievement.id}
-                index={index}
-                className="group py-5 first:pt-0 last:pb-0"
-              >
-                <div className="flex items-start gap-3 sm:gap-4">
-                  <ProfileEntryLogo
-                    logo={
-                      achievement.certificateUrl && isImageUrl(achievement.certificateUrl)
-                        ? achievement.certificateUrl
-                        : null
-                    }
-                    label={achievement.organization}
-                    fallback={icon}
-                  />
-
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-start justify-between gap-2 sm:gap-4">
-                      <div className="min-w-0">
-                        <h4 className="break-words text-[15px] font-semibold text-neutral-900 dark:text-white">
-                          {achievement.title}
-                        </h4>
-                        <p className="mt-1 break-words text-sm font-medium text-neutral-600 dark:text-neutral-300">
-                          {achievement.organization}
-                        </p>
-                      </div>
-
-                      <div className="flex shrink-0 gap-1">
-                        {achievement.certificateUrl && (
-                          <button
-                            onClick={() => setSelectedAchievement(achievement)}
-                            className="p-2 text-neutral-400 transition-colors hover:text-neutral-950 dark:hover:text-white"
-                            title="View certificate"
-                          >
-                            <Eye className="h-3.5 w-3.5" />
-                          </button>
-                        )}
-                        {isOwner && onEditAchievement && editing && (
-                          <button
-                            onClick={() => onEditAchievement(achievement)}
-                            className="p-2 text-neutral-400 transition-colors hover:text-neutral-950 dark:hover:text-white"
-                            title="Edit achievement"
-                          >
-                            <Edit2 className="h-3.5 w-3.5" />
-                          </button>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-neutral-500 dark:text-neutral-400">
-                      <span className="rounded border border-neutral-200 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide dark:border-neutral-700">
-                        {achievement.type}
-                      </span>
-                      <div className="flex items-center gap-1">
-                        <Calendar className="w-3.5 h-3.5" />
-                        {formatDate(achievement.date)}
-                      </div>
-                    </div>
-
-                    {achievement.description && (
-                      <p className="mt-3 line-clamp-2 whitespace-pre-wrap text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">
-                        {achievement.description}
-                      </p>
-                    )}
-                  </div>
+        <VerticalShowcase
+          label="Achievements"
+          items={achievements}
+          isOwner={isOwner}
+          onEdit={onEditAchievement}
+          getTitle={(achievement) => achievement.title}
+          renderVisual={(achievement) => (
+            <ShowcaseVisual
+              image={
+                achievement.certificateUrl && isImageUrl(achievement.certificateUrl)
+                  ? achievement.certificateUrl
+                  : null
+              }
+              label={achievement.organization}
+              title={achievement.title}
+              subtitle={`${achievement.type} · ${achievement.organization}`}
+              icon={TYPE_ICONS[achievement.type] || <Award />}
+            />
+          )}
+          renderDetail={(achievement) => (
+            <>
+              <p className="flex items-center gap-1.5 text-sm font-medium text-neutral-700 dark:text-neutral-200">
+                <Building className="h-3.5 w-3.5 shrink-0 text-neutral-400" />
+                <span className="break-words">{achievement.organization}</span>
+              </p>
+              <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-neutral-500 dark:text-neutral-400">
+                <span className="rounded border border-neutral-200 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide dark:border-white/15">
+                  {achievement.type}
+                </span>
+                <div className="flex items-center gap-1">
+                  <Calendar className="h-3.5 w-3.5" />
+                  {formatDate(achievement.date)}
                 </div>
-              </RevealItem>
-            );
-          })}
-        </div>
+              </div>
+              {achievement.description && (
+                <p className="mt-3 line-clamp-6 whitespace-pre-wrap text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">
+                  {achievement.description}
+                </p>
+              )}
+            </>
+          )}
+          renderActions={(achievement) =>
+            achievement.certificateUrl ? (
+              <button
+                type="button"
+                onClick={() => setSelectedAchievement(achievement)}
+                title="View certificate"
+                className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 px-3 py-1.5 text-xs font-semibold text-neutral-700 transition-colors hover:bg-neutral-100 dark:border-white/15 dark:text-neutral-200 dark:hover:bg-white/10"
+              >
+                <Eye className="h-3.5 w-3.5" />
+                View certificate
+              </button>
+            ) : null
+          }
+        />
       )}
 
       {/* Achievement Modal */}

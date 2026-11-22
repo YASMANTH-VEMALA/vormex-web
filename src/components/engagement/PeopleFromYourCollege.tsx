@@ -118,7 +118,7 @@ export default function PeopleFromYourCollege() {
       </div>
 
       <Link
-        href="/find-people?tab=college"
+        href="/find-people"
         className="flex items-center justify-center gap-1 px-4 py-2.5 text-xs text-blue-600 dark:text-blue-400 font-medium hover:bg-gray-50 dark:hover:bg-neutral-800/50 transition-colors border-t border-gray-100 dark:border-neutral-800"
       >
         See all from your campus <ChevronRight className="w-3 h-3" />

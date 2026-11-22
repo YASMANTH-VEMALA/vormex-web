@@ -240,6 +240,8 @@ export interface Achievement {
 export interface FeedItem {
   id: string;
   contentType: 'post' | 'article' | 'short_video' | 'forum_question' | 'forum_answer';
+  /** Built-in animation id from the shared Android/web catalog (lib/defaultVideos). */
+  defaultVideoId?: string | null;
   title?: string;
   content: string;
   images?: string[];

@@ -1,75 +1,75 @@
 'use client';
 import { Loader2, Search, SlidersHorizontal, X } from 'lucide-react';
+import Image from 'next/image';
 import React from 'react';
 
 interface PeopleSearchHeaderProps {
   activeFilterCount: number;
-  activeTab: import('@/components/find-people/FindPeople.types').TabType;
   hasActiveFilters: boolean;
   isAuthoritativeSearch: boolean;
   isSearchMode: boolean;
   loading: boolean;
   searchQuery: string;
-  setActiveTab: React.Dispatch<
-    React.SetStateAction<import('@/components/find-people/FindPeople.types').TabType>
-  >;
   setSearchFocused: React.Dispatch<React.SetStateAction<boolean>>;
   setSearchQuery: React.Dispatch<React.SetStateAction<string>>;
-  setSectionError: React.Dispatch<React.SetStateAction<string | null>>;
   setShowMobileFilters: React.Dispatch<React.SetStateAction<boolean>>;
-  tabItems: import('@/components/find-people/FindPeople.types').TabItem[];
 }
 
 export function PeopleSearchHeader({
   activeFilterCount,
-  activeTab,
   hasActiveFilters,
   isAuthoritativeSearch,
   isSearchMode,
   loading,
   searchQuery,
-  setActiveTab,
   setSearchFocused,
   setSearchQuery,
-  setSectionError,
   setShowMobileFilters,
-  tabItems,
 }: PeopleSearchHeaderProps) {
   const searchInputRef = React.useRef<HTMLInputElement>(null);
 
   return (
-    <header className="border-b border-gray-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
-      <div className="mx-auto max-w-7xl px-4 pb-4 pt-6 sm:px-6">
+    <header className="relative overflow-hidden border-b border-gray-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
+      {/* Official Vormex cover, faded in from the right so it frames the title without competing with it. */}
+      {!isSearchMode && (
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-y-0 right-0 hidden w-3/5 opacity-70 [mask-image:linear-gradient(to_right,transparent,black_55%)] dark:opacity-25 sm:block"
+        >
+          <Image
+            src="/vormex-profile-cover.png"
+            alt=""
+            fill
+            sizes="60vw"
+            className="object-cover object-right"
+          />
+        </div>
+      )}
+      <div className="relative mx-auto max-w-7xl px-4 pb-4 pt-6 sm:px-6">
         {/* Title row */}
-        <div className={`${isSearchMode ? 'sr-only' : 'flex'} items-center gap-3`}>
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm shadow-blue-600/25">
-            <svg
-              viewBox="0 0 24 24"
-              className="h-6 w-6"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <circle cx="10" cy="10" r="6" fill="currentColor" fillOpacity=".2" />
-              <path d="m20 20-4.2-4.2" />
-              <path d="M10 7.5v5M7.5 10h5" />
-            </svg>
+        <div className={`${isSearchMode ? 'sr-only' : 'flex'} items-center gap-4`}>
+          <span className="flex h-14 w-14 shrink-0 items-center justify-center">
+            <Image
+              src="/logo.png"
+              alt="Vormex"
+              width={56}
+              height={56}
+              priority
+              className="h-14 w-14 object-contain dark:invert"
+            />
           </span>
           <div className="min-w-0">
-            <h1 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-2xl">
+            <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-[28px]">
               Find People
             </h1>
             <p className="truncate text-sm text-gray-500 dark:text-neutral-400">
-              Grow your network — students, creators and builders
+              Meet builders, creators and students who share your goals
             </p>
           </div>
         </div>
 
-        {/* Search (All tab only) */}
-        {activeTab === 'all' && (
+        {/* Search */}
+        {
           <div className={`${isSearchMode ? '' : 'mt-5'} flex items-center gap-2`}>
             <div className="relative flex-1">
               <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
@@ -95,10 +95,7 @@ export function PeopleSearchHeader({
               />
               <div className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center gap-1.5">
                 {loading && isAuthoritativeSearch && (
-                  <Loader2
-                    className="h-4 w-4 animate-spin text-blue-600"
-                    aria-label="Searching"
-                  />
+                  <Loader2 className="h-4 w-4 animate-spin text-blue-600" aria-label="Searching" />
                 )}
                 {searchQuery ? (
                   <button
@@ -141,38 +138,7 @@ export function PeopleSearchHeader({
               </button>
             )}
           </div>
-        )}
-
-        {/* Tabs — pill chips */}
-        {!isSearchMode && (
-          <nav
-            className="scrollbar-hide -mx-1 mt-4 flex gap-2 overflow-x-auto px-1 pb-1"
-            aria-label="Find people tabs"
-          >
-            {tabItems.map(({ id, label, Icon }) => {
-              const active = activeTab === id;
-              return (
-                <button
-                  key={id}
-                  type="button"
-                  aria-current={active ? 'page' : undefined}
-                  onClick={() => {
-                    setSectionError(null);
-                    setActiveTab(id);
-                  }}
-                  className={`flex shrink-0 items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors ${
-                    active
-                      ? 'border-blue-600 bg-blue-600 text-white shadow-sm shadow-blue-600/25'
-                      : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-gray-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-800'
-                  }`}
-                >
-                  <Icon className="h-4 w-4" />
-                  {label}
-                </button>
-              );
-            })}
-          </nav>
-        )}
+        }
       </div>
     </header>
   );

@@ -3,6 +3,7 @@ import { useSyncedState } from '@/hooks/useSyncedState';
 import { useAuth as useResourceAuth } from '@/lib/auth/useAuth';
 import { useQuery } from '@tanstack/react-query';
 
+import { DefaultVideoById } from '@/components/feed/DefaultVideoPlayer';
 import { EditPostModal } from '@/components/feed/EditPostModal';
 import { FormattedContent } from '@/components/feed/FormattedContent';
 import Link from 'next/link';
@@ -397,6 +398,14 @@ export function ProfileFeed({ userId, initialFeed }: ProfileFeedProps) {
                             </div>
                           );
                         })}
+                      </div>
+                    )}
+                    {item.defaultVideoId && (
+                      <div className="mb-4 overflow-hidden rounded-lg">
+                        <DefaultVideoById
+                          defaultVideoId={item.defaultVideoId}
+                          className="h-[180px] w-full overflow-hidden"
+                        />
                       </div>
                     )}
                     {item.questionTitle && (

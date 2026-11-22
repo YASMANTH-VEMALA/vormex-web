@@ -1,43 +1,8 @@
 'use client';
 import { ChevronDown, X } from 'lucide-react';
 import { type ComponentType, type SVGProps } from 'react';
-import type { FilterPanelProps, FilterSelectProps, TabItem, TabType } from './FindPeople.types';
-import {
-  AllPeopleTabIcon,
-  ForYouTabIcon,
-  NearbyTabIcon,
-  PeopleYouKnowTabIcon,
-  SameCampusTabIcon,
-  SmartMatchesTabIcon,
-} from './FindPeopleTabIcons';
+import type { FilterPanelProps, FilterSelectProps } from './FindPeople.types';
 import { PeopleFiltersPanel } from './PeopleFiltersPanel';
-
-export const tabItems: TabItem[] = [
-  { id: 'all', label: 'All People', Icon: AllPeopleTabIcon },
-  { id: 'smart', label: 'Smart Matches', Icon: SmartMatchesTabIcon },
-  { id: 'known', label: 'People You Know', Icon: PeopleYouKnowTabIcon },
-  { id: 'suggestions', label: 'For You', Icon: ForYouTabIcon },
-  { id: 'college', label: 'Same Campus', Icon: SameCampusTabIcon },
-  { id: 'nearby', label: 'Nearby', Icon: NearbyTabIcon },
-];
-
-export function getActiveTabFromParam(tabParam: string | null): TabType {
-  switch (tabParam) {
-    case 'known':
-      return 'known';
-    case 'smart':
-      return 'smart';
-    case 'suggestions':
-      return 'suggestions';
-    case 'college':
-      return 'college';
-    case 'nearby':
-      return 'nearby';
-    case 'all':
-    default:
-      return 'all';
-  }
-}
 
 export function FilterSelect({
   label,
@@ -49,8 +14,8 @@ export function FilterSelect({
 }: FilterSelectProps) {
   return (
     <div>
-      <label className="mb-1.5 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-neutral-400">
-        <Icon className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+      <label className="mb-1.5 flex items-center gap-2 text-xs font-semibold text-gray-600 dark:text-neutral-300">
+        <Icon className="h-3.5 w-3.5 text-gray-400 dark:text-neutral-500" />
         {label}
       </label>
       <div className="relative">
@@ -83,8 +48,6 @@ export function FilterPanel({
   setSelectedYear,
   selectedLocation,
   setSelectedLocation,
-  openToOpportunities,
-  setOpenToOpportunities,
   hasActiveFilters,
   onClearAll,
 }: FilterPanelProps) {
@@ -94,12 +57,10 @@ export function FilterPanel({
       filterOptions={filterOptions}
       hasActiveFilters={hasActiveFilters}
       onClearAll={onClearAll}
-      openToOpportunities={openToOpportunities}
       selectedBranch={selectedBranch}
       selectedCollege={selectedCollege}
       selectedLocation={selectedLocation}
       selectedYear={selectedYear}
-      setOpenToOpportunities={setOpenToOpportunities}
       setSelectedBranch={setSelectedBranch}
       setSelectedCollege={setSelectedCollege}
       setSelectedLocation={setSelectedLocation}

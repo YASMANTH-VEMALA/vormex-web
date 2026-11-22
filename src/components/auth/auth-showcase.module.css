@@ -2,8 +2,8 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  padding: 36px 48px 0;
-  background: #ffffff;
+  padding: clamp(24px, 3vw, 36px) clamp(24px, 3.4vw, 48px) 0;
+  background: transparent;
   overflow: hidden;
   isolation: isolate;
 }
@@ -12,65 +12,71 @@
   z-index: 3;
   display: inline-flex;
   align-items: center;
-  gap: 17px;
+  gap: 14px;
   width: fit-content;
-  color: #111;
+  color: #f2f4f8;
   text-decoration: none;
 }
 .wordmark svg {
-  width: 54px;
-  height: 34px;
+  width: 48px;
+  height: 30px;
+  filter: invert(1) brightness(1.15) drop-shadow(0 0 14px rgba(255, 255, 255, 0.25));
 }
 .wordmark span {
-  font-size: 32px;
+  font-size: clamp(24px, 2.2vw, 32px);
   font-weight: 750;
-  letter-spacing: -1.6px;
+  letter-spacing: -1.2px;
 }
 .heroCopy {
   position: relative;
   z-index: 3;
-  margin-top: 34px;
+  margin-top: clamp(20px, 2.6vw, 36px);
+  max-width: 44rem;
 }
 .eyebrow {
   margin: 0 0 8px;
-  color: #2563eb;
+  color: #a1a1aa;
   font-size: 12px;
   font-weight: 650;
-  letter-spacing: 4.8px;
+  letter-spacing: 0.3em;
 }
 .heroCopy h1 {
   margin: 0;
-  font-size: clamp(52px, 5.9vw, 108px);
+  font-size: clamp(40px, 5.6vw, 104px);
   font-weight: 800;
   line-height: 1.05;
-  letter-spacing: -0.065em;
-  white-space: nowrap;
+  letter-spacing: -0.06em;
+  text-wrap: balance;
 }
 .heroCopy h1 span {
-  color: #2563eb;
-  background: linear-gradient(125deg, #60a5fa, #1d4ed8);
+  background: linear-gradient(125deg, #ffffff, #8b909c);
   background-clip: text;
+  -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 .heroDescription {
   margin: 14px 0 0;
-  color: #636b76;
-  font-size: clamp(16px, 1.48vw, 24px);
-  line-height: 1.4;
-  letter-spacing: -0.45px;
+  max-width: 34rem;
+  color: #a1a1aa;
+  font-size: clamp(15px, 1.4vw, 22px);
+  line-height: 1.45;
+  letter-spacing: -0.3px;
 }
 .collage {
   position: relative;
   flex: 1;
-  min-height: 420px;
-  margin: 0 -48px;
+  min-height: clamp(320px, 34vw, 480px);
+  margin: 0 calc(clamp(24px, 3.4vw, 48px) * -1);
 }
 .photo {
   position: absolute;
   overflow: hidden;
-  border: 7px solid #ffffff;
+  border: 6px solid rgba(255, 255, 255, 0.12);
   border-radius: 34px;
-  background: #dbeafe;
+  background: #18181b;
+  box-shadow:
+    0 24px 48px -16px rgba(0, 0, 0, 0.7),
+    0 0 60px -20px rgba(255, 255, 255, 0.15);
 }
 .photo img {
   object-fit: cover;
@@ -133,17 +139,20 @@
   justify-content: center;
   align-items: center;
   font-family: 'Segoe Print', 'Bradley Hand', cursive;
-  font-size: clamp(17px, 1.55vw, 24px);
+  font-size: clamp(15px, 1.55vw, 24px);
   line-height: 1.23;
-  color: #1d4ed8;
-  background: #dbeafe;
+  color: #f2f4f8;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
   font-weight: 600;
 }
 .note i {
   display: block;
   width: 54px;
   height: 12px;
-  border-bottom: 2px solid #2563eb;
+  border-bottom: 2px solid #e5e7eb;
   transform: rotate(-10deg);
   position: relative;
 }
@@ -153,7 +162,7 @@
   width: 35px;
   left: 11px;
   top: 13px;
-  border-bottom: 2px solid #2563eb;
+  border-bottom: 2px solid #e5e7eb;
   transform: rotate(-9deg);
 }
 .noteTop {
@@ -188,7 +197,7 @@
   z-index: 5;
   width: 57px;
   height: 55px;
-  color: #3b82f6;
+  color: #d4d4d8;
   pointer-events: none;
 }
 .sparkTop {
@@ -211,27 +220,10 @@
   right: 17%;
   transform: rotate(-10deg);
 }
-@media (min-width: 1650px) {
-  .showcase {
-    padding-top: 42px;
-  }
-  .heroCopy {
-    margin-top: 36px;
-  }
-  .collage {
-    min-height: 460px;
-  }
-}
+
 @media (max-width: 1199px) {
-  .showcase {
-    padding: 30px 32px 0;
-  }
-  .heroCopy h1 {
-    font-size: 5.6vw;
-  }
   .collage {
-    margin: 8px -32px 0;
-    min-height: 390px;
+    min-height: 360px;
   }
   .noteTop {
     top: 14%;
@@ -240,13 +232,6 @@
     height: 145px;
   }
   .sparkTop {
-    display: none;
-  }
-  .heroDescription {
-    font-size: 16px;
-    max-width: 90%;
-  }
-  .wideBreak {
     display: none;
   }
   .noteIdeas {
@@ -258,30 +243,18 @@
     height: 126px;
   }
 }
+
+/* Tablet: single column, collage becomes a full-width band under the headline. */
 @media (max-width: 900px) {
   .showcase {
-    padding: 28px 32px 0;
-    min-height: 580px;
-  }
-  .wordmark svg {
-    width: 40px;
-    height: 28px;
-  }
-  .wordmark span {
-    font-size: 27px;
-  }
-  .heroCopy {
-    margin-top: 26px;
+    padding: 28px 28px 0;
   }
   .heroCopy h1 {
-    font-size: clamp(44px, 9vw, 76px);
-  }
-  .heroDescription {
-    max-width: 82%;
-    font-size: 18px;
+    font-size: clamp(40px, 10vw, 72px);
   }
   .collage {
-    min-height: 310px;
+    min-height: clamp(280px, 52vw, 400px);
+    margin: 8px -28px 0;
   }
   .noteTop {
     top: 15%;
@@ -291,32 +264,22 @@
     top: -5%;
   }
 }
+
 @media (max-width: 540px) {
   .showcase {
-    min-height: 490px;
-    padding: 23px 23px 0;
+    padding: 22px 20px 0;
   }
-  .heroCopy {
-    margin-top: 27px;
+  .wordmark svg {
+    width: 38px;
+    height: 24px;
   }
   .eyebrow {
-    font-size: 9px;
-    letter-spacing: 3.5px;
-    margin-bottom: 9px;
-  }
-  .heroCopy h1 {
-    font-size: clamp(35px, 9.3vw, 51px);
-    letter-spacing: -0.06em;
-  }
-  .heroDescription {
-    font-size: 14px;
-    line-height: 1.5;
-    max-width: 92%;
-    margin-top: 11px;
+    font-size: 10px;
+    letter-spacing: 0.25em;
   }
   .collage {
     min-height: 250px;
-    margin: 18px -23px 0;
+    margin: 14px -20px 0;
   }
   .photo {
     border-width: 4px;
@@ -385,5 +348,76 @@
     width: 31px;
     top: -7%;
     right: 14%;
+  }
+}
+
+/* ---- Fixed-viewport layout ---- */
+.showcase {
+  min-height: 0;
+  padding-bottom: 0;
+}
+.heroCopy {
+  margin-top: clamp(10px, 2.4vh, 36px);
+}
+.heroCopy h1 {
+  font-size: clamp(34px, min(5.6vw, 9.5vh), 104px);
+}
+.heroDescription {
+  font-size: clamp(14px, min(1.4vw, 2.4vh), 22px);
+}
+.collage {
+  flex: 1;
+  min-height: 0;
+}
+
+@media (max-width: 900px) {
+  .showcase {
+    padding: clamp(12px, 2.4vh, 28px) 20px 0;
+  }
+  .heroCopy h1 {
+    font-size: clamp(32px, min(10vw, 6vh), 64px);
+  }
+  .heroDescription {
+    margin-top: 6px;
+  }
+  .collage {
+    min-height: 0;
+    margin: 6px -20px 0;
+  }
+}
+
+/* Not enough height for the photos on small phones: keep headline only. */
+@media (max-width: 900px) and (max-height: 700px) {
+  .collage,
+  .noteTop,
+  .sparkTop {
+    display: none;
+  }
+}
+@media (max-width: 900px) and (max-height: 600px) {
+  .heroDescription {
+    display: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .collage {
+    min-height: 140px;
+  }
+}
+@media (max-width: 900px) and (max-height: 740px) {
+  .collage,
+  .noteTop,
+  .sparkTop {
+    display: none;
+  }
+}
+
+/* Sign-up form is taller; on phones give it the room instead of the photo band. */
+@media (max-width: 900px) {
+  :global([data-auth-signup='true']) .collage,
+  :global([data-auth-signup='true']) .noteTop,
+  :global([data-auth-signup='true']) .sparkTop {
+    display: none;
   }
 }

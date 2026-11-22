@@ -215,7 +215,7 @@ export function FeedTimelineView({
                           className="h-10 w-10 flex-shrink-0 bg-gray-200 text-base font-bold text-gray-500 sm:h-11 sm:w-11 dark:bg-neutral-700"
                           fallbackClassName="text-base font-bold"
                         />
-                        <div className="min-w-0 flex-1 rounded-full border border-gray-300 bg-gray-50 px-4 py-2.5 dark:border-neutral-700 dark:bg-neutral-800/50">
+                        <div className="min-w-0 flex-1 rounded-full bg-gray-100 px-5 py-3 transition-colors hover:bg-gray-200/70 dark:bg-neutral-800/70 dark:hover:bg-neutral-800">
                           <span className="block truncate text-sm text-gray-500 dark:text-neutral-400">
                             What&apos;s on your mind, {user.name?.split(' ')[0]}?
                           </span>
@@ -223,7 +223,7 @@ export function FeedTimelineView({
                       </div>
                     </button>
 
-                    <div className="flex items-center justify-around border-t border-gray-100 px-2 py-1.5 dark:border-neutral-800">
+                    <div className="flex items-center gap-1 border-t border-gray-100 px-2 py-1.5 dark:border-neutral-800">
                       <ComposerAction
                         icon={ImageIcon}
                         label="Photo"
@@ -253,7 +253,15 @@ export function FeedTimelineView({
                   transition={{ duration: 0.22, delay: 0.04 }}
                   className="mt-2.5 sm:mt-3.5 sm:px-4 lg:px-0"
                 >
-                  <div className="overflow-hidden border-y border-gray-200/80 bg-white py-1 dark:border-neutral-800/80 dark:bg-neutral-900 sm:rounded-[18px] sm:border sm:shadow-[0_18px_45px_-40px_rgba(15,23,42,0.55)]">
+                  <div className={PANEL_SURFACE}>
+                    <div className="flex items-center justify-between px-4 pt-3.5 sm:px-5">
+                      <h2 className="text-sm font-semibold tracking-tight text-gray-900 dark:text-white">
+                        Stories
+                      </h2>
+                      <span className="text-xs text-gray-400 dark:text-neutral-500">
+                        Fresh for 24 hours
+                      </span>
+                    </div>
                     <StoryCarousel
                       onOpenStory={handleOpenStory}
                       onCreateStory={() => setShowStoryCreator(true)}

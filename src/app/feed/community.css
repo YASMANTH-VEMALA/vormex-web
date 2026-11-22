@@ -1,22 +1,39 @@
 /* Scope the community palette to the feed, including its dialogs. */
 .community-feed {
-  --color-blue-50: #f0f0ff;
-  --color-blue-100: #e3e3ff;
-  --color-blue-200: #ccccff;
-  --color-blue-300: #b4b5ff;
-  --color-blue-400: #9698ff;
-  --color-blue-500: #7074f5;
-  --color-blue-600: #5b5fef;
-  --color-blue-700: #4949cc;
-  --color-blue-800: #3b3b9f;
-  --color-blue-900: #303078;
-  --color-blue-950: #222246;
-  --color-neutral-700: #414552;
-  --color-neutral-800: #2a2d37;
-  --color-neutral-900: #1c1f27;
-  --color-neutral-950: #12141b;
-  --primary: #5b5fef;
-  --ring: #5b5fef;
+  /* Neutral mono palette: the feed's "blue" utilities resolve to grays. */
+  --color-blue-50: #fafafa;
+  --color-blue-100: #f4f4f5;
+  --color-blue-200: #e4e4e7;
+  --color-blue-300: #d4d4d8;
+  --color-blue-400: #a1a1aa;
+  --color-blue-500: #71717a;
+  --color-blue-600: #3f3f46;
+  --color-blue-700: #27272a;
+  --color-blue-800: #18181b;
+  --color-blue-900: #09090b;
+  --color-blue-950: #000000;
+  --primary: #18181b;
+  --ring: #71717a;
+}
+
+.dark .community-feed {
+  --color-blue-50: #1c1c20;
+  --color-blue-100: #27272a;
+  --color-blue-200: #3f3f46;
+  --color-blue-300: #d4d4d8;
+  --color-blue-400: #d4d4d8;
+  --color-blue-500: #a1a1aa;
+  --color-blue-600: #52525b;
+  --color-blue-700: #71717a;
+  --color-blue-800: #3f3f46;
+  --color-blue-900: #27272a;
+  --color-blue-950: #1c1c20;
+  --color-neutral-700: #2e2e33;
+  --color-neutral-800: #1f1f23;
+  --color-neutral-900: #111113;
+  --color-neutral-950: #09090b;
+  --primary: #f4f4f5;
+  --ring: #a1a1aa;
 }
 
 /* Restore comfortable reading size on this page without changing other routes. */

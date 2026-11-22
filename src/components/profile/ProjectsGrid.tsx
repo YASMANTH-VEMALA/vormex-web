@@ -1,93 +1,304 @@
 'use client';
 
+import { cn } from '@/lib/utils';
 import type { Project } from '@/types/profile';
-import { Code, ExternalLink, Folder, Github, Pencil, Star } from 'lucide-react';
-import { useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
-  ProfileSection,
-  RevealItem,
-  SectionAddButton,
-  SectionEditButton,
-  SectionEmptyState,
-} from './ProfileSection';
+  ArrowLeft,
+  ArrowRight,
+  Code,
+  ExternalLink,
+  Folder,
+  Github,
+  Pencil,
+  Star,
+} from 'lucide-react';
+import { useState } from 'react';
+import { ProfileSection, SectionAddButton, SectionEmptyState } from './ProfileSection';
 import { ProjectDetailModal } from './ProjectDetailModal';
 
 interface ProjectsGridProps {
   projects: Project[];
   isOwner: boolean;
   onAddProject?: () => void;
-  onToggleFeatured?: (id: string) => void;
   onEditProject?: (project: Project) => void;
 }
 
+const formatDate = (dateString: string) =>
+  new Date(dateString).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+
+/**
+ * Vertical-tabs showcase (adapted from the 21st.dev "Vertical Tabs" component):
+ * project list on the left, the active project's pictures on the right.
+ */
 export function ProjectsGrid({
   projects,
   isOwner,
   onAddProject,
-  onToggleFeatured,
   onEditProject,
 }: ProjectsGridProps) {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  const [editing, setEditing] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [imageIndex, setImageIndex] = useState(0);
+  const [direction, setDirection] = useState(0);
 
-  // Separate featured and regular projects
-  const featuredProjects = projects.filter((p) => p.featured);
-  const regularProjects = projects.filter((p) => !p.featured);
-  const orderedProjects = [...featuredProjects, ...regularProjects];
+  // Featured projects first.
+  const ordered = [...projects.filter((p) => p.featured), ...projects.filter((p) => !p.featured)];
 
-  if (projects.length === 0 && !isOwner) {
-    return null;
-  }
+  if (projects.length === 0 && !isOwner) return null;
+
+  const safeIndex = Math.min(activeIndex, Math.max(ordered.length - 1, 0));
+  const active = ordered[safeIndex];
+  const images = active?.images ?? [];
+  const image = images.length > 0 ? images[imageIndex % images.length] : null;
+
+  const goTo = (index: number) => {
+    if (index === safeIndex) return;
+    setDirection(index > safeIndex ? 1 : -1);
+    setActiveIndex(index);
+    setImageIndex(0);
+  };
+  const step = (delta: number) => goTo((safeIndex + delta + ordered.length) % ordered.length);
+
+  const variants = {
+    enter: (dir: number) => ({ y: dir > 0 ? '-100%' : '100%', opacity: 0 }),
+    center: { zIndex: 1, y: 0, opacity: 1 },
+    exit: (dir: number) => ({ zIndex: 0, y: dir > 0 ? '100%' : '-100%', opacity: 0 }),
+  };
 
   return (
     <>
       <ProfileSection
-        icon={<Code className="w-5 h-5" />}
+        icon={<Code className="h-5 w-5" />}
         title="Projects & Work"
         count={projects.length}
         action={
-          isOwner ? (
-            <>
-              {onAddProject && <SectionAddButton onClick={onAddProject} label="Add Project" />}
-              {onEditProject && orderedProjects.length > 0 && (
-                <SectionEditButton
-                  onClick={() => {
-                    if (orderedProjects.length === 1) onEditProject(orderedProjects[0]);
-                    else setEditing((current) => !current);
-                  }}
-                  label="Edit Projects"
-                  active={editing}
-                />
-              )}
-            </>
+          isOwner && onAddProject ? (
+            <SectionAddButton onClick={onAddProject} label="Add Project" />
           ) : undefined
         }
       >
-        {projects.length === 0 ? (
+        {ordered.length === 0 || !active ? (
           <SectionEmptyState
-            icon={<Folder className="w-5 h-5" />}
+            icon={<Folder className="h-5 w-5" />}
             message="No projects showcased yet."
             actionLabel={isOwner && onAddProject ? 'Add Your First Project' : undefined}
             onAction={isOwner && onAddProject ? onAddProject : undefined}
           />
         ) : (
-          <div
-            className="-mx-1 flex snap-x snap-mandatory gap-4 overflow-x-auto px-1 pb-3 pt-1 scroll-smooth overscroll-x-contain"
-            aria-label="Projects"
-          >
-            {orderedProjects.map((project, index) => (
-              <ProjectCard
-                key={project.id}
-                project={project}
-                isOwner={isOwner}
-                onToggleFeatured={onToggleFeatured}
-                onEdit={onEditProject}
-                onClick={() => setSelectedProject(project)}
-                index={index}
-                featured={project.featured}
-                editing={editing}
-              />
-            ))}
+          <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12 lg:gap-8">
+            {/* Pictures */}
+            <div className="order-1 lg:order-2 lg:col-span-7">
+              <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-100 dark:border-white/10 dark:bg-white/5 lg:aspect-[16/11]">
+                <AnimatePresence initial={false} custom={direction} mode="popLayout">
+                  <motion.div
+                    key={`${active.id}-${imageIndex}`}
+                    custom={direction}
+                    variants={variants}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    transition={{
+                      y: { type: 'spring', stiffness: 260, damping: 32 },
+                      opacity: { duration: 0.35 },
+                    }}
+                    className="absolute inset-0 cursor-pointer"
+                    onClick={() => setSelectedProject(active)}
+                  >
+                    {image ? (
+                      <img
+                        src={image}
+                        alt={active.name}
+                        className="block h-full w-full object-cover transition-transform duration-700 hover:scale-105"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-gradient-to-br from-neutral-100 to-neutral-200 text-neutral-400 dark:from-white/5 dark:to-white/[0.02] dark:text-neutral-500">
+                        <Folder className="h-10 w-10" />
+                        <span className="text-sm font-medium">{active.name}</span>
+                      </div>
+                    )}
+                    <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/30 to-transparent" />
+                  </motion.div>
+                </AnimatePresence>
+
+                {active.featured && (
+                  <span className="absolute left-3 top-3 z-10 inline-flex items-center gap-1 rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-semibold text-amber-600 shadow-sm backdrop-blur-sm dark:bg-neutral-900/80 dark:text-amber-400">
+                    <Star className="h-3 w-3 fill-current" />
+                    Featured
+                  </span>
+                )}
+
+                {images.length > 1 && (
+                  <div className="absolute bottom-4 left-4 z-20 flex gap-1.5">
+                    {images.map((_, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setImageIndex(i);
+                        }}
+                        aria-label={`Show picture ${i + 1}`}
+                        className={cn(
+                          'h-1.5 rounded-full transition-all',
+                          i === imageIndex % images.length
+                            ? 'w-6 bg-white'
+                            : 'w-1.5 bg-white/50 hover:bg-white/80'
+                        )}
+                      />
+                    ))}
+                  </div>
+                )}
+
+                {ordered.length > 1 && (
+                  <div className="absolute bottom-3 right-3 z-20 flex gap-2">
+                    {[
+                      { label: 'Previous project', delta: -1, Icon: ArrowLeft },
+                      { label: 'Next project', delta: 1, Icon: ArrowRight },
+                    ].map(({ label, delta, Icon }) => (
+                      <button
+                        key={label}
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          step(delta);
+                        }}
+                        aria-label={label}
+                        className="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-black/40 text-white backdrop-blur-md transition-transform hover:bg-black/60 active:scale-90"
+                      >
+                        <Icon className="h-4 w-4" />
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Vertical tabs */}
+            <div role="tablist" aria-label="Projects" className="order-2 min-w-0 lg:order-1 lg:col-span-5">
+              {ordered.map((project, index) => {
+                const isActive = index === safeIndex;
+                return (
+                  <div
+                    key={project.id}
+                    className="relative border-t border-neutral-200 first:border-0 dark:border-white/10"
+                  >
+                    <div className="absolute bottom-0 left-0 top-0 w-0.5 bg-neutral-200 dark:bg-white/10">
+                      <motion.div
+                        className="absolute left-0 top-0 w-full origin-top bg-neutral-900 dark:bg-white"
+                        initial={false}
+                        animate={{ height: isActive ? '100%' : '0%' }}
+                        transition={{ duration: 0.4, ease: 'easeOut' }}
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={isActive}
+                      onClick={() => goTo(index)}
+                      className={cn(
+                        'flex w-full items-start gap-3 py-4 pl-5 pr-1 text-left transition-colors',
+                        isActive
+                          ? 'text-neutral-900 dark:text-white'
+                          : 'text-neutral-400 hover:text-neutral-900 dark:text-neutral-500 dark:hover:text-white'
+                      )}
+                    >
+                      <span className="mt-1.5 text-[10px] font-medium tabular-nums opacity-60">
+                        /{String(index + 1).padStart(2, '0')}
+                      </span>
+                      <span className="min-w-0 flex-1 break-words text-xl font-medium tracking-tight sm:text-2xl">
+                        {project.name}
+                      </span>
+                    </button>
+
+                    <AnimatePresence initial={false}>
+                      {isActive && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+                          className="overflow-hidden"
+                        >
+                          <div className="pb-5 pl-[3.25rem] pr-1">
+                            {project.role && (
+                              <p className="mb-1 text-xs font-medium text-neutral-500 dark:text-neutral-400">
+                                {project.role}
+                              </p>
+                            )}
+                            <p className="line-clamp-4 text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">
+                              {project.description}
+                            </p>
+                            {project.techStack?.length > 0 && (
+                              <div className="mt-3 flex flex-wrap gap-1.5">
+                                {project.techStack.slice(0, 5).map((tech) => (
+                                  <span
+                                    key={tech}
+                                    className="rounded-md bg-neutral-100 px-2.5 py-1 text-[11px] font-medium text-neutral-600 dark:bg-white/10 dark:text-neutral-300"
+                                  >
+                                    {tech}
+                                  </span>
+                                ))}
+                                {project.techStack.length > 5 && (
+                                  <span className="px-1 py-1 text-[11px] font-medium text-neutral-400">
+                                    +{project.techStack.length - 5}
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                            <div className="mt-4 flex flex-wrap items-center gap-2">
+                              <span className="mr-1 text-[11px] font-medium text-neutral-400 dark:text-neutral-500">
+                                {formatDate(project.startDate)}
+                                {project.endDate ? ` — ${formatDate(project.endDate)}` : ' — Present'}
+                              </span>
+                              {project.projectUrl && (
+                                <a
+                                  href={project.projectUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  title="Live demo"
+                                  className="rounded-full p-1.5 text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-900 dark:hover:bg-white/10 dark:hover:text-white"
+                                >
+                                  <ExternalLink className="h-4 w-4" />
+                                </a>
+                              )}
+                              {project.githubUrl && (
+                                <a
+                                  href={project.githubUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  title="GitHub code"
+                                  className="rounded-full p-1.5 text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-900 dark:hover:bg-white/10 dark:hover:text-white"
+                                >
+                                  <Github className="h-4 w-4" />
+                                </a>
+                              )}
+                              {isOwner && onEditProject && (
+                                <button
+                                  type="button"
+                                  onClick={() => onEditProject(project)}
+                                  title="Edit project"
+                                  className="rounded-full p-1.5 text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-900 dark:hover:bg-white/10 dark:hover:text-white"
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </button>
+                              )}
+                              <button
+                                type="button"
+                                onClick={() => setSelectedProject(project)}
+                                className="ml-auto text-xs font-semibold text-neutral-900 underline-offset-4 hover:underline dark:text-white"
+                              >
+                                View details
+                              </button>
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
       </ProfileSection>
@@ -98,173 +309,5 @@ export function ProjectsGrid({
         onClose={() => setSelectedProject(null)}
       />
     </>
-  );
-}
-
-interface ProjectCardProps {
-  project: Project;
-  isOwner: boolean;
-  onToggleFeatured?: (id: string) => void;
-  onEdit?: (project: Project) => void;
-  onClick: () => void;
-  index: number;
-  featured?: boolean;
-  editing?: boolean;
-}
-
-function ProjectCard({
-  project,
-  isOwner,
-  onToggleFeatured,
-  onEdit,
-  onClick,
-  index,
-  featured,
-  editing,
-}: ProjectCardProps) {
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      year: 'numeric',
-    });
-  };
-
-  return (
-    <RevealItem
-      index={index}
-      className="h-auto w-[82vw] min-w-[16rem] max-w-[20rem] flex-none snap-start sm:w-80"
-    >
-      <div
-        onClick={onClick}
-        className={`group relative h-full flex flex-col rounded-2xl overflow-hidden bg-white dark:bg-neutral-800/60 border cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-neutral-900/10 dark:hover:shadow-black/40 ${
-          featured
-            ? 'border-neutral-300 ring-1 ring-neutral-200 dark:border-neutral-600 dark:ring-neutral-700'
-            : 'border-neutral-200 dark:border-neutral-700'
-        }`}
-      >
-        {/* Project Image */}
-        <div className="aspect-video bg-neutral-100 dark:bg-neutral-800 overflow-hidden relative">
-          {project.images && project.images.length > 0 ? (
-            <img
-              src={project.images[0]}
-              alt={project.name}
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-neutral-100 to-neutral-200 dark:from-neutral-800 dark:to-neutral-900 text-neutral-300 dark:text-neutral-600">
-              <Folder className="w-8 h-8" />
-            </div>
-          )}
-
-          {/* Featured badge */}
-          {featured && (
-            <span className="absolute top-3 left-3 inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/90 dark:bg-neutral-900/90 backdrop-blur-sm text-[11px] font-semibold text-amber-600 dark:text-amber-400 shadow-sm">
-              <Star className="w-3 h-3 fill-current" />
-              Featured
-            </span>
-          )}
-
-          {/* Hover Actions Overlay */}
-          {isOwner && editing && (
-            <div
-              className="absolute right-3 top-3 z-10 flex gap-1.5"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {onToggleFeatured && (
-                <button
-                  onClick={() => onToggleFeatured(project.id)}
-                  className={`p-2 rounded-full backdrop-blur-sm shadow-sm transition-colors ${
-                    project.featured
-                      ? 'bg-amber-500 text-white'
-                      : 'bg-white/90 dark:bg-neutral-900/90 text-neutral-500 hover:text-amber-500'
-                  }`}
-                  title={project.featured ? 'Unfeature' : 'Feature'}
-                >
-                  <Star className={`w-3.5 h-3.5 ${project.featured ? 'fill-current' : ''}`} />
-                </button>
-              )}
-              {onEdit && (
-                <button
-                  onClick={() => onEdit(project)}
-                  className="p-2 rounded-full bg-white/90 dark:bg-neutral-900/90 backdrop-blur-sm text-neutral-500 hover:text-blue-600 dark:hover:text-blue-400 shadow-sm transition-colors"
-                  title="Edit project"
-                >
-                  <Pencil className="w-3.5 h-3.5" />
-                </button>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Content */}
-        <div className="p-5 flex flex-col flex-1">
-          <h4 className="mb-0.5 break-words text-[15px] font-semibold text-neutral-900 dark:text-white">
-            {project.name}
-          </h4>
-
-          {project.role && (
-            <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-3">
-              {project.role}
-            </p>
-          )}
-
-          <p className="text-neutral-600 dark:text-neutral-400 text-[13px] leading-relaxed line-clamp-2 mb-4">
-            {project.description}
-          </p>
-
-          {/* Tech Stack */}
-          {project.techStack && project.techStack.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mb-4">
-              {project.techStack.slice(0, 3).map((tech) => (
-                <span
-                  key={tech}
-                  className="rounded-md bg-neutral-100 px-2.5 py-1 text-[11px] font-medium text-neutral-600 dark:bg-neutral-700 dark:text-neutral-300"
-                >
-                  {tech}
-                </span>
-              ))}
-              {project.techStack.length > 3 && (
-                <span className="px-2 py-1 text-[11px] font-medium text-neutral-400">
-                  +{project.techStack.length - 3}
-                </span>
-              )}
-            </div>
-          )}
-
-          {/* Footer: Date & Links */}
-          <div className="mt-auto flex items-center justify-between pt-3 border-t border-neutral-100 dark:border-neutral-700/60">
-            <span className="text-[11px] font-medium text-neutral-400 dark:text-neutral-500">
-              {formatDate(project.startDate)}
-              {project.endDate ? ` — ${formatDate(project.endDate)}` : ' — Present'}
-            </span>
-
-            <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-              {project.projectUrl && (
-                <a
-                  href={project.projectUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-1.5 rounded-full text-neutral-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-colors"
-                  title="Live Demo"
-                >
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </a>
-              )}
-              {project.githubUrl && (
-                <a
-                  href={project.githubUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-1.5 rounded-full text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
-                  title="GitHub Code"
-                >
-                  <Github className="w-3.5 h-3.5" />
-                </a>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-    </RevealItem>
   );
 }

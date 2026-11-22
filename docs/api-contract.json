@@ -935,6 +935,10 @@
     },
     {
       "method": "get",
+      "endpoint": "/api/groups/:groupId/requests"
+    },
+    {
+      "method": "get",
       "endpoint": "/api/groups/:groupId/join-requests"
     },
     {

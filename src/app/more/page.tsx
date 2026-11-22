@@ -303,14 +303,6 @@ export default function MorePage() {
       locked: true,
     },
     {
-      id: 'interviews',
-      label: 'Mock Interviews',
-      icon: MessageSquare,
-      href: '/interviews',
-      color: 'text-sky-500',
-      locked: true,
-    },
-    {
       id: 'notifications',
       label: 'Notification Settings',
       icon: Bell,

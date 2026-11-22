@@ -24,24 +24,28 @@ interface PersonCardProps {
   badgeLabel?: string;
 }
 
+// Official Vormex cover, shown whenever a person has no banner of their own (or theirs fails to load).
+const OFFICIAL_BANNER = '/vormex-profile-cover.png';
+
 function ProfileBanner({ imageSrc }: { imageSrc?: string | null }) {
   const resolvedSrc = useMemo(() => resolveMediaUrl(imageSrc), [imageSrc]);
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
   const failed = Boolean(resolvedSrc && failedSrc === resolvedSrc);
+  const src = resolvedSrc && !failed ? resolvedSrc : OFFICIAL_BANNER;
 
   return (
-    <div className="relative h-16 shrink-0 overflow-hidden bg-gradient-to-br from-blue-100 via-blue-50 to-gray-100 dark:from-blue-950 dark:via-neutral-800 dark:to-neutral-900">
-      {resolvedSrc && !failed && (
-        <img
-          src={resolvedSrc}
-          alt=""
-          loading="lazy"
-          decoding="async"
-          draggable={false}
-          onError={() => setFailedSrc(resolvedSrc)}
-          className="absolute inset-0 h-full w-full object-cover"
-        />
-      )}
+    <div className="relative h-20 shrink-0 overflow-hidden bg-gray-100 dark:bg-neutral-800">
+      <img
+        src={src}
+        alt=""
+        loading="lazy"
+        decoding="async"
+        draggable={false}
+        onError={() => {
+          if (resolvedSrc && src === resolvedSrc) setFailedSrc(resolvedSrc);
+        }}
+        className="absolute inset-0 h-full w-full object-cover"
+      />
     </div>
   );
 }
@@ -116,7 +120,9 @@ export function PersonCard({
         </ProfileLink>
 
         {handle && (
-          <p className="max-w-full truncate text-xs text-gray-500 dark:text-neutral-400">{handle}</p>
+          <p className="max-w-full truncate text-xs text-gray-500 dark:text-neutral-400">
+            {handle}
+          </p>
         )}
 
         {headline ? (

@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import React from 'react';
+import { DefaultVideoById } from './DefaultVideoPlayer';
 
 interface usePostContentOptions {
   currentImageIndex: number;
@@ -45,24 +46,43 @@ export function usePostContent({
   videoRef,
 }: usePostContentOptions) {
   const renderContent = () => {
+    let typeContent: React.JSX.Element | null;
     switch (post.type) {
       case 'IMAGE':
-        return renderImageContent();
+        typeContent = renderImageContent();
+        break;
       case 'VIDEO':
-        return renderVideoContent();
+        typeContent = renderVideoContent();
+        break;
       case 'LINK':
-        return renderLinkContent();
+        typeContent = renderLinkContent();
+        break;
       case 'POLL':
-        return renderPollContent();
+        typeContent = renderPollContent();
+        break;
       case 'ARTICLE':
-        return renderArticleContent();
+        typeContent = renderArticleContent();
+        break;
       case 'CELEBRATION':
-        return renderCelebrationContent();
+        typeContent = renderCelebrationContent();
+        break;
       case 'DOCUMENT':
-        return renderDocumentContent();
+        typeContent = renderDocumentContent();
+        break;
       default:
-        return null;
+        typeContent = null;
     }
+    // A built-in animation rides along with any post type (Android parity);
+    // unknown ids render nothing, so newer Android ids degrade gracefully.
+    if (!post.defaultVideoId) return typeContent;
+    return (
+      <>
+        {typeContent}
+        <div className="mt-3 overflow-hidden rounded-lg">
+          <DefaultVideoById defaultVideoId={post.defaultVideoId} />
+        </div>
+      </>
+    );
   };
 
   const renderImageContent = () => {

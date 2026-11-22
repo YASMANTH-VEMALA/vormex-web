@@ -19,7 +19,7 @@ export default function FeedPage() {
   return (
     <ProtectedRoute>
       <main
-        className={`community-feed min-h-screen overflow-x-hidden bg-[#f7f8fa] text-[#172033] dark:bg-neutral-950 dark:text-neutral-100 ${isGrid ? 'relative' : ''}`}
+        className={`community-feed min-h-screen overflow-x-hidden bg-[#eef1f6] text-[#172033] dark:bg-transparent dark:text-neutral-100 ${isGrid ? 'relative' : ''}`}
       >
         {isGrid && (
           <div className="pointer-events-none fixed inset-0 -z-10 opacity-60 [background-image:linear-gradient(to_right,rgba(0,0,0,0.08)_1px,transparent_1px),linear-gradient(to_bottom,rgba(0,0,0,0.08)_1px,transparent_1px)] [background-size:20px_20px] dark:opacity-20" />
